@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Registro y medidas de neumáticos{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:neumaticos' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Neumáticos
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Modal pre-abierto -->
+<div id="modal-neumatico-form" class="modal-overlay open" data-backdrop-redirect="{% url 'inventario:neumaticos' %}">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">Completá los datos del neumático</div>
+      </div>
+      <a href="{% url 'inventario:neumaticos' %}" class="modal-close">✕</a>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body space-y-4">
+        {% if form.errors %}
+        <div class="alert alert-error">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="form-label">Nombre del Neumático *</label>
+            {{ form.nombre }}
+          </div>
+          <div>
+            <label class="form-label">Código SKU</label>
+            {{ form.codigo_sku }}
+          </div>
+          <div>
+            <label class="form-label">Categoría</label>
+            {{ form.categoria }}
+          </div>
+          <div>
+            <label class="form-label">Marca</label>
+            {{ form.marca }}
+          </div>
+          <div>
+            <label class="form-label">Modelo</label>
+            {{ form.modelo }}
+          </div>
+          <div>
+            <label class="form-label">Medida (ej: 205/55R16)</label>
+            {{ form.medida }}
+          </div>
+          <div>
+            <label class="form-label">Índice Carga / Velocidad</label>
+            {{ form.indice_carga_velocidad }}
+          </div>
+          <div>
+            <label class="form-label">Tipo de Terreno</label>
+            {{ form.tipo_terreno }}
+          </div>
+          <div>
+            <label class="form-label">Precio Costo ($)</label>
+            {{ form.precio_costo }}
+          </div>
+          <div>
+            <label class="form-label">Precio Venta ($)</label>
+            {{ form.precio_venta }}
+          </div>
+          <div>
+            <label class="form-label">Stock Actual</label>
+            {{ form.stock_actual }}
+          </div>
+          <div>
+            <label class="form-label">Stock Mínimo</label>
+            {{ form.stock_minimo }}
+          </div>
+          <div class="md:col-span-2">
+            <label class="form-label">Foto / Imagen del Neumático</label>
+            {{ form.imagen }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'inventario:neumaticos' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Neumático</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

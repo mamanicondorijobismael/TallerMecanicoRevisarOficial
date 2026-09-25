@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block page_title %}Órdenes de Trabajo{% endblock %}
+{% block subtitle %}Gestión de servicios y reparaciones{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Inicio
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ordenes:crear' %}" class="btn btn-primary">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+  Nueva Orden
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card animate-in">
+  <!-- Filtros -->
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+    <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div class="search-wrap" style="flex:1;min-width:240px">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Buscar por N° orden, patente o cliente..." class="form-input">
+      </div>
+      <div style="min-width:180px">
+        <select name="estado" class="form-input">
+          <option value="">Todos los estados</option>
+          {% for value, label in estados %}
+          <option value="{{ value }}" {% if estado_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-ghost">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+        Filtrar
+      </button>
+    </form>
+  </div>
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>N° Orden</th>
+          <th>Fecha</th>
+          <th>Vehículo / Cliente</th>
+          <th>Mecánico</th>
+          <th>Estado</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes %}
+        <tr>
+          <td>
+            <span style="font-family:monospace;font-weight:800;color:var(--brand);font-size:13px">OT#{{ o.numero_orden }}</span>
+          </td>
+          <td style="color:var(--txt-muted);font-size:12px">{{ o.fecha_creacion|date:"d/m/Y H:i" }}</td>
+          <td>
+            <div style="font-weight:600;color:var(--txt)">{{ o.vehiculo.patente }}</div>
+            <div style="font-size:11.5px;color:var(--txt-muted)">{{ o.vehiculo.cliente.nombre_razon_social|truncatechars:24 }}</div>
+          </td>
+          <td style="color:var(--txt-muted);font-size:13px">{{ o.mecanico.nombre_completo|default:"Sin asignar" }}</td>
+          <td>
+            <span class="badge status-{{ o.estado|lower }}">{{ o.get_estado_display }}</span>
+          </td>
+          <td style="text-align:right;font-weight:700;color:var(--txt)">${{ o.total|floatformat:2 }}</td>
+          <td style="text-align:right">
+            <a href="{% url 'ordenes:detalle' o.pk %}" class="btn btn-sm btn-ghost">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Ver
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <h3>No hay órdenes de trabajo</h3>
+              <p>Creá la primera orden usando el botón de arriba.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

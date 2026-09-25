@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Información del cliente{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'clientes:lista' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Clientes
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Modal principal para el formulario -->
+<div id="modal-cliente-form" class="modal-overlay open" data-backdrop-redirect="{% url 'clientes:lista' %}">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">Completá los datos del cliente</div>
+      </div>
+      <a href="{% url 'clientes:lista' %}" class="modal-close" title="Cerrar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </a>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom:16px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <strong style="display:block;margin-bottom:4px">Hay errores que corregir:</strong>
+            {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
+            {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="grid-column:1/-1">
+            <label class="form-label">Nombre o Razón Social *</label>
+            {{ form.nombre_razon_social }}
+            {% if form.nombre_razon_social.errors %}<p style="color:#F87171;font-size:11px;margin-top:4px">{{ form.nombre_razon_social.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="form-label">Documento (DNI/CUIT)</label>
+            {{ form.documento }}
+            {% if form.documento.errors %}<p style="color:#F87171;font-size:11px;margin-top:4px">{{ form.documento.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="form-label">Teléfono / WhatsApp</label>
+            {{ form.telefono }}
+          </div>
+          <div>
+            <label class="form-label">Correo Electrónico</label>
+            {{ form.email }}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding-top:18px">
+            {{ form.activo }}
+            <label style="font-size:13px;font-weight:600;color:var(--txt-muted);cursor:pointer">Cliente Activo</label>
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="form-label">Dirección</label>
+            {{ form.direccion }}
+          </div>
+          <div>
+            <label class="form-label">Foto del Cliente</label>
+            {% if cliente.foto %}
+            <div style="margin-bottom:8px">
+              <img src="{{ cliente.foto.url }}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border);cursor:zoom-in" data-lightbox="{{ cliente.foto.url }}" data-alt="{{ cliente.nombre_razon_social }}">
+            </div>
+            {% endif %}
+            {{ form.foto }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'clientes:lista' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Guardar Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

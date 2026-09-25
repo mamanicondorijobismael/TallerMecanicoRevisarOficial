@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% block page_title %}Orden de Trabajo #{{ orden.numero_orden }}{% endblock %}
+{% block subtitle %}{{ orden.vehiculo.patente }} – {{ orden.vehiculo.cliente.nombre_razon_social }}{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'ordenes:lista' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Órdenes
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="flex items-center gap-2 flex-wrap">
+  {% if orden.estado not in 'FACTURADA,CANCELADA' %}
+  <a href="{% url 'ordenes:editar' orden.pk %}" class="btn btn-ghost btn-sm">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    Editar
+  </a>
+  {% endif %}
+
+  <form method="POST" action="{% url 'ordenes:cambiar_estado' orden.pk %}" class="flex items-center gap-1.5">
+    {% csrf_token %}
+    <select name="estado" class="form-input" style="padding:6px 28px 6px 10px;font-size:12px;width:140px;">
+      {% for state_val, state_name in orden.Estado.choices %}
+        {% if state_val != 'FACTURADA' or orden.estado == 'FACTURADA' %}
+          <option value="{{ state_val }}" {% if orden.estado == state_val %}selected{% endif %}>{{ state_name }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-ghost btn-sm" {% if orden.estado == 'FACTURADA' %}disabled{% endif %}>Actualizar</button>
+  </form>
+
+  {% if orden.estado == 'COMPLETADA' %}
+  <form method="POST" action="{% url 'facturas:generar' orden.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-sm">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Pasar a Cobros
+    </button>
+  </form>
+  {% endif %}
+
+  {% if orden.estado == 'FACTURADA' and orden.factura %}
+  <a href="{% url 'facturas:detalle' orden.factura.pk %}" class="btn btn-secondary btn-sm">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Ver Cobro
+  </a>
+  {% endif %}
+
+  <button onclick="window.print()" class="btn btn-ghost btn-sm">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+    Imprimir
+  </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in">
+  <!-- 2 Columnas Izquierda: Servicios y Repuestos -->
+  <div class="lg:col-span-2 space-y-6" style="display:flex;flex-direction:column;gap:24px;">
+    <!-- Mano de Obra / Servicios -->
+    <div class="card p-5" style="padding:22px;">
+      <div class="flex justify-between items-center mb-4 pb-3" style="border-bottom:1px solid var(--border);margin-bottom:16px;padding-bottom:12px;">
+        <h3 class="font-bold text-sm" style="font-family:'Outfit',sans-serif;color:var(--txt)">Mano de Obra y Servicios</h3>
+        {% if orden.estado not in 'FACTURADA,CANCELADA' %}
+        <button onclick="openModal('modal-servicio')" class="btn btn-primary btn-xs">
+          + Agregar Servicio
+        </button>
+        {% endif %}
+      </div>
+      <div class="overflow-x-auto">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:center">Cant / Hs</th>
+              <th style="text-align:right">Precio Unit.</th>
+              <th style="text-align:right">Subtotal</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in servicios %}
+            <tr>
+              <td class="font-medium" style="color:var(--txt)">{{ s.descripcion }}</td>
+              <td style="text-align:center;color:var(--txt-muted)">{{ s.cantidad }}</td>
+              <td style="text-align:right;color:var(--txt-muted)">${{ s.precio_unitario }}</td>
+              <td style="text-align:right;font-weight:700;color:var(--txt)">${{ s.subtotal }}</td>
+              <td style="text-align:center">
+                {% if orden.estado not in 'FACTURADA,CANCELADA' %}
+                <form method="POST" action="{% url 'ordenes:eliminar_servicio' orden.pk s.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="text-red-400 hover:text-red-300 p-1 text-xs" style="background:none;border:none;cursor:pointer;color:#EF4444;" title="Eliminar">✕</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--txt-muted);font-size:12px;font-style:italic">No hay servicios agregados todavía.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Repuestos / Productos -->
+    <div class="card p-5" style="padding:22px;">
+      <div class="flex justify-between items-center mb-4 pb-3" style="border-bottom:1px solid var(--border);margin-bottom:16px;padding-bottom:12px;">
+        <h3 class="font-bold text-sm" style="font-family:'Outfit',sans-serif;color:var(--txt)">Repuestos y Productos Usados</h3>
+        {% if orden.estado not in 'FACTURADA,CANCELADA' %}
+        <button onclick="openModal('modal-producto')" class="btn btn-primary btn-xs">
+          + Agregar Producto
+        </button>
+        {% endif %}
+      </div>
+      <div class="overflow-x-auto">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Producto / SKU</th>
+              <th style="text-align:center">Cant</th>
+              <th style="text-align:right">Precio Unit.</th>
+              <th style="text-align:right">Subtotal</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in productos %}
+            <tr>
+              <td style="width:46px">
+                <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+                  {% if p.producto.imagen %}
+                    <img src="{{ p.producto.imagen.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" data-lightbox="{{ p.producto.imagen.url }}" data-alt="{{ p.producto.nombre }}">
+                  {% else %}
+                    <svg style="width:16px;height:16px;color:var(--txt-dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="font-bold text-xs" style="color:var(--txt)">{{ p.producto.nombre }}</div>
+                <div class="text-[11px] font-mono" style="color:var(--txt-muted);font-size:11px;">{{ p.producto.codigo_sku }}</div>
+              </td>
+              <td style="text-align:center;font-weight:700;color:var(--txt);font-size:12px">{{ p.cantidad }}</td>
+              <td style="text-align:right;color:var(--txt-muted);font-size:12px">${{ p.precio_unitario }}</td>
+              <td style="text-align:right;font-weight:800;color:var(--brand);font-size:13px">${{ p.subtotal }}</td>
+              <td style="text-align:center">
+                {% if orden.estado not in 'FACTURADA,CANCELADA' %}
+                <form method="POST" action="{% url 'ordenes:eliminar_producto' orden.pk p.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="text-red-400 hover:text-red-300 p-1 text-xs" style="background:none;border:none;cursor:pointer;color:#EF4444;" title="Eliminar">✕</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--txt-muted);font-size:12px;font-style:italic">No hay repuestos o insumos agregados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1 Columna Derecha: Totales e Información -->
+  <div class="space-y-6" style="display:flex;flex-direction:column;gap:24px;">
+    <!-- Totales -->
+    <div class="card p-5" style="padding:22px;border:1px solid rgba(255,107,0,0.25);">
+      <h3 class="font-bold text-sm uppercase tracking-wider mb-4" style="font-family:'Outfit',sans-serif;color:var(--brand);margin-bottom:16px;letter-spacing:0.08em;">Resumen de Liquidación</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;">
+        <div class="flex justify-between" style="color:var(--txt-muted)">
+          <span>Servicios:</span>
+          <span style="font-weight:600;color:var(--txt)">${{ orden.subtotal_servicios|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between" style="color:var(--txt-muted)">
+          <span>Repuestos / Insumos:</span>
+          <span style="font-weight:600;color:var(--txt)">${{ orden.subtotal_productos|floatformat:2 }}</span>
+        </div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="flex justify-between" style="color:var(--txt);font-weight:600;font-size:13.5px;">
+          <span>Subtotal Neto:</span>
+          <span>${{ orden.subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between" style="color:var(--txt-muted)">
+          <span>IVA (21%):</span>
+          <span style="color:var(--txt)">${{ orden.iva_monto|floatformat:2 }}</span>
+        </div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="flex justify-between items-center" style="padding-top:4px;">
+          <span style="font-size:13px;font-weight:800;color:var(--txt);text-transform:uppercase;letter-spacing:0.05em;">TOTAL:</span>
+          <span style="font-size:24px;font-weight:900;color:var(--brand);font-family:'Outfit',sans-serif">${{ orden.total|floatformat:2 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info del Servicio -->
+    <div class="card p-5" style="padding:22px;">
+      <h3 class="font-bold text-sm uppercase tracking-wider mb-4" style="font-family:'Outfit',sans-serif;color:var(--txt);margin-bottom:14px;letter-spacing:0.06em;">Información General</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:12.5px;">
+        <div>
+          <span style="color:var(--txt-muted);display:block;font-size:11px;font-weight:700;text-transform:uppercase;">Estado Actual:</span>
+          <div style="margin-top:4px;">
+            <span class="badge status-{{ orden.estado|lower }}">{{ orden.get_estado_display }}</span>
+          </div>
+        </div>
+        <div>
+          <span style="color:var(--txt-muted);display:block;font-size:11px;font-weight:700;text-transform:uppercase;">Mecánico a cargo:</span>
+          <span style="font-weight:700;color:var(--txt)">{{ orden.mecanico.nombre_completo|default:"No asignado" }}</span>
+        </div>
+        <div>
+          <span style="color:var(--txt-muted);display:block;font-size:11px;font-weight:700;text-transform:uppercase;">Kilometraje al ingreso:</span>
+          <span style="font-weight:700;color:var(--txt)">{{ orden.kilometraje }} km</span>
+        </div>
+        <div>
+          <span style="color:var(--txt-muted);display:block;font-size:11px;font-weight:700;text-transform:uppercase;">Diagnóstico inicial:</span>
+          <p style="color:var(--txt);margin-top:2px;line-height:1.4;">{{ orden.diagnostico|default:"Sin diagnóstico cargado" }}</p>
+        </div>
+        <div>
+          <span style="color:var(--txt-muted);display:block;font-size:11px;font-weight:700;text-transform:uppercase;">Observaciones:</span>
+          <p style="color:var(--txt-muted);margin-top:2px;line-height:1.4;">{{ orden.observaciones|default:"Sin observaciones" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Servicio -->
+<div id="modal-servicio" class="modal-overlay">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Agregar Servicio</div>
+      <button class="modal-close" onclick="closeModal('modal-servicio')">✕</button>
+    </div>
+    <form method="POST" action="{% url 'ordenes:agregar_servicio' orden.pk %}">
+      {% csrf_token %}
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        {{ form_servicio.as_p }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-servicio')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Agregar Servicio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Producto -->
+<div id="modal-producto" class="modal-overlay">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Agregar Producto / Repuesto</div>
+      <button class="modal-close" onclick="closeModal('modal-producto')">✕</button>
+    </div>
+    <form method="POST" action="{% url 'ordenes:agregar_producto' orden.pk %}">
+      {% csrf_token %}
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        {{ form_producto.as_p }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-producto')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Agregar Producto</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

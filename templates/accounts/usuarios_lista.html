@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block page_title %}Equipo y Asistencia{% endblock %}
+{% block subtitle %}Gestión de personal y roles de acceso{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn btn-outline btn-sm">
+  <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+  <span>Inicio</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'usuario_crear' %}" class="btn btn-gold btn-sm">
+  <span class="material-symbols-outlined text-[18px]">person_add</span>
+  <span>Nuevo Usuario</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white border border-card-border rounded-xl shadow-level-1 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Foto</th>
+          <th>Usuario</th>
+          <th>Nombre Completo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td style="width:50px">
+            <div class="w-9 h-9 rounded-full overflow-hidden bg-[#0D284E]/10 flex items-center justify-center font-bold text-[#0D284E] text-xs border border-slate-200">
+              {% if u.foto %}
+                <img src="{{ u.foto.url }}" class="w-full h-full object-cover cursor-zoom-in" data-lightbox="{{ u.foto.url }}" data-alt="{{ u.nombre_completo }}">
+              {% else %}
+                {{ u.nombre_completo|slice:":1"|upper }}
+              {% endif %}
+            </div>
+          </td>
+          <td class="font-mono font-bold text-slate-800 text-xs">{{ u.username }}</td>
+          <td class="font-semibold text-slate-800 text-xs">{{ u.nombre_completo }}</td>
+          <td>
+            {% if u.rol == 'DUENO' %}
+              <span class="badge status-pending">Dueño / Gerente</span>
+            {% elif u.rol == 'ADMINISTRADOR' %}
+              <span class="badge status-progress">Administrativo</span>
+            {% else %}
+              <span class="badge status-completed">Técnico Mecánico</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge status-completed">Activo</span>
+            {% else %}
+              <span class="badge status-alert">Inactivo</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right">
+            <div class="flex gap-2 justify-end">
+              <a href="{% url 'usuario_editar' u.pk %}" class="btn btn-xs btn-outline">
+                <span class="material-symbols-outlined text-[14px]">edit</span>
+                <span>Editar</span>
+              </a>
+              {% if u != request.user %}
+              <form method="POST" action="{% url 'usuario_eliminar' u.pk %}" onsubmit="return confirm('¿Desactivar/eliminar a {{ u.nombre_completo }}?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-xs btn-danger">
+                  <span class="material-symbols-outlined text-[14px]">delete</span>
+                  <span>Eliminar</span>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-10 text-slate-400">
+            No hay usuarios registrados.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

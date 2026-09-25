@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TAMGO - Attendance Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#acc9ef",
+                      "tertiary-container": "#352600",
+                      "surface": "#f9f9ff",
+                      "on-background": "#141b2b",
+                      "surface-variant": "#dce2f7",
+                      "primary-fixed": "#d7e3ff",
+                      "tertiary-fixed": "#ffdf9d",
+                      "on-primary-fixed": "#001b3e",
+                      "surface-container-high": "#e1e8fd",
+                      "background": "#f9f9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#dce2f7",
+                      "on-primary-fixed-variant": "#30476e",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#251a00",
+                      "on-primary-container": "#7990bc",
+                      "primary": "#001330",
+                      "secondary": "#446082",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#2c4869",
+                      "on-surface": "#141b2b",
+                      "on-error-container": "#93000a",
+                      "surface-tint": "#485f88",
+                      "on-surface-variant": "#44474e",
+                      "outline-variant": "#c4c6cf",
+                      "outline": "#74777f",
+                      "surface-container-low": "#f1f3ff",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed": "#d2e4ff",
+                      "on-secondary-container": "#415d7f",
+                      "surface-container": "#e9edff",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#1c1200",
+                      "tertiary-fixed-dim": "#f9bd14",
+                      "error": "#ba1a1a",
+                      "on-tertiary-container": "#b58800",
+                      "surface-bright": "#f9f9ff",
+                      "on-secondary-fixed": "#001d36",
+                      "inverse-on-surface": "#edf0ff",
+                      "surface-dim": "#d3daef",
+                      "primary-container": "#0d284e",
+                      "inverse-surface": "#293040",
+                      "inverse-primary": "#b0c7f6",
+                      "primary-fixed-dim": "#b0c7f6",
+                      "secondary-container": "#bad7fe",
+                      "on-primary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "gutter": "16px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "sm": "8px",
+                      "xl": "32px",
+                      "base": "4px",
+                      "container-margin": "24px",
+                      "sidebar-width": "260px"
+              },
+              "fontFamily": {
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ],
+                      "display-md-mobile": [
+                              "Inter"
+                      ],
+                      "display-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-bold": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-md-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-[#F1F3F5] text-on-background h-full font-sans antialiased overflow-hidden flex">
+<!-- SideNavBar -->
+<aside class="bg-primary-container dark:bg-primary-container shadow-sm flex flex-col w-[260px] h-screen fixed inset-y-0 left-0 z-50">
+<div class="p-lg border-b border-primary-container/20">
+<div class="flex items-center gap-sm mb-lg">
+<img class="w-8 h-8 object-contain" data-alt="A small, stylized gear and wrench icon representing a mechanical workshop management system. The icon is rendered in bright, crisp colors, featuring deep navy blue and vibrant gold accents against a dark background, reflecting a high-tech industrial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDBwplEz-byJywbsHWCRY8ow94kYtnEntsOpW2XgQi0f8RVC2zx34ZR_dgXyRvulXkxsFKiYX6-prNV34cM22hyKUK_t8tkc-hcTFlV82iD3aKc-K_0I3_R16AKE-VFzvVrG2Zu2ErWFe9dWMU3LdRXo97jvqjRAXI4PjvZSvQMbV0OkZ8XyxOUurM0HiyLDcb4y_Oy73PNofRuw_emp0sYDP--Q57QdMTGCTld3EqbbOTSSv01dERZg"/>
+<div>
+<h1 class="font-display-md text-display-md font-bold text-on-primary-fixed text-white">TAMGO</h1>
+<p class="font-label-sm text-label-sm text-tertiary-fixed-dim">Workshop Management</p>
+</div>
+</div>
+<button class="w-full bg-tertiary-fixed-dim text-primary font-label-bold text-label-bold py-3 rounded hover:bg-tertiary-fixed transition-colors duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="add" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Work Order
+            </button>
+</div>
+<nav class="flex-1 overflow-y-auto py-md flex flex-col gap-1">
+<a class="flex items-center text-on-secondary-container px-4 py-3 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center text-on-secondary-container px-4 py-3 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="build">build</span>
+<span class="font-label-bold text-label-bold">Work Orders</span>
+</a>
+<a class="flex items-center text-on-secondary-container px-4 py-3 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-bold text-label-bold">Inventory</span>
+</a>
+<a class="flex items-center text-on-primary border-l-4 border-tertiary-fixed-dim bg-primary px-4 py-3 translate-x-1 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mr-3 text-tertiary-fixed-dim" data-icon="badge">badge</span>
+<span class="font-label-bold text-label-bold">Attendance Control</span>
+</a>
+<a class="flex items-center text-on-secondary-container px-4 py-3 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="payments">payments</span>
+<span class="font-label-bold text-label-bold">Sales</span>
+</a>
+<a class="flex items-center text-on-secondary-container px-4 py-3 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="analytics">analytics</span>
+<span class="font-label-bold text-label-bold">Reports</span>
+</a>
+</nav>
+<div class="p-md border-t border-primary-container/20 mt-auto">
+<a class="flex items-center text-on-secondary-container px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200 mb-1" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-label-bold text-label-bold">Settings</span>
+</a>
+<a class="flex items-center text-on-secondary-container px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="logout">logout</span>
+<span class="font-label-bold text-label-bold">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col ml-[260px] max-w-[calc(100%-260px)] h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-gutter border-b border-outline-variant bg-surface docked full-width top-0 z-40">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 border border-outline-variant rounded bg-surface-container-low text-body-md font-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none w-64 transition-all" placeholder="Search staff..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-all p-2 rounded hover:bg-surface-container-high focus:ring-2 focus:ring-primary-container transition-shadow">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all p-2 rounded hover:bg-surface-container-high focus:ring-2 focus:ring-primary-container transition-shadow">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-secondary-container overflow-hidden border border-outline-variant ml-2">
+<img alt="Administrator Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a workshop administrator. A middle-aged person wearing a clean, dark navy blue uniform shirt. The background is a slightly blurred, well-lit industrial mechanical workshop. The lighting is crisp and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9NIO8kfL3n_Vm_FqViqIRdkcVuhzkyxU6LoDgUFi2W98KPbQyE10ZF6wmZzZAvHOCqm4R5O3GNFtMT9kDnXrZRILd17Ipv5PyJiR5dgUpxUhGvgZ53e3vkiqeJJT2ELAqu3OGa7C_5yfJ-DgBq2jsu0JNxH8CAesebWBr32tU9jyDw-w0PEp4us9oNyllGTk5DnK8o6DPatYF4SsyTco555FPCQVtpCO8HPE7WgAEpHfvfdrlA1hY3A"/>
+</div>
+</div>
+</header>
+<!-- Page Content Canvas -->
+<main class="flex-1 overflow-y-auto p-container-margin bg-[#F1F3F5]">
+<!-- Page Header & Global Actions -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-display-lg text-display-lg text-primary mb-1">Attendance Control</h2>
+<p class="font-body-md text-body-md text-secondary">Manage and monitor daily staff presence.</p>
+</div>
+<button class="bg-primary text-white font-label-bold text-label-bold py-3 px-6 rounded shadow-[0px_4px_6px_rgba(0,0,0,0.05)] hover:bg-primary-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="fingerprint">fingerprint</span>
+                    Register Entry/Exit
+                </button>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-lg">
+<!-- Today's Summary Card (Bento Item 1) -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0px_4px_6px_rgba(0,0,0,0.05)] p-lg flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-sm text-headline-sm text-primary">Today's Summary</h3>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-high px-2 py-1 rounded">Nov 14, 2023</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-lg">
+<div class="bg-[#F1F3F5] p-3 rounded border border-outline-variant">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="font-label-bold text-label-bold text-secondary">Present</span>
+</div>
+<span class="font-display-md text-display-md text-primary">24</span>
+</div>
+<div class="bg-[#F1F3F5] p-3 rounded border border-outline-variant">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></div>
+<span class="font-label-bold text-label-bold text-secondary">Late</span>
+</div>
+<span class="font-display-md text-display-md text-primary">3</span>
+</div>
+<div class="bg-[#F1F3F5] p-3 rounded border border-outline-variant">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-red-500"></div>
+<span class="font-label-bold text-label-bold text-secondary">Absent</span>
+</div>
+<span class="font-display-md text-display-md text-primary">1</span>
+</div>
+<div class="bg-[#F1F3F5] p-3 rounded border border-outline-variant">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<span class="font-label-bold text-label-bold text-secondary">On Shift</span>
+</div>
+<span class="font-display-md text-display-md text-primary">18</span>
+</div>
+</div>
+</div>
+<div class="mt-lg pt-md border-t border-outline-variant flex justify-between items-center">
+<span class="font-body-md text-body-md text-secondary">Total Staff: 28</span>
+<a class="font-label-bold text-label-bold text-secondary hover:text-primary flex items-center" href="#">
+                            View Report
+                            <span class="material-symbols-outlined text-sm ml-1" data-icon="chevron_right">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Staff List Table (Bento Item 2) -->
+<div class="col-span-12 md:col-span-8 bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0px_4px_6px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col">
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface">
+<h3 class="font-headline-sm text-headline-sm text-primary">Staff Roster</h3>
+<div class="flex gap-2">
+<select class="border border-outline-variant rounded bg-surface-container-lowest text-body-md font-body-md py-1 px-3 focus:border-secondary focus:ring-1 focus:ring-secondary/20 outline-none">
+<option>All Roles</option>
+<option>Mechanic</option>
+<option>Technician</option>
+<option>Manager</option>
+</select>
+<select class="border border-outline-variant rounded bg-surface-container-lowest text-body-md font-body-md py-1 px-3 focus:border-secondary focus:ring-1 focus:ring-secondary/20 outline-none">
+<option>All Statuses</option>
+<option>Present</option>
+<option>Late</option>
+<option>Absent</option>
+</select>
+</div>
+</div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F1F3F5] border-b border-outline-variant">
+<th class="py-3 px-4 font-label-bold text-label-bold text-secondary">Staff Member</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-secondary">Check-in</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-secondary">Check-out</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-secondary">Total Hrs</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-secondary text-right">Status</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant hover:bg-secondary/5 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border-[3px] border-green-500 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A headshot of a smiling mechanic in a clean workshop. Wearing safety glasses and a dark blue work shirt. Industrial lighting, clean corporate modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTojPGhfWNhHvX27LwpDwRtWrR8bywDNowI0Nk9xM_8MjzxqLSPFkSXpcsejx8SdtwKTaUfMOYhnoOA2tSrnOiBYKthOYtfzIcuMAVtChUAojqo0bTneKvsuDdbqBlUfDNwUA3rBglg5i-Zcy1a38bVeu6C_4fFFsfVR0FrefmZCM5jEcWeW5nofMmQJhpoIJFq6-dp0iwPElW2MUbSYyv8eJUT4ErtM3Q0FZpaZrPzS9lheu8xHZ8MA"/>
+</div>
+<div>
+<p class="font-body-md font-bold text-primary">Carlos Mendez</p>
+<p class="font-label-sm text-label-sm text-secondary">Senior Mechanic</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">07:55 AM</td>
+<td class="py-3 px-4 font-body-md text-body-md text-secondary">--:--</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">4h 30m</td>
+<td class="py-3 px-4 text-right">
+<span class="inline-block px-2 py-1 rounded text-green-700 bg-green-100 font-label-bold text-label-bold">Present</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant hover:bg-secondary/5 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border-[3px] border-tertiary-fixed-dim overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A headshot of a female tire technician looking serious. Wearing a dark blue uniform. The background shows blurred racks of tires in a modern, clean warehouse. High key lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-IVdl793_P3-nxgJ4ebve6LewUCSIzxRqtqO8sbvhMSfXytYkhNW4ClUXGik6fLEMK0qMM8kUavANI_rLxwHxCxYaR-TM0WFNWKn6khvmW1M_7aCx5Ixw8oRjideJ5XJX6Cf3ep1up4f6-1B__5gHruwCyPQaHdr6KijM3mECqFaR-pGbgO3LJdEINTskDswA2xWmkjRWokt4BhNMt5kpt2wB6zb-Qnfa-SKik5If4DzNExyhOA1MTw"/>
+</div>
+<div>
+<p class="font-body-md font-bold text-primary">Sarah Jenkins</p>
+<p class="font-label-sm text-label-sm text-secondary">Tire Specialist</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">08:15 AM</td>
+<td class="py-3 px-4 font-body-md text-body-md text-secondary">--:--</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">4h 10m</td>
+<td class="py-3 px-4 text-right">
+<span class="inline-block px-2 py-1 rounded text-yellow-800 bg-yellow-100 font-label-bold text-label-bold">Late</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant hover:bg-secondary/5 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border-[3px] border-blue-500 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male workshop supervisor. Clean cut, wearing a branded dark polo shirt. Standing near diagnostic equipment in a bright, modern auto repair facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxXqvLH6-iQgvf4VrJT5T92Q2txfv6lFu0Zl21r9EukJ4b3GdxqjGo9ADRxcGDqtVEKYaXo0t3NhpFDceJxrXqHUCWNBoUrXrQi9tdDhMitJ2yDV9WNDAlW9e4VHyMTJmp5YMg2NiosMStLSv3qUnX4iJBqjl87jVI7lqElwMoCsClmWhYmq0HyHYLlG2YQWQMJP9LTHJthWCdUfa7mJ48eFyidGMgkVaMs5a8qoEteAyYk2ZcctsOBA"/>
+</div>
+<div>
+<p class="font-body-md font-bold text-primary">David Chen</p>
+<p class="font-label-sm text-label-sm text-secondary">Diagnostics Tech</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">06:00 AM</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">14:00 PM</td>
+<td class="py-3 px-4 font-body-md text-body-md text-primary">8h 00m</td>
+<td class="py-3 px-4 text-right">
+<span class="inline-block px-2 py-1 rounded text-blue-700 bg-blue-100 font-label-bold text-label-bold">On Shift</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border-[3px] border-red-500 overflow-hidden relative opacity-60">
+<div class="w-full h-full bg-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-surface text-sm" data-icon="person">person</span>
+</div>
+</div>
+<div>
+<p class="font-body-md font-bold text-primary opacity-60">Michael Ross</p>
+<p class="font-label-sm text-label-sm text-secondary opacity-60">Apprentice</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 font-body-md text-body-md text-secondary">--:--</td>
+<td class="py-3 px-4 font-body-md text-body-md text-secondary">--:--</td>
+<td class="py-3 px-4 font-body-md text-body-md text-secondary">0h 00m</td>
+<td class="py-3 px-4 text-right">
+<span class="inline-block px-2 py-1 rounded text-red-700 bg-red-100 font-label-bold text-label-bold">Absent</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

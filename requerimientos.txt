@@ -1,0 +1,269 @@
+================================================================================
+           SISTEMA DE GESTIÓN INTEGRAL PARA TALLER MECÁNICO Y GOMERÍA
+                           DOCUMENTO DE REQUERIMIENTOS
+          FORMATO: COMO [ROL] | QUIERO [ACCIÓN] | PARA [OBJETIVO] | PORQUE [JUSTIFICACIÓN]
+================================================================================
+
+PROYECTO   : TallerGes - Sistema de Gestión de Taller Mecánico y Gomería
+VERSIÓN    : 1.0.0 (Release de Producción)
+TECNOLOGÍA : Python 3.10+ / Django 5.x / SQLite 3 & PostgreSQL / CSS Moderno Dual
+
+
+================================================================================
+MÓDULO 1: AUTENTICACIÓN, SEGURIDAD Y GESTIÓN DE PERSONAL
+================================================================================
+
+[RF-01] LOGIN CENTRADO Y AUTENTICACIÓN SEGURA
+- COMO: Usuario del sistema (Dueño, Administrador, Mecánico).
+- QUIERO: Una interfaz de inicio de sesión centrada, limpia y sin datos de credenciales expuestos.
+- PARA: Iniciar sesión de forma segura ingresando mi usuario y contraseña.
+- PORQUE: La seguridad del taller requiere que solo personal autorizado acceda a la plataforma sin fugas de información en pantallas compartidas.
+- ESTADO: [CUMPLIDO - templates/accounts/login.html]
+
+[RF-02] GESTIÓN DE USUARIOS Y ROLES DIFERENCIADOS
+- COMO: Dueño / Superadministrador.
+- QUIERO: Crear, editar y administrar las cuentas del personal con roles asignados (Dueño, Administrador, Mecánico).
+- PARA: Segmentar los accesos y funciones según la responsabilidad de cada empleado.
+- PORQUE: Cada perfil debe tener acceso únicamente a las herramientas que corresponden a su puesto operativo.
+- ESTADO: [CUMPLIDO - apps/accounts/views.py:usuario_lista, usuario_crear, usuario_editar]
+
+[RF-03] CAMBIO DE CONTRASEÑA POR EL PROPIO USUARIO
+- COMO: Cualquier usuario autenticado.
+- QUIERO: Un formulario en mi perfil para cambiar mi contraseña actual.
+- PARA: Actualizar mi clave de acceso periódicamente cuando lo considere necesario.
+- PORQUE: Garantiza la privacidad y el control individual de la seguridad de cada cuenta.
+- ESTADO: [CUMPLIDO - apps/accounts/views.py:cambiar_password]
+
+[RF-04] RESTABLECIMIENTO ADMINISTRATIVO DE CLAVES
+- COMO: Administrador / Dueño.
+- QUIERO: Un botón directo "Clave" en la lista de personal para asignar una nueva contraseña a un empleado.
+- PARA: Restablecer el acceso a un mecánico o empleado que olvidó sus credenciales.
+- PORQUE: Evita bloqueos en el flujo de trabajo diario y no requiere acceso manual a la base de datos.
+- ESTADO: [CUMPLIDO - apps/accounts/views.py:usuario_cambiar_password]
+
+[RF-05] SINCRONIZACIÓN AUTOMÁTICA DE CREDENCIALES
+- COMO: Desarrollador / Administrador de infraestructura.
+- QUIERO: Un mecanismo de verificación y sincronización segura de usuarios base.
+- PARA: Garantizar que los usuarios maestros siempre puedan autenticarse correctamente.
+- PORQUE: Previene fallos de inicio de sesión por diferencias en el motor de hashing de contraseñas.
+- ESTADO: [CUMPLIDO - apps/accounts/views.py:_asegurar_usuarios]
+
+
+================================================================================
+MÓDULO 2: GESTIÓN DE CLIENTES
+================================================================================
+
+[RF-06] ALTA Y EDICIÓN DE CLIENTES
+- COMO: Recepcionista / Administrador.
+- QUIERO: Registrar y actualizar los datos de clientes (DNI/CUIT, Nombre/Razón Social, Teléfono, Email, Dirección).
+- PARA: Mantener un padrón centralizado y actualizado de contactos.
+- PORQUE: Es imprescindible contar con información de contacto para emitir órdenes, avisos y cobros.
+- ESTADO: [CUMPLIDO - apps/clientes/views.py:cliente_list, cliente_crear, cliente_editar]
+
+[RF-07] FICHA HISTÓRICA CONSOLIDADA DEL CLIENTE
+- COMO: Administrador / Dueño.
+- QUIERO: Ver el perfil completo de un cliente con sus vehículos vinculados, órdenes anteriores y estado de cuenta.
+- PARA: Brindar una atención personalizada conociendo todo el historial de servicios recibidos.
+- PORQUE: Mejora la fidelización del cliente y facilita la resolución de reclamos o garantías.
+- ESTADO: [CUMPLIDO - templates/clientes/detalle.html]
+
+[RF-08] MODAL LIGHTBOX PARA FOTOS DE CLIENTES
+- COMO: Usuario del sistema.
+- QUIERO: Hacer clic en la foto de un cliente o documento y verla ampliada en un modal Lightbox superpuesto.
+- PARA: Visualizar la imagen en alta definición sin salir ni recargar la página actual.
+- PORQUE: Agiliza la navegación y evita perder el trabajo o formulario en curso.
+- ESTADO: [CUMPLIDO - base.html:lightbox-modal]
+
+
+================================================================================
+MÓDULO 3: GESTIÓN DEL PARQUE AUTOMOTOR (VEHÍCULOS)
+================================================================================
+
+[RF-09] REGISTRO DE VEHÍCULOS VINCULADOS A CLIENTES
+- COMO: Recepcionista / Mecánico.
+- QUIERO: Dar de alta vehículos asociando Patente, Marca, Modelo, Año, Color, VIN y Kilometraje a un cliente.
+- PARA: Identificar de forma única cada automóvil que ingresa al taller.
+- PORQUE: Cada vehículo tiene requerimientos de mantenimiento y piezas específicas.
+- ESTADO: [CUMPLIDO - apps/vehiculos/views.py:vehiculo_crear, vehiculo_editar]
+
+[RF-10] ACTUALIZACIÓN AUTOMÁTICA DEL ODÓMETRO
+- COMO: Jefe de Taller / Mecánico.
+- QUIERO: Que al ingresar el kilometraje en una orden de trabajo se actualice el odómetro del vehículo.
+- PARA: Mantener el kilometraje del vehículo siempre al día sin tener que editarlo manualmente en dos lugares.
+- PORQUE: Es la base para calcular las alertas de mantenimiento preventivo (cambio de aceite, correas, cubiertas).
+- ESTADO: [CUMPLIDO - apps/ordenes/views.py:orden_crear, orden_editar]
+
+[RF-11] HISTORIAL CLÍNICO DEL VEHÍCULO
+- COMO: Mecánico.
+- QUIERO: Consultar el historial completo de órdenes de trabajo y repuestos colocados a una patente determinada.
+- PARA: Conocer qué trabajos previos se le realizaron al vehículo antes de iniciar una nueva reparación.
+- PORQUE: Acelera el diagnóstico técnico y previene reparaciones duplicadas o incompatibles.
+- ESTADO: [CUMPLIDO - templates/vehiculos/detalle.html]
+
+
+================================================================================
+MÓDULO 4: INVENTARIO, REPUESTOS Y GOMERÍA
+================================================================================
+
+[RF-12] CATÁLOGO TÉCNICO DE NEUMÁTICOS Y REPUESTOS
+- COMO: Encargado de Pañol / Gomero.
+- QUIERO: Registrar repuestos con compatibilidad y neumáticos con medidas exactas (Ancho, Perfil, Rodado, Estado).
+- PARA: Localizar con exactitud las cubiertas y piezas correspondientes a cada modelo de auto.
+- PORQUE: Los neumáticos y repuestos tienen especificaciones técnicas críticas que no admiten errores.
+- ESTADO: [CUMPLIDO - apps/inventario/views.py:repuesto_list, neumatico_list]
+
+[RF-13] BOTÓN RÁPIDO "+ STOCK" Y DETALLE DE INGRESO
+- COMO: Administrador / Pañolero.
+- QUIERO: Un botón "+ Stock" en cada fila de producto para registrar ingresos de mercadería con cantidad y motivo.
+- PARA: Cargar rápidamente entradas de stock indicando el N° de factura de compra o remito del proveedor.
+- PORQUE: El taller repone piezas constantemente y necesita asentar la entrada y la justificación sin pasos complejos.
+- ESTADO: [CUMPLIDO - templates/inventario/form_ajuste.html]
+
+[RF-14] KARDEX E HISTORIAL DE MOVIMIENTOS
+- COMO: Dueño / Auditor.
+- QUIERO: Una vista global y por producto que muestre todas las entradas, salidas, ventas y el stock resultante.
+- PARA: Auditar exactamente quién, cuándo y por qué modificó el inventario.
+- PORQUE: Previene pérdidas de mercadería y asegura la trazabilidad contable del stock.
+- ESTADO: [CUMPLIDO - templates/inventario/movimientos.html]
+
+[RF-15] CONTROL VISUAL DE STOCK CRÍTICO
+- COMO: Administrador de Compras.
+- QUIERO: Que los productos con existencia menor o igual al stock mínimo se destaquen con alertas rojas.
+- PARA: Saber de inmediato qué repuestos o cubiertas están por agotarse y generar pedidos de reposición.
+- PORQUE: Quedarse sin insumos detiene los trabajos del taller y genera demoras con los clientes.
+- ESTADO: [CUMPLIDO - templates/inventario/lista.html:badge-status-cancelada]
+
+[RF-16] VENTA DIRECTA DE MOSTRADOR (VENTA RÁPIDA)
+- COMO: Vendedor / Cajero.
+- QUIERO: Vender repuestos o neumáticos directamente a un cliente sin necesidad de abrir una orden de trabajo.
+- PARA: Atender ventas rápidas de mostrador y emitir un comprobante/recibo al instante.
+- PORQUE: Muchos clientes van solo a comprar aceite, filtros o cubiertas sin dejar el vehículo en el taller.
+- ESTADO: [CUMPLIDO - apps/inventario/views.py:venta_directa, venta_recibo]
+
+
+================================================================================
+MÓDULO 5: ÓRDENES DE TRABAJO (TALLER)
+================================================================================
+
+[RF-17] EMISIÓN DE ORDEN DE TRABAJO CON NÚMERO ANUAL
+- COMO: Recepcionista / Jefe de Taller.
+- QUIERO: Crear órdenes de trabajo con numeración automática correlativa (YYYYMM####).
+- PARA: Identificar unívocamente cada trabajo emitido en el mes y año en curso.
+- PORQUE: Estandariza la administración y facilita el seguimiento interno en el taller.
+- ESTADO: [CUMPLIDO - apps/ordenes/models.py:OrdenTrabajo.save]
+
+[RF-18] CARGA DE SERVICIOS Y CONSUMO AUTOMÁTICO DE STOCK
+- COMO: Mecánico asignado.
+- QUIERO: Agregar mano de obra y repuestos a la orden, descontándose estos últimos del inventario automáticamente.
+- PARA: Totalizar el costo real del trabajo y mantener el inventario sincronizado en tiempo real.
+- PORQUE: Evita descontar repuestos manualmente y asegura el cobro exacto de piezas y mano de obra.
+- ESTADO: [CUMPLIDO - apps/ordenes/views.py:orden_agregar_servicio, orden_agregar_producto]
+
+[RF-19] MÁQUINA DE ESTADOS Y TRANSICIONES FLEXIBLES
+- COMO: Jefe de Taller / Mecánico.
+- QUIERO: Cambiar el estado de la orden (Pendiente ➔ En Proceso ➔ Pausada ➔ Completada ➔ Cobrada / Cancelada), con opción de reabrir o pausar.
+- PARA: Reflejar con precisión la situación operativa real de cada vehículo en el taller.
+- PORQUE: Un trabajo puede demorarse por falta de repuestos (pausa) o requerir ajustes antes de cobrarlo (reapertura).
+- ESTADO: [CUMPLIDO - apps/ordenes/models.py:TRANSICIONES_VALIDAS]
+
+[RF-20] EDICIÓN Y COMPROBANTE IMPRIMIBLE DE ORDEN
+- COMO: Administrador / Mecánico.
+- QUIERO: Editar observaciones y diagnósticos de una orden abierta e imprimir la ficha de taller.
+- PARA: Actualizar la información técnica e imprimir una copia física para el parabrisas del auto.
+- PORQUE: El personal en fosa/elevador necesita la hoja física de tareas mientras trabaja.
+- ESTADO: [CUMPLIDO - apps/ordenes/views.py:orden_editar, orden_imprimir]
+
+
+================================================================================
+MÓDULO 6: COBROS Y COMPROBANTES (SIN FACTURACIÓN)
+================================================================================
+
+[RF-21] GENERACIÓN DE COMPROBANTE DE COBRO
+- COMO: Administrador / Cajero.
+- QUIERO: Generar el comprobante de cobro asociado a una orden completada con IVA (21%) y desglose total.
+- PARA: Formalizar el importe final a cobrar al cliente.
+- PORQUE: El taller no utiliza módulos fiscales complejos de facturación externa sino un sistema ágil de cobros internos.
+- ESTADO: [CUMPLIDO - apps/facturas/views.py:generar_factura]
+
+[RF-22] REGISTRO DE PAGOS MÚLTIPLES Y SALDOS
+- COMO: Administrador / Cajero.
+- QUIERO: Registrar cobros totales o parciales admitiendo Efectivo, Transferencia, Tarjetas o Mercado Pago.
+- PARA: Liquidar los comprobantes calculando automáticamente el saldo pendiente y marcando como "Pagada".
+- PORQUE: Muchos clientes abonan una parte en efectivo y el resto por transferencia o con tarjeta.
+- ESTADO: [CUMPLIDO - apps/facturas/views.py:registrar_pago]
+
+
+================================================================================
+MÓDULO 7: MANTENIMIENTO PREVENTIVO Y RESERVAS
+================================================================================
+
+[RF-23] AGENDA DE CITAS Y RESERVAS
+- COMO: Recepcionista.
+- QUIERO: Agendar citas para clientes y vehículos indicando fecha, hora y servicio solicitado.
+- PARA: Organizar el calendario de turnos y evitar la saturación de los boxes de trabajo.
+- PORQUE: Optimiza la capacidad instalada y los tiempos de atención del taller.
+- ESTADO: [CUMPLIDO - apps/reservas/views.py:reserva_crear, reserva_list]
+
+[RF-24] ALERTAS DE MANTENIMIENTO PREVENTIVO
+- COMO: Asesor de Servicio.
+- QUIERO: Ver alertas de mantenimiento basadas en kilometraje o fechas estimadas de vencimiento.
+- PARA: Contactar al cliente para ofrecerle el cambio de aceite, filtros o rotación de neumáticos correspondiente.
+- PORQUE: Genera ingresos recurrentes para el taller y alarga la vida útil del vehículo del cliente.
+- ESTADO: [CUMPLIDO - apps/mantenimiento/views.py:alerta_list]
+
+
+================================================================================
+MÓDULO 8: DASHBOARD, KPIS Y REPORTES
+================================================================================
+
+[RF-25] TABLERO DE CONTROL (DASHBOARD) CON KPIS EN VIVO
+- COMO: Dueño del Taller.
+- QUIERO: Ver en la pantalla principal el total de órdenes activas, ingresos del período, ganancias netas estimadas y stock crítico.
+- PARA: Conocer la salud financiera y operativa del taller en tiempo real apenas inicio sesión.
+- PORQUE: Permite tomar decisiones gerenciales informadas y rápidas basadas en datos.
+- ESTADO: [CUMPLIDO - templates/accounts/dashboard.html]
+
+[RF-26] AUDITORÍA DE REGISTROS CRÍTICOS
+- COMO: Dueño / Administrador.
+- QUIERO: Un registro de auditoría con valores anteriores y nuevos en formato JSON cuando se cambian precios o entidades.
+- PARA: Monitorear cualquier alteración sensible en los datos del sistema.
+- PORQUE: Brinda transparencia y seguridad ante posibles inconsistencias operativas.
+- ESTADO: [CUMPLIDO - core/models.py:Auditoria]
+
+
+================================================================================
+REQUERIMIENTOS DE EXPERIENCIA DE USUARIO Y DISEÑO (UI / UX)
+================================================================================
+
+[RF-27] MODO CLARO Y MODO OSCURO (THEME SWITCHER)
+- COMO: Cualquier usuario del taller.
+- QUIERO: Un botón conmutador (🌙 / ☀️) en la barra superior para alternar entre Modo Claro y Modo Oscuro.
+- PARA: Adaptar la interfaz a la iluminación del taller o a mi preferencia visual con persistencia automática.
+- PORQUE: Mejora la ergonomía visual en ambientes con poca luz (fosas/talleres) y en oficinas bien iluminadas.
+- ESTADO: [CUMPLIDO - base.html:theme-toggle + localStorage]
+
+[RF-28] BOTÓN DE RETORNO ("ATRÁS") EN CADA VISTA
+- COMO: Usuario del sistema.
+- QUIERO: Un botón visible de "Atrás / Volver" en la cabecera de todas las pantallas del sistema.
+- PARA: Regresar al listado o nivel anterior con un solo clic.
+- PORQUE: Asegura una navegación intuitiva sin depender exclusivamente de las flechas del navegador.
+- ESTADO: [CUMPLIDO - base.html:{% block back_button %}]
+
+[RF-29] FORMULARIOS Y FOTOS EN MODALES SUPERPUESTOS
+- COMO: Usuario del sistema.
+- QUIERO: Que los formularios rápidos y fotos abran en ventanas modales sobre la vista actual.
+- PARA: Trabajar sin transiciones bruscas de página ni recargas innecesarias.
+- PORQUE: Aumenta la velocidad de carga percibida y mantiene la continuidad del flujo de trabajo.
+- ESTADO: [CUMPLIDO - base.html:modal-overlay]
+
+[RF-30] PANEL DE DJANGO ADMIN REGISTRADO Y OPERATIVO
+- COMO: Superadministrador / Soporte Técnico.
+- QUIERO: Todos los modelos del sistema (17 tablas) registrados en Django Admin (/admin/) con filtros y buscadores.
+- PARA: Realizar labores de mantenimiento, depuración y gestión avanzada de datos.
+- PORQUE: Django Admin es la consola maestra de administración que asegura el control total del backend.
+- ESTADO: [CUMPLIDO - apps/*/admin.py]
+
+================================================================================
+RESUMEN DE ESTADO: 30 REQUERIMIENTOS ESPECIFICADOS CON FORMATO QUIERO / PARA / PORQUE.
+TODOS LOS REQUERIMIENTOS SE ENCUENTRAN 100% CUMPLIDOS, VERIFICADOS Y OPERATIVOS.
+================================================================================

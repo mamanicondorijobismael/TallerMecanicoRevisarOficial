@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Registro y especificaciones de repuestos{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:repuestos' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Repuestos
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Modal pre-abierto -->
+<div id="modal-repuesto-form" class="modal-overlay open" data-backdrop-redirect="{% url 'inventario:repuestos' %}">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">Completá los datos del repuesto</div>
+      </div>
+      <a href="{% url 'inventario:repuestos' %}" class="modal-close">✕</a>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body space-y-4">
+        {% if form.errors %}
+        <div class="alert alert-error">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="form-label">Nombre del Repuesto *</label>
+            {{ form.nombre }}
+          </div>
+          <div>
+            <label class="form-label">Código SKU</label>
+            {{ form.codigo_sku }}
+          </div>
+          <div>
+            <label class="form-label">Categoría</label>
+            {{ form.categoria }}
+          </div>
+          <div>
+            <label class="form-label">Fabricante / Marca</label>
+            {{ form.fabricante }}
+          </div>
+          <div>
+            <label class="form-label">Número de Pieza</label>
+            {{ form.numero_pieza }}
+          </div>
+          <div>
+            <label class="form-label">Precio Costo ($)</label>
+            {{ form.precio_costo }}
+          </div>
+          <div>
+            <label class="form-label">Precio Venta ($)</label>
+            {{ form.precio_venta }}
+          </div>
+          <div>
+            <label class="form-label">Stock Actual</label>
+            {{ form.stock_actual }}
+          </div>
+          <div>
+            <label class="form-label">Stock Mínimo</label>
+            {{ form.stock_minimo }}
+          </div>
+          <div class="md:col-span-2">
+            <label class="form-label">Vehículos Compatibles</label>
+            {{ form.vehiculos_compatibles }}
+          </div>
+          <div class="md:col-span-2">
+            <label class="form-label">Foto / Imagen del Repuesto</label>
+            {{ form.imagen }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'inventario:repuestos' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Repuesto</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

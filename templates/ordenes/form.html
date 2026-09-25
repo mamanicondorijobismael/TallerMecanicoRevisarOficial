@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Apertura de orden de trabajo{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'ordenes:lista' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Órdenes
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Modal pre-abierto -->
+<div id="modal-orden-form" class="modal-overlay open" data-backdrop-redirect="{% if orden %}{% url 'ordenes:detalle' orden.pk %}{% else %}{% url 'ordenes:lista' %}{% endif %}">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">{% if orden %}Modificá los datos de la orden #{{ orden.numero_orden }}{% else %}Completá los datos para crear la orden{% endif %}</div>
+      </div>
+      <a href="{% if orden %}{% url 'ordenes:detalle' orden.pk %}{% else %}{% url 'ordenes:lista' %}{% endif %}" class="modal-close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </a>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="modal-body">
+        {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom:16px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>{% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}</div>
+        </div>
+        {% endif %}
+        <div style="display:flex;flex-direction:column;gap:16px">
+          {% for field in form %}
+          <div>
+            <label class="form-label">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {{ field }}
+            {% if field.errors %}<p style="color:#F87171;font-size:11px;margin-top:4px">{{ field.errors.0 }}</p>{% endif %}
+            {% if field.help_text %}<p style="color:var(--txt-dim);font-size:11px;margin-top:4px">{{ field.help_text }}</p>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{% if orden %}{% url 'ordenes:detalle' orden.pk %}{% else %}{% url 'ordenes:lista' %}{% endif %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          {% if orden %}Guardar Cambios{% else %}Crear Orden{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

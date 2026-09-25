@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% block page_title %}Reportes y Analítica{% endblock %}
+{% block subtitle %}Métricas financieras y operativas del taller{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Inicio
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="flex items-center gap-3 no-print">
+    <select onchange="window.location.href='?periodo='+this.value"
+        class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:ring-2 focus:ring-primary/20 outline-none">
+        <option value="7" {% if periodo == 7 %}selected{% endif %}>Últimos 7 días</option>
+        <option value="30" {% if periodo == 30 %}selected{% endif %}>Últimos 30 días</option>
+        <option value="90" {% if periodo == 90 %}selected{% endif %}>Últimos 90 días</option>
+    </select>
+    <a href="{% url 'reportes:diario' %}" class="btn btn-primary shadow-lg shadow-primary/20">
+        <i data-lucide="sun" class="w-4 h-4"></i>
+        Cierre del Día
+    </a>
+    <button onclick="window.print()" class="btn btn-ghost border bg-white shadow-sm">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        Imprimir
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Ventas del Dia (KPI Rápido) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 animate-in">
+    <div class="card p-5 bg-primary text-white shadow-xl">
+        <div class="flex justify-between items-start mb-2">
+            <p class="text-xs font-bold uppercase tracking-wider opacity-80">Ventas Hoy</p>
+            <i data-lucide="trending-up" class="w-4 h-4 opacity-50"></i>
+        </div>
+        <h3 class="text-3xl font-black">${{ ventas_hoy|floatformat:0 }}</h3>
+        <p class="text-[10px] mt-2 bg-white/20 inline-block px-2 py-0.5 rounded">{{ cantidad_ventas_hoy }} ventas realizadas</p>
+    </div>
+    
+    <div class="card p-5 bg-white border-l-4 border-green-500 shadow-sm">
+        <div class="flex justify-between items-start mb-2">
+            <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Ingresos ({{ periodo }}d)</p>
+            <i data-lucide="dollar-sign" class="w-4 h-4 text-green-500"></i>
+        </div>
+        <h3 class="text-2xl font-black text-gray-800">${{ ingresos|floatformat:0 }}</h3>
+        <p class="text-[10px] text-green-600 font-bold">Margen: {{ margen }}%</p>
+    </div>
+
+    <div class="card p-5 bg-white border-l-4 border-blue-500 shadow-sm">
+        <div class="flex justify-between items-start mb-2">
+            <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Ganancia Neta</p>
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-500"></i>
+        </div>
+        <h3 class="text-2xl font-black text-blue-600">${{ ganancia|floatformat:0 }}</h3>
+        <p class="text-[10px] text-gray-400">Tras descontar costos</p>
+    </div>
+
+    <div class="card p-5 bg-white border-l-4 border-orange-500 shadow-sm">
+        <div class="flex justify-between items-start mb-2">
+            <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Clientes</p>
+            <i data-lucide="users" class="w-4 h-4 text-orange-500"></i>
+        </div>
+        <h3 class="text-2xl font-black text-gray-800">{{ total_clientes }}</h3>
+        <p class="text-[10px] text-gray-400">Registrados en el sistema</p>
+    </div>
+</div>
+
+<!-- Gráficos Principales -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card p-6 shadow-sm border-0 bg-white">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-4 h-4 text-primary"></i>
+                Evolución de Ingresos
+            </h3>
+        </div>
+        <div class="h-72">
+            <canvas id="ingresosChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card p-6 shadow-sm border-0 bg-white">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-secondary"></i>
+                Estado de Órdenes
+            </h3>
+        </div>
+        <div class="h-72">
+            <canvas id="ordenesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Top Clientes -->
+    <div class="card p-6 shadow-sm border-0 bg-white lg:col-span-1">
+        <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i data-lucide="award" class="w-4 h-4 text-yellow-500"></i>
+            Top Clientes
+        </h3>
+        <div class="space-y-4">
+            {% for c in top_clientes %}
+            <div class="flex justify-between items-center group p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                        {{ forloop.counter }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-800">{{ c.cliente__nombre_razon_social }}</p>
+                        <p class="text-[10px] text-gray-400">{{ c.cantidad }} trabajos realizados</p>
+                    </div>
+                </div>
+                <p class="font-bold text-primary text-sm">${{ c.total|floatformat:0 }}</p>
+            </div>
+            {% empty %}
+            <p class="text-center py-8 text-gray-400 text-sm italic">Sin datos suficientes</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Productos -->
+    <div class="card p-6 shadow-sm border-0 bg-white lg:col-span-1">
+        <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i data-lucide="package" class="w-4 h-4 text-blue-500"></i>
+            Productos Más Vendidos
+        </h3>
+        <div class="space-y-4">
+            {% for p in top_productos %}
+            <div class="flex justify-between items-center group p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <i data-lucide="box" class="w-4 h-4 text-blue-400"></i>
+                    </div>
+                    <p class="text-sm font-bold text-gray-800">{{ p.producto__nombre|truncatechars:20 }}</p>
+                </div>
+                <span class="badge bg-blue-100 text-blue-700 font-bold text-[10px]">{{ p.total_salidas }} unid.</span>
+            </div>
+            {% empty %}
+            <p class="text-center py-8 text-gray-400 text-sm italic">Sin movimientos registrados</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Facturas Recientes -->
+    <div class="card p-6 shadow-sm border-0 bg-white">
+        <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
+            Ventas Recientes
+        </h3>
+        <div class="space-y-4">
+            {% for f in facturas_recientes %}
+            <div class="flex justify-between items-center border-b border-gray-50 pb-2">
+                <div>
+                    <p class="text-xs font-bold text-gray-700">#{{ f.nro_factura }}</p>
+                    <p class="text-[10px] text-gray-400">{{ f.fecha_emision|date:"d/m H:i" }}</p>
+                </div>
+                <p class="font-black text-sm text-green-600">${{ f.total|floatformat:0 }}</p>
+            </div>
+            {% empty %}
+            <p class="text-center py-8 text-gray-400 text-sm">Sin facturas</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    <!-- Bajo Stock -->
+    <div class="card p-6 border-0 shadow-sm bg-white">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
+            Productos con Bajo Stock
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="text-gray-400 border-b">
+                        <th class="py-2">Producto</th>
+                        <th class="py-2 text-center">Actual</th>
+                        <th class="py-2 text-center">Mínimo</th>
+                        <th class="py-2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos_bajo_stock %}
+                    <tr class="border-b border-gray-50">
+                        <td class="py-3 font-medium">{{ p.nombre }}</td>
+                        <td class="py-3 text-center text-red-600 font-bold">{{ p.stock_actual }}</td>
+                        <td class="py-3 text-center text-gray-400">{{ p.stock_minimo }}</td>
+                        <td class="py-3 text-right">
+                            <span class="badge bg-red-100 text-red-700">CRÍTICO</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400 italic">Todo el stock está al día</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mantenimientos Próximos -->
+    <div class="card p-6 border-0 shadow-sm bg-white">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-orange-500"></i>
+            Próximos Mantenimientos
+        </h3>
+        <div class="space-y-3">
+            {% for a in alertas_proximas %}
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-3">
+                    <div class="text-center bg-white p-1.5 rounded border border-gray-100 min-w-[45px]">
+                        <p class="text-[8px] uppercase text-gray-400 font-bold leading-none">{{ a.fecha_estimada|date:"M" }}</p>
+                        <p class="text-sm font-black text-gray-700">{{ a.fecha_estimada|date:"d" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold">{{ a.tipo_servicio.nombre }}</p>
+                        <p class="text-[10px] text-gray-500">{{ a.vehiculo.patente }} - {{ a.vehiculo.marca }} {{ a.vehiculo.modelo }}</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-bold text-orange-600">PENDIENTE</span>
+            </div>
+            {% empty %}
+            <p class="text-center py-8 text-gray-400 text-sm italic">No hay mantenimientos pendientes</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{{ labels|json_script:"labels-data" }}
+{{ data_ingresos|json_script:"ingresos-data" }}
+{{ ordenes_estados|json_script:"ordenes-labels" }}
+{{ ordenes_datos|json_script:"ordenes-data" }}
+
+<script>
+    const labels = JSON.parse(document.getElementById('labels-data').textContent);
+    const dataIngresos = JSON.parse(document.getElementById('ingresos-data').textContent);
+
+    const ctxIngresos = document.getElementById('ingresosChart').getContext('2d');
+    new Chart(ctxIngresos, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: dataIngresos,
+                borderColor: '#003d9b',
+                backgroundColor: 'rgba(0, 61, 155, 0.05)',
+                borderWidth: 3,
+                pointBackgroundColor: '#003d9b',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+
+    const estados = JSON.parse(document.getElementById('ordenes-labels').textContent);
+    const datosEstados = JSON.parse(document.getElementById('ordenes-data').textContent);
+
+    const ctxOrdenes = document.getElementById('ordenesChart').getContext('2d');
+    new Chart(ctxOrdenes, {
+        type: 'doughnut',
+        data: {
+            labels: estados,
+            datasets: [{
+                data: datosEstados,
+                backgroundColor: ['#fd8b00', '#003d9b', '#ba1a1a', '#166534', '#5b21b6'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+            },
+            cutout: '70%'
+        }
+    });
+</script>
+
+{% endblock %}

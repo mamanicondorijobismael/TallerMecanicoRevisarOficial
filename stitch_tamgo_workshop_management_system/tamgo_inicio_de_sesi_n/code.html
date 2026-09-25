@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TAMGO Workshop Management - Login</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#1c1200",
+                      "on-primary-container": "#7990bc",
+                      "on-tertiary-container": "#b58800",
+                      "on-primary-fixed": "#001b3e",
+                      "secondary-container": "#bad7fe",
+                      "error-container": "#ffdad6",
+                      "surface-dim": "#d3daef",
+                      "secondary-fixed": "#d2e4ff",
+                      "tertiary-container": "#352600",
+                      "surface": "#f9f9ff",
+                      "surface-container-highest": "#dce2f7",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#44474e",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-fixed-dim": "#b0c7f6",
+                      "secondary": "#446082",
+                      "on-secondary-container": "#415d7f",
+                      "primary-container": "#0d284e",
+                      "inverse-surface": "#293040",
+                      "surface-bright": "#f9f9ff",
+                      "primary-fixed": "#d7e3ff",
+                      "surface-variant": "#dce2f7",
+                      "primary": "#001330",
+                      "inverse-on-surface": "#edf0ff",
+                      "outline-variant": "#c4c6cf",
+                      "error": "#ba1a1a",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#e1e8fd",
+                      "on-primary-fixed-variant": "#30476e",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#001d36",
+                      "outline": "#74777f",
+                      "tertiary-fixed": "#ffdf9d",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#485f88",
+                      "on-surface": "#141b2b",
+                      "on-background": "#141b2b",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#2c4869",
+                      "tertiary-fixed-dim": "#f9bd14",
+                      "surface-container-low": "#f1f3ff",
+                      "inverse-primary": "#b0c7f6",
+                      "surface-container": "#e9edff",
+                      "background": "#f9f9ff",
+                      "on-tertiary-fixed": "#251a00",
+                      "secondary-fixed-dim": "#acc9ef"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "xs": "4px",
+                      "base": "4px",
+                      "sidebar-width": "260px",
+                      "container-margin": "24px",
+                      "gutter": "16px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "xl": "32px"
+              },
+              "fontFamily": {
+                      "display-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ],
+                      "display-md-mobile": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-bold": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-md-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background h-screen flex">
+<!-- Left Side: Branding / Background -->
+<div class="hidden lg:flex w-1/2 bg-primary-container flex-col justify-between p-xl relative overflow-hidden">
+<div class="relative z-10 flex flex-col gap-xs">
+<h1 class="font-display-lg text-display-lg font-black text-tertiary-fixed-dim">TAMGO</h1>
+<p class="font-headline-sm text-headline-sm text-on-primary">Workshop Management</p>
+</div>
+<div class="relative z-10">
+<p class="font-display-md text-display-md text-on-primary max-w-md">
+                Precision, durability, and clarity for high-stakes mechanical service environments.
+            </p>
+</div>
+<!-- Decorative background elements to simulate industrial tech feel -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 100% 100%, #f9bd14 0%, transparent 50%);"></div>
+<div class="absolute inset-0 z-0 opacity-10 pointer-events-none" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #ffffff 10px, #ffffff 11px);"></div>
+</div>
+<!-- Right Side: Login Form -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-lg sm:p-xl bg-surface-container-lowest relative">
+<div class="w-full max-w-md flex flex-col gap-xl relative z-10">
+<div class="flex flex-col gap-sm text-center lg:text-left">
+<!-- Mobile Logo -->
+<div class="lg:hidden mb-sm">
+<h1 class="font-display-lg text-display-lg font-black text-primary-container">TAMGO</h1>
+</div>
+<h2 class="font-display-md text-display-md text-on-surface">Welcome Back</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Sign in to continue to your dashboard.</p>
+</div>
+<form class="flex flex-col gap-md">
+<!-- Username / Email -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface" for="email">Username or Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+<input class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all font-body-md text-body-md bg-transparent outline-none" id="email" placeholder="Enter your username" type="text"/>
+</div>
+</div>
+<!-- Password -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface" for="password">Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+<input class="w-full pl-10 pr-10 py-2 border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all font-body-md text-body-md bg-transparent outline-none" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" id="togglePassword" type="button">
+<span class="material-symbols-outlined" id="visibilityIcon">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Remember Me & Forgot Password -->
+<div class="flex items-center justify-between mt-sm">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="rounded border-outline-variant text-tertiary-fixed-dim focus:ring-tertiary-fixed-dim bg-transparent cursor-pointer" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">Remember me</span>
+</label>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Forgot password?</a>
+</div>
+<!-- Login Button -->
+<button class="w-full mt-lg bg-tertiary-fixed-dim hover:bg-[#e0a804] text-on-tertiary-fixed font-label-bold text-label-bold py-3 rounded shadow-sm hover:shadow transition-all duration-200" type="submit">
+                    Login
+                </button>
+</form>
+<div class="text-center mt-md">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Need help? Contact <a class="text-secondary font-medium hover:underline" href="#">IT Support</a>
+</p>
+</div>
+</div>
+</div>
+<script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const visibilityIcon = document.getElementById('visibilityIcon');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            visibilityIcon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+        });
+    </script>
+</body></html>

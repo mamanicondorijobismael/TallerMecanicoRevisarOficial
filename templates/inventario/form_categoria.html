@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card p-8">
+        <div class="flex items-center gap-4 mb-6 border-b pb-4">
+            <a href="{% url 'inventario:categoria_lista' %}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Volver">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-gray-500"></i>
+            </a>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                </div>
+                <h2 class="text-2xl font-bold">{{ title }}</h2>
+            </div>
+        </div>
+
+        <form method="POST" action="{% if form.instance.pk %}{% url 'inventario:categoria_editar' form.instance.pk %}{% else %}{% url 'inventario:categoria_crear' %}{% endif %}" class="space-y-5">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-50 text-red-700 p-4 rounded-lg text-sm mb-4">
+                Por favor corrija los errores indicados abajo.
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre de la Categoría</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}<p class="text-red-500 text-xs mt-1 font-medium">{{ form.nombre.errors.0 }}</p>{% endif %}
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Productos</label>
+                    {{ form.tipo }}
+                    <p class="text-[11px] text-gray-400 mt-1">¿Esta categoría es para Repuestos o para Neumáticos?</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-semibold text-gray-700">Seleccionar Icono</label>
+                        <div id="icon-preview" class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
+                            <i data-lucide="box" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    {{ form.icono }}
+                    <div class="grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <button type="button" onclick="selectIcon('box')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-box"><i data-lucide="box" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('tire')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-tire"><i data-lucide="tire" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('tool')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-tool"><i data-lucide="tool" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('cog')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-cog"><i data-lucide="cog" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('wrench')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-wrench"><i data-lucide="wrench" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('droplet')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-droplet"><i data-lucide="droplet" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('disc')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-disc"><i data-lucide="disc" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('zap')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-zap"><i data-lucide="zap" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('link')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-link"><i data-lucide="link" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('thermometer')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-thermometer"><i data-lucide="thermometer" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('wind')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-wind"><i data-lucide="wind" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="selectIcon('filter')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-filter"><i data-lucide="filter" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+
+                <script>
+                    function selectIcon(name) {
+                        document.querySelector('input[name="icono"]').value = name;
+                        
+                        // Actualizar Preview
+                        const preview = document.getElementById('icon-preview');
+                        preview.innerHTML = `<i data-lucide="${name}" class="w-6 h-6"></i>`;
+                        lucide.createIcons();
+
+                        // Quitar clase activa de todos
+                        document.querySelectorAll('.icon-btn').forEach(btn => {
+                            btn.classList.remove('bg-primary', 'text-white', 'border-primary');
+                            btn.classList.add('bg-white', 'text-gray-600');
+                        });
+                        // Agregar a seleccionado
+                        const active = document.getElementById('icon-' + name);
+                        if (active) {
+                            active.classList.add('bg-primary', 'text-white', 'border-primary');
+                            active.classList.remove('bg-white', 'text-gray-600');
+                        }
+                    }
+                    window.addEventListener('DOMContentLoaded', () => {
+                        const current = document.querySelector('input[name="icono"]').value;
+                        if (current) selectIcon(current);
+                        else selectIcon('box');
+                    });
+                </script>
+            </div>
+
+            <div class="pt-6 flex justify-end gap-3 border-t">
+                <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-ghost px-6">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-8 shadow-lg shadow-primary/20 font-bold">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

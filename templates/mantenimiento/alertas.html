@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block page_title %}Alertas de Mantenimiento{% endblock %}
+{% block subtitle %}Seguimiento de servicios preventivos y kilometraje{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Inicio
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="flex gap-2">
+  <a href="{% url 'mantenimiento:tipos' %}" class="btn btn-ghost btn-sm">Planes</a>
+  <a href="{% url 'mantenimiento:crear' %}" class="btn btn-primary btn-sm">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Programar Alerta
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card p-6 animate-in">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for a in alertas %}
+    <div class="p-5 rounded-2xl border transition-all" style="background:var(--bg-card2);border-color:var(--border)">
+      <div class="flex justify-between items-start mb-3">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">{{ a.tipo_servicio.nombre }}</span>
+        {% if a.estado == 'PENDIENTE' %}
+          {% if a.km_estimado and a.vehiculo.kilometraje_actual >= a.km_estimado %}
+            <span class="badge status-cancelada">VENCIDO</span>
+          {% else %}
+            <span class="badge status-en_proceso">PROGRAMADO</span>
+          {% endif %}
+        {% else %}
+          <span class="badge status-pagada">{{ a.get_estado_display }}</span>
+        {% endif %}
+      </div>
+
+      <h4 class="font-black text-xl text-white uppercase tracking-wider" style="font-family:'Outfit',sans-serif">{{ a.vehiculo.patente }}</h4>
+      <p class="text-xs text-gray-400 mb-4 mt-1">
+        {{ a.vehiculo.marca }} {{ a.vehiculo.modelo }} <br>
+        <span class="text-brand font-semibold">{{ a.vehiculo.cliente.nombre_razon_social }}</span>
+      </p>
+
+      <div class="rounded-xl p-3 flex justify-between items-center mb-4" style="background:var(--bg);border:1px solid var(--border)">
+        <div class="text-center flex-1 border-r" style="border-color:var(--border)">
+          <p class="text-[10px] uppercase font-bold text-gray-500">Objetivo</p>
+          <p class="font-bold text-white text-xs">{{ a.km_estimado|default:"—" }} km</p>
+        </div>
+        <div class="text-center flex-1">
+          <p class="text-[10px] uppercase font-bold text-gray-500">Actual</p>
+          <p class="font-bold text-brand text-xs">{{ a.vehiculo.kilometraje_actual }} km</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        {% if a.estado == 'PENDIENTE' %}
+          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'ATENDIDA' %}" class="btn btn-xs btn-primary flex-1 justify-center">Atender</a>
+          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'IGNORADA' %}" class="btn btn-xs btn-ghost flex-1 justify-center">Ignorar</a>
+        {% else %}
+          <a href="{% url 'vehiculos:detalle' a.vehiculo.pk %}" class="btn btn-xs btn-ghost w-full justify-center">Ver Ficha</a>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full py-12 text-center text-gray-500 text-sm">
+      No hay alertas de mantenimiento registradas.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

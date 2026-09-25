@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TAMGO - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#293040",
+                        "inverse-primary": "#b0c7f6",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e1e8fd",
+                        "primary": "#001330",
+                        "secondary-fixed-dim": "#acc9ef",
+                        "outline": "#74777f",
+                        "on-primary-fixed-variant": "#30476e",
+                        "primary-container": "#0d284e",
+                        "tertiary-fixed-dim": "#f9bd14",
+                        "primary-fixed-dim": "#b0c7f6",
+                        "surface-container-highest": "#dce2f7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#d2e4ff",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface-container-low": "#f1f3ff",
+                        "secondary": "#446082",
+                        "on-secondary-fixed": "#001d36",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-tint": "#485f88",
+                        "surface": "#f9f9ff",
+                        "tertiary": "#1c1200",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#001b3e",
+                        "surface-bright": "#f9f9ff",
+                        "surface-container": "#e9edff",
+                        "on-secondary-container": "#415d7f",
+                        "on-tertiary-container": "#b58800",
+                        "tertiary-container": "#352600",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#d7e3ff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-background": "#141b2b",
+                        "outline-variant": "#c4c6cf",
+                        "background": "#f9f9ff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d3daef",
+                        "tertiary-fixed": "#ffdf9d",
+                        "secondary-container": "#bad7fe",
+                        "surface-variant": "#dce2f7",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#141b2b",
+                        "on-secondary-fixed-variant": "#2c4869",
+                        "on-primary-container": "#7990bc",
+                        "on-surface-variant": "#44474e",
+                        "on-error-container": "#93000a",
+                        "kpi-bg": "#F1F3F5",
+                        "card-border": "#E5E7EB",
+                        "gold": "#F2B705",
+                        "dark-blue": "#0D284E",
+                        "light-blue": "#3E5A7B",
+                        "green": "#16A34A",
+                        "red": "#DC2626"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "xl": "32px",
+                        "container-margin": "24px",
+                        "md": "16px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "sidebar-width": "260px",
+                        "xs": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "display-md-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-md-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-bold": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F1F3F5; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+        
+        /* Custom scrollbar for better look in dashboard */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c4c6cf; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #74777f; }
+
+        .shadow-level-1 { box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05); }
+        .shadow-level-2 { box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="text-on-surface flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-primary-container dark:bg-primary-container fixed left-0 top-0 h-full w-sidebar-width flex flex-col py-xl z-20">
+<div class="px-lg mb-xl">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center">
+<img alt="TAMGO Logo" class="w-6 h-6 object-contain" data-alt="A stylized logo icon for a workshop management software named TAMGO, featuring mechanical gears or tools in deep blue and gold colors on a white background, corporate modern industrial tech style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDraGjrlDYiGzHFAXIngAd524nn8Ar6_UIGbxke906h5X2elP7eN5lDkyrFgg8gtgpWHR4m7CtNRLPTLLGQMn_ZYQZZAeQ47JcnA3jRgvlevMadISbp2dUzFOmmHc7A4QPvJke8jX-EATizh_pJqdftuWaqCOlP_tOYjbX6qA_edE0adf7vFzroyCQfiX9JKNkv01NcH4icyFc1El4JkXYFxVkYvPri52zngS_lYrWQqPYbVqfOh1uJ5Q"/>
+</div>
+<div>
+<h1 class="font-display-md text-display-md font-bold text-on-primary dark:text-on-primary">TAMGO</h1>
+<p class="font-label-sm text-label-sm text-on-primary-container">Workshop Management</p>
+</div>
+</div>
+</div>
+<div class="px-lg mb-xl">
+<button class="w-full bg-tertiary-fixed-dim text-on-tertiary-fixed-variant font-label-bold text-label-bold py-3 rounded-lg shadow-level-1 hover:bg-opacity-90 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-lg">login</span>
+                Register Entry/Exit
+            </button>
+</div>
+<div class="flex-1 flex flex-col gap-sm overflow-y-auto">
+<!-- Active: Dashboard -->
+<a class="flex items-center gap-md text-on-primary border-l-4 border-tertiary-fixed-dim bg-white/5 py-3 px-lg font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" data-weight="fill">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="trolley" data-weight="fill">trolley</span>
+<span class="font-label-bold text-label-bold">Work Orders</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2" data-weight="fill">inventory_2</span>
+<span class="font-label-bold text-label-bold">Inventory</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="badge" data-weight="fill">badge</span>
+<span class="font-label-bold text-label-bold">Attendance Control</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments" data-weight="fill">payments</span>
+<span class="font-label-bold text-label-bold">Sales</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assessment" data-weight="fill">assessment</span>
+<span class="font-label-bold text-label-bold">Reports</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-sm pt-md border-t border-white/10 px-0">
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings" data-weight="fill">settings</span>
+<span class="font-label-bold text-label-bold">Settings</span>
+</a>
+<a class="flex items-center gap-md text-on-secondary-container dark:text-on-secondary-container py-3 px-lg hover:bg-white/10 hover:text-on-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout" data-weight="fill">logout</span>
+<span class="font-label-bold text-label-bold">Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 ml-[260px] flex flex-col h-full bg-[#F1F3F5]">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none docked full-width top-0 z-10 flex justify-between items-center w-full px-lg py-md h-16">
+<div class="flex-1 flex items-center gap-md">
+<!-- Search bar on left as per JSON -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded-full font-body-md text-body-md focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-all" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-sm border border-outline-variant cursor-pointer hover:opacity-80 transition-opacity">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a workshop manager in a modern industrial setting, well-lit, wearing a subtle dark blue uniform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUG0rVaYfxBV2KxpaFFZ8l0P1ztGMzxoK4vDEauatvHz67D96XaqsVrFD9YYyqOS4r0HrsnfqMpAuFQBReDXks-OwMV_3rjkvZxT47XBE4hJUXQ_Om-BWKz6uddI-C-yEOLD8mOhtSSzKfJiYjjWmN_SUY-h8mxRJEKo-QESkVEsofKrVPt0Z9wdjjumdPbqS9ExWeirem2XiJkCGTgB25Rly2_D0Q4w5-XsllfiWFQXjMC3ppoL-aEQ"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<main class="flex-1 overflow-y-auto p-container-margin">
+<!-- KPI Header -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-container-margin mb-container-margin">
+<!-- Revenue Card -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl p-md shadow-level-1 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-green/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-green text-2xl">attach_money</span>
+</div>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-xs">Revenue</p>
+<p class="font-display-md text-display-md text-on-surface">$12,450.00</p>
+</div>
+</div>
+<!-- Active Orders Card -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl p-md shadow-level-1 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-2xl">build</span>
+</div>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-xs">Active Orders</p>
+<p class="font-display-md text-display-md text-on-surface">24</p>
+</div>
+</div>
+<!-- Low Stock Card -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl p-md shadow-level-1 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-red/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-red text-2xl">warning</span>
+</div>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-xs">Low Stock Alerts</p>
+<p class="font-display-md text-display-md text-on-surface">5</p>
+</div>
+</div>
+<!-- Attendance Card -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl p-md shadow-level-1 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-light-blue/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-light-blue text-2xl">group</span>
+</div>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-xs">Today's Attendance</p>
+<p class="font-display-md text-display-md text-on-surface">18 / 20</p>
+</div>
+</div>
+</div>
+<!-- Analytics Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-container-margin mb-container-margin">
+<!-- Monthly Revenue Chart (2/3) -->
+<div class="lg:col-span-2 bg-surface-container-lowest border border-card-border rounded-xl p-lg shadow-level-1 flex flex-col h-96">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Monthly Revenue</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex-1 relative w-full h-full">
+<canvas id="revenueChart"></canvas>
+</div>
+</div>
+<!-- Service Distribution Chart (1/3) -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl p-lg shadow-level-1 flex flex-col h-96">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Service Distribution</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex-1 relative w-full h-full flex justify-center items-center pb-4">
+<canvas id="serviceChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Attendance & Operations Row -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-container-margin">
+<!-- Attendance Control List (1/3) -->
+<div class="bg-surface-container-lowest border border-card-border rounded-xl shadow-level-1 flex flex-col h-[400px]">
+<div class="p-md border-b border-card-border flex justify-between items-center">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Staff Attendance</h2>
+<span class="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-xs font-bold">18/20</span>
+</div>
+<div class="flex-1 overflow-y-auto p-md space-y-md">
+<!-- Present -->
+<div class="flex items-center gap-md">
+<div class="relative">
+<img alt="Juan Pérez" class="w-10 h-10 rounded-full object-cover border-2 border-green" data-alt="A portrait of a male mechanic wearing a blue uniform, smiling slightly, well lit in an industrial workshop environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGAggR9Cr34NivN4tCE4PRyGtj_ISn0BpsYum3lgVGOba22oyI_OE2pz3lZuSeKcrwJ-KfBuXQWmv1J7O3H10GA2-u5LHd5VeibbypYkYPwtjTzdNUOop7VDLNHhC3wpeK4NF9dNxkz2efQ_tVHCPFeDuBbPCcGO3jBuHxJH2Kx2MYzU0yyqlu6VqLPmZnzpPva4eoGhcT_Woe1Fey1bHp3J0wNCbkNRhZHF-g_l54KKlun1gweVAwWw"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-green border-2 border-white rounded-full"></span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-bold text-on-surface">Juan Pérez</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Mechanic • On Shift</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative">
+<img alt="Ana García" class="w-10 h-10 rounded-full object-cover border-2 border-green" data-alt="A portrait of a female receptionist in a modern office setting attached to a workshop, looking professional and attentive." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBM4M1-KLbsU5jeras4bqE47PC2bGhj6ZM-We5tRh3J016HgSvyMjREb240S-S3kvB2wSEzlPhKQ_wgypKMdISj6U43rXTYFAAyEJb2gpWGiyXFag2F1uFo7KxvHSGi_wQQt8hbKdLscOsNPr0hNyyAnKxe_5PP6jEEIpAp5sYbQr-uc4VDw3-QQ9-AlLMdumLb-ppxli0fnUO5OtvNZrUKb4Fo-jcX5fGNZ3MaLfaKEiJALflEhKyqDA"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-green border-2 border-white rounded-full"></span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-bold text-on-surface">Ana García</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Reception • Present</p>
+</div>
+</div>
+<!-- Late -->
+<div class="flex items-center gap-md">
+<div class="relative">
+<img alt="Carlos Ruiz" class="w-10 h-10 rounded-full object-cover border-2 border-gold" data-alt="A portrait of a male mechanic looking slightly hurried, wearing overalls in a workshop setting, industrial lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrl5nvZfmFlimB3w9Bvb4Qw8D_RdigBrtFPaQnQyldWPPB6fi0EDc6vqTjZKl6cHyqXgIgNxIny0LVsiWjDVRallIBPTsD7wMmJYzntqBmzIjiuC3PhyFZGFgK70SnUcvj4ZCA-XJnjRZ4XKy6uCsq8c_ioVucucq2qm1YE2ZZ9U_Vyl5hxC9r7-pgSKRn7pbBOfeWmJE9c3FIWi_tcVQ06wwxKRgaGtnI-v5RFk9II5V7nFiWx7K0nQ"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-gold border-2 border-white rounded-full"></span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-bold text-on-surface">Carlos Ruiz</p>
+<p class="font-label-sm text-label-sm text-gold font-medium">Mechanic • Late</p>
+</div>
+</div>
+<!-- Absent -->
+<div class="flex items-center gap-md opacity-70">
+<div class="relative">
+<img alt="Luis Torres" class="w-10 h-10 rounded-full object-cover border-2 border-red grayscale" data-alt="A portrait of a male mechanic, neutral expression, subtle lighting, dark background, representing an absent employee profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFYDEGY24oIhZFrFT3pGfGwzzFl11PyHV9FNblT_mGQ7S0RtizylqBOnTtFUFhoNQ4nMRosKKvnPD3_dkwbBwP8b_CQbUKIwDPEYB7I0qy_wiA_h_uqc91WMxUwSmLZuDfj-XT_nB1fPD5K2AM1r02fQZW-_HHFrsE8siWl9KhaAtWI5g9cQKLHGqZRnzAYRBrKw4a9n2a8TLFW4isjRPVSSOJBdNEmQtqPyNgKRyFd-qF4JyiFs1zMA"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-red border-2 border-white rounded-full"></span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-bold text-on-surface">Luis Torres</p>
+<p class="font-label-sm text-label-sm text-red font-medium">Mechanic • Absent</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Work Orders Table (2/3) -->
+<div class="xl:col-span-2 bg-surface-container-lowest border border-card-border rounded-xl shadow-level-1 flex flex-col h-[400px]">
+<div class="p-md border-b border-card-border flex justify-between items-center">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Active Work Orders</h2>
+<button class="text-sm font-label-bold text-label-bold text-primary hover:underline">View All</button>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F9FAFB] border-b border-card-border">
+<th class="p-md font-label-bold text-label-bold text-on-surface-variant uppercase">Order ID</th>
+<th class="p-md font-label-bold text-label-bold text-on-surface-variant uppercase">Vehicle</th>
+<th class="p-md font-label-bold text-label-bold text-on-surface-variant uppercase">Service</th>
+<th class="p-md font-label-bold text-label-bold text-on-surface-variant uppercase">Status</th>
+<th class="p-md font-label-bold text-label-bold text-on-surface-variant uppercase text-right">Action</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row 1 -->
+<tr class="border-b border-[#F1F3F5] hover:bg-light-blue/5 transition-colors group cursor-pointer">
+<td class="p-md font-body-md text-body-md font-medium">#001</td>
+<td class="p-md">
+<p class="font-body-md text-body-md font-bold text-on-surface">Toyota Hilux</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ABC 123</p>
+</td>
+<td class="p-md font-body-md text-body-md text-on-surface-variant">Tire Change</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-gold/10 text-[#B48500]">Pending</span>
+</td>
+<td class="p-md text-right">
+<button class="text-on-surface-variant group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-[#F1F3F5] hover:bg-light-blue/5 transition-colors group cursor-pointer">
+<td class="p-md font-body-md text-body-md font-medium">#002</td>
+<td class="p-md">
+<p class="font-body-md text-body-md font-bold text-on-surface">Honda Civic</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">DEF 456</p>
+</td>
+<td class="p-md font-body-md text-body-md text-on-surface-variant">Oil Change</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-light-blue/10 text-light-blue">In Process</span>
+</td>
+<td class="p-md text-right">
+<button class="text-on-surface-variant group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-[#F1F3F5] hover:bg-light-blue/5 transition-colors group cursor-pointer">
+<td class="p-md font-body-md text-body-md font-medium">#003</td>
+<td class="p-md">
+<p class="font-body-md text-body-md font-bold text-on-surface">Ford Ranger</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">GHI 789</p>
+</td>
+<td class="p-md font-body-md text-body-md text-on-surface-variant">Engine Repair</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-green/10 text-green">Completed</span>
+</td>
+<td class="p-md text-right">
+<button class="text-on-surface-variant group-hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="h-xl"></div> <!-- Bottom padding -->
+</main>
+</div>
+<!-- Chart Scripts -->
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Common Chart Options for styling consistency
+            Chart.defaults.font.family = 'Inter';
+            Chart.defaults.color = '#74777f';
+            
+            // Monthly Revenue Line Chart
+            const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [8500, 9200, 10500, 11000, 10800, 12450],
+                        borderColor: '#0D284E',
+                        backgroundColor: 'rgba(13, 40, 78, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#3E5A7B',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#001330',
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#E5E7EB', drawBorder: false },
+                            ticks: {
+                                callback: function(value) { return '$' + value/1000 + 'k'; }
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false }
+                        }
+                    }
+                }
+            });
+
+            // Service Distribution Doughnut Chart
+            const ctxService = document.getElementById('serviceChart').getContext('2d');
+            new Chart(ctxService, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mechanical', 'Tire Shop', 'Lubricants'],
+                    datasets: [{
+                        data: [55, 30, 15],
+                        backgroundColor: [
+                            '#0D284E', // Dark Blue
+                            '#3E5A7B', // Light Blue
+                            '#F2B705'  // Gold
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { family: 'Inter', size: 12, weight: '500' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#001330',
+                            titleFont: { family: 'Inter', size: 12 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body></html>

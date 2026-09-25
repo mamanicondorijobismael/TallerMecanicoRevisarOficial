@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block page_title %}Cobros y Pagos{% endblock %}
+{% block subtitle %}Historial de comprobantes y cobros{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Inicio
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card animate-in">
+  <!-- Header + filtros -->
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="search-wrap" style="min-width:220px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+          <input type="text" name="q" value="{{ query }}" placeholder="N° comprobante o cliente..." class="form-input">
+        </div>
+        <select name="estado" class="form-input" style="min-width:160px">
+          <option value="">Todos los estados</option>
+          <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+          <option value="PARCIAL"   {% if estado_filter == 'PARCIAL'   %}selected{% endif %}>Pago parcial</option>
+          <option value="PAGADA"    {% if estado_filter == 'PAGADA'    %}selected{% endif %}>Cobrado</option>
+          <option value="ANULADA"   {% if estado_filter == 'ANULADA'   %}selected{% endif %}>Anulado</option>
+        </select>
+        <button type="submit" class="btn btn-ghost">Filtrar</button>
+      </form>
+    </div>
+    <div style="display:flex;gap:8px">
+      <span class="badge status-pagada">Cobrado</span>
+      <span class="badge status-parcial">Parcial</span>
+      <span class="badge status-pendiente">Pendiente</span>
+    </div>
+  </div>
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Comprobante</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Orden</th>
+          <th style="text-align:right">Subtotal</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:center">Estado</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in facturas %}
+        <tr>
+          <td>
+            <span style="font-family:monospace;font-weight:800;color:var(--brand);font-size:13px"># {{ f.numero_factura }}</span>
+          </td>
+          <td style="color:var(--txt-muted);font-size:12.5px">{{ f.fecha_emision|date:"d/m/Y" }}</td>
+          <td>
+            <div style="font-weight:600;color:var(--txt)">{{ f.cliente.nombre_razon_social }}</div>
+            <div style="font-size:11px;color:var(--txt-dim);font-family:monospace">{{ f.cliente.documento }}</div>
+          </td>
+          <td>
+            <a href="{% url 'ordenes:detalle' f.orden.pk %}" class="btn btn-xs btn-ghost">#{{ f.orden.numero_orden }}</a>
+          </td>
+          <td style="text-align:right;color:var(--txt-muted)">${{ f.subtotal|floatformat:2 }}</td>
+          <td style="text-align:right;font-weight:700;font-size:15px;color:var(--txt)">${{ f.total|floatformat:2 }}</td>
+          <td style="text-align:center">
+            {% if f.estado_pago == 'PAGADA' %}
+              <span class="badge status-pagada">COBRADO</span>
+            {% elif f.estado_pago == 'PARCIAL' %}
+              <span class="badge status-parcial">PARCIAL</span>
+            {% elif f.estado_pago == 'ANULADA' %}
+              <span class="badge status-anulada">ANULADO</span>
+            {% else %}
+              <span class="badge status-pendiente">PENDIENTE</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right">
+            <a href="{% url 'facturas:detalle' f.pk %}" class="btn btn-sm btn-primary">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              Gestionar
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              <h3>No hay comprobantes registrados</h3>
+              <p>Los cobros se generan desde una orden de trabajo completada.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

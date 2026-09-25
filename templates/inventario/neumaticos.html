@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block page_title %}Catálogo de Neumáticos{% endblock %}
+{% block subtitle %}Stock, rodados y medidas disponibles en gomería{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  Inicio
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="flex gap-2">
+  {% if user.es_administrador %}
+  <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-ghost btn-sm">Categorías</a>
+  {% endif %}
+  <a href="{% url 'inventario:neumatico_crear' %}" class="btn btn-secondary btn-sm">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Nuevo Neumático
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card animate-in">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+    <form method="GET" class="flex gap-3 flex-wrap">
+      <div class="search-wrap flex-1" style="min-width:240px">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Buscar por medida (ej: 205/55R16), marca o SKU..." class="form-input">
+      </div>
+      <button type="submit" class="btn btn-ghost">Buscar</button>
+    </form>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Foto</th>
+          <th>Código SKU</th>
+          <th>Neumático</th>
+          <th>Medida</th>
+          <th style="text-align:center">Stock</th>
+          <th style="text-align:right">Precio Venta</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in neumaticos %}
+        {% with p=n.producto %}
+        <tr>
+          <td style="width:48px">
+            <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+              {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+              {% else %}
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke-width="2"/></svg>
+              {% endif %}
+            </div>
+          </td>
+          <td style="font-family:monospace;font-size:12px;color:var(--txt-muted)">{{ p.codigo_sku }}</td>
+          <td>
+            <div style="font-weight:700;color:var(--txt)">{{ p.nombre }}</div>
+            <div style="font-size:11px;color:var(--txt-dim)">{{ n.marca }} {{ n.modelo }}</div>
+          </td>
+          <td>
+            <span class="badge" style="background:rgba(59,130,246,0.15);color:#60A5FA;font-family:monospace">{{ n.medida }}</span>
+          </td>
+          <td style="text-align:center">
+            {% if p.stock_critico %}
+              <span class="badge status-cancelada">{{ p.stock_actual }}</span>
+            {% else %}
+              <span class="badge status-pagada">{{ p.stock_actual }}</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;font-weight:700;color:var(--txt)">${{ p.precio_venta|floatformat:2 }}</td>
+          <td style="text-align:right">
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              {% if user.es_administrador %}
+              <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-xs btn-secondary" title="Cargar o Ajustar Stock">+ Stock</a>
+              {% endif %}
+              <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-xs btn-primary">Vender</a>
+              <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-xs btn-ghost">Editar</a>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <p>No se encontraron neumáticos en el inventario.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

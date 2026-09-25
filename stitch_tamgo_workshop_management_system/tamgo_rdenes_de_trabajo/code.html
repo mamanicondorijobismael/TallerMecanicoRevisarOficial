@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TAMGO - Work Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#acc9ef",
+                        "tertiary-container": "#352600",
+                        "surface": "#f9f9ff",
+                        "on-background": "#141b2b",
+                        "surface-variant": "#dce2f7",
+                        "primary-fixed": "#d7e3ff",
+                        "tertiary-fixed": "#ffdf9d",
+                        "on-primary-fixed": "#001b3e",
+                        "surface-container-high": "#e1e8fd",
+                        "background": "#f9f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#dce2f7",
+                        "on-primary-fixed-variant": "#30476e",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary-container": "#7990bc",
+                        "primary": "#001330",
+                        "secondary": "#446082",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#2c4869",
+                        "on-surface": "#141b2b",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#485f88",
+                        "on-surface-variant": "#44474e",
+                        "outline-variant": "#c4c6cf",
+                        "outline": "#74777f",
+                        "surface-container-low": "#f1f3ff",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#d2e4ff",
+                        "on-secondary-container": "#415d7f",
+                        "surface-container": "#e9edff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#1c1200",
+                        "tertiary-fixed-dim": "#f9bd14",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#b58800",
+                        "surface-bright": "#f9f9ff",
+                        "on-secondary-fixed": "#001d36",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "primary-container": "#0d284e",
+                        "inverse-surface": "#293040",
+                        "inverse-primary": "#b0c7f6",
+                        "primary-fixed-dim": "#b0c7f6",
+                        "secondary-container": "#bad7fe",
+                        "on-primary": "#ffffff",
+                        
+                        /* Custom Status Colors mapped for utility */
+                        "status-pending": "#F2B705",
+                        "status-completed": "#16A34A",
+                        "status-progress": "#3E5A7B"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "label-bold": ["Inter", "sans-serif"],
+                        "display-md-mobile": ["Inter", "sans-serif"],
+                        "display-md": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-bold": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-md-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom styles for table striping and shadows to match "Industrial Tech" aesthetic */
+        .table-row-hover:hover {
+            background-color: rgba(68, 96, 130, 0.05); /* 5% secondary blue */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col w-[260px] h-screen fixed inset-y-0 left-0 z-50 bg-primary-container shadow-sm">
+<!-- Brand Header -->
+<div class="px-6 py-8 border-b border-secondary/20">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-DEFAULT object-cover" data-alt="A small, stylized minimalist logo emblem suitable for an industrial workshop management system. The design incorporates sharp geometric lines resembling a specialized tool or cog, rendered in metallic silver and a deep navy blue background. The aesthetic is clean, professional, and mechanical, evoking precision and reliability. The lighting is neutral and flat, perfect for a high-contrast corporate identity mark." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDB4jBGPLiIfCcrIbG1wqgtrYZqpl5sUjKfu-Mz_JcHzGt_aNA0Xj_Mj2-eLw5nIeCZN6WMQFaxZm8lwpGjRnM0BrsAhVguN0EUL-X8k4acUr87DkTGFxk9DgQexmhsEwS0g-4kqzBeOuW5LnL1x725iEzoBM5t8IM66D4OjOWKVkBpBYMDPjxnmL6pTGsZA_ijw8-zeKQeAWQPgSTBod0ScRXv6UdjGm1OapPF16GP6JI3n1TXgTN0ZQ"/>
+<div>
+<h1 class="font-display-md text-display-md font-bold text-on-primary">TAMGO</h1>
+<p class="font-label-bold text-label-bold text-secondary-fixed-dim opacity-80 uppercase tracking-widest">Workshop Management</p>
+</div>
+</div>
+</div>
+<!-- Primary CTA -->
+<div class="p-6">
+<button class="w-full flex items-center justify-center gap-2 bg-tertiary-fixed-dim hover:bg-tertiary-fixed text-primary font-label-bold text-label-bold py-3 px-4 rounded-DEFAULT shadow-[0px_4px_6px_rgba(0,0,0,0.05)] transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Work Order
+            </button>
+</div>
+<!-- Navigation Links -->
+<ul class="flex-1 overflow-y-auto mt-2">
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-4 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+</li>
+<li>
+<!-- ACTIVE STATE -->
+<a class="flex items-center text-on-primary border-l-[4px] border-tertiary-fixed-dim bg-primary px-6 py-4 gap-3 translate-x-1 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="build">build</span>
+<span class="font-label-bold text-label-bold">Work Orders</span>
+</a>
+</li>
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-4 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-bold text-label-bold">Inventory</span>
+</a>
+</li>
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-4 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="badge">badge</span>
+<span class="font-label-bold text-label-bold">Attendance Control</span>
+</a>
+</li>
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-4 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="payments">payments</span>
+<span class="font-label-bold text-label-bold">Sales</span>
+</a>
+</li>
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-4 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="analytics">analytics</span>
+<span class="font-label-bold text-label-bold">Reports</span>
+</a>
+</li>
+</ul>
+<!-- Footer Links -->
+<ul class="border-t border-secondary/20 py-4">
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-3 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-tertiary-fixed-dim transition-colors" data-icon="settings">settings</span>
+<span class="font-label-bold text-label-bold">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center text-on-secondary-container px-6 py-3 hover:bg-primary hover:text-white transition-colors duration-200 gap-3 group" href="#">
+<span class="material-symbols-outlined text-secondary-fixed-dim/70 group-hover:text-error transition-colors" data-icon="logout">logout</span>
+<span class="font-label-bold text-label-bold">Logout</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-[260px] min-h-screen flex flex-col bg-surface">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-gutter border-b border-outline-variant bg-surface sticky top-0 z-40">
+<!-- Mobile Menu Toggle (hidden on desktop) -->
+<button class="md:hidden text-primary p-2 focus:ring-2 ring-primary-container transition-shadow rounded-DEFAULT">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Search Bar -->
+<div class="flex-1 max-w-md hidden sm:flex items-center">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search orders, plates..." type="text"/>
+</div>
+</div>
+<!-- Actions & Profile -->
+<div class="flex items-center gap-4 ml-auto">
+<button class="text-on-surface-variant hover:text-primary transition-all p-2 rounded-full focus:ring-2 ring-primary-container relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all p-2 rounded-full focus:ring-2 ring-primary-container hidden sm:block">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-2 hidden sm:block"></div>
+<button class="flex items-center gap-2 focus:ring-2 ring-primary-container transition-shadow rounded-full p-1 pr-3">
+<img alt="Administrator Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a workshop administrator or manager. The subject is a confident individual in their late 30s wearing a clean, branded navy blue polo shirt. The background is a slightly blurred, brightly lit modern mechanical workshop environment. The lighting on the subject's face is bright and flattering, consistent with a clean corporate aesthetic. High resolution, professional photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCReq9MPlof43J7hPCNqxveMpIb6zRKRFzwKDJMowb1TXpfCrNABuJoCrwdV57aU7_Zd-mBIIESUTtA804HND7aXJbBnL6qgVNcD99UDveJq7z-ijgVWsm04YaQk3UTgG9Pm59OzJAGitOdIIOYAkhbUWJ2fvTat1ee9lUsog5JVLBuo8CBN6XJca8yGER6rH2KxYX2PP_HJfYpSKwAF6mgqnimXIb9_qSMGxS7ERlLCEjViUc86UeHJw"/>
+<span class="font-label-sm text-label-sm text-on-surface font-medium hidden md:block">Admin</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] hidden md:block">expand_more</span>
+</button>
+</div>
+</header>
+<!-- Canvas Container -->
+<div class="p-container-margin flex-1 flex flex-col gap-6">
+<!-- Page Header & Actions -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<div>
+<h2 class="font-display-md text-display-md text-primary">Work Orders</h2>
+<p class="font-body-md text-body-md text-outline mt-1">Manage and track all ongoing workshop services.</p>
+</div>
+<!-- Action Bar (Filters & Export) -->
+<div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface font-label-sm text-label-sm py-2 pl-4 pr-10 rounded-DEFAULT focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shadow-sm cursor-pointer">
+<option value="">All Statuses</option>
+<option value="pending">Pending</option>
+<option value="in_progress">In Progress</option>
+<option value="completed">Completed</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">filter_list</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface font-label-sm text-label-sm py-2 pl-4 pr-10 rounded-DEFAULT focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shadow-sm cursor-pointer">
+<option value="">All Services</option>
+<option value="mechanic">Mechanic</option>
+<option value="tire_shop">Tire Shop</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">build</span>
+</div>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-surface-container-low font-label-sm text-label-sm py-2 px-4 rounded-DEFAULT shadow-sm flex items-center gap-2 transition-colors ml-auto sm:ml-0">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="hidden sm:inline">Export</span>
+</button>
+</div>
+</div>
+<!-- Bento-style Summary Cards (Optional High-End UI Pattern) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-[0px_4px_6px_rgba(0,0,0,0.05)] flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-pending/10 flex items-center justify-center text-status-pending">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Pending Orders</p>
+<p class="font-display-md text-display-md text-primary">12</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-[0px_4px_6px_rgba(0,0,0,0.05)] flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-progress/10 flex items-center justify-center text-status-progress">
+<span class="material-symbols-outlined">engineering</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-wider">In Progress</p>
+<p class="font-display-md text-display-md text-primary">8</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-[0px_4px_6px_rgba(0,0,0,0.05)] flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-completed/10 flex items-center justify-center text-status-completed">
+<span class="material-symbols-outlined">task_alt</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Completed Today</p>
+<p class="font-display-md text-display-md text-primary">24</p>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-[0px_4px_6px_rgba(0,0,0,0.05)] overflow-hidden flex-1 flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider w-24">Order ID</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider">Vehicle / Plate</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider">Service Type</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider">Mechanic</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider">Date received</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider">Status</th>
+<th class="py-4 px-6 font-label-bold text-label-bold text-outline uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1: In Progress -->
+<tr class="border-b border-surface-container-high table-row-hover transition-colors group">
+<td class="py-4 px-6 font-medium text-primary">#WO-2049</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Ford F-150</p>
+<p class="font-label-sm text-label-sm text-outline font-mono">ABC-1234</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">Mechanic - Engine Repair</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-label-bold text-[10px]">MC</div>
+<span>Miguel Castro</span>
+</div>
+</td>
+<td class="py-4 px-6 text-outline">Oct 24, 08:30 AM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-bold text-[11px] bg-status-progress/10 text-status-progress border border-status-progress/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-progress animate-pulse"></span>
+                                        In Progress
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2: Pending -->
+<tr class="border-b border-surface-container-high table-row-hover transition-colors group">
+<td class="py-4 px-6 font-medium text-primary">#WO-2050</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Volvo FH16</p>
+<p class="font-label-sm text-label-sm text-outline font-mono">XYZ-9876</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">Tire Shop - Replacement</td>
+<td class="py-4 px-6">
+<span class="text-outline italic text-sm">Unassigned</span>
+</td>
+<td class="py-4 px-6 text-outline">Oct 24, 09:15 AM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-bold text-[11px] bg-status-pending/10 text-status-pending border border-status-pending/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-pending"></span>
+                                        Pending
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3: Completed -->
+<tr class="border-b border-surface-container-high table-row-hover transition-colors group">
+<td class="py-4 px-6 font-medium text-primary">#WO-2045</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Toyota Hilux</p>
+<p class="font-label-sm text-label-sm text-outline font-mono">DEF-5678</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">Mechanic - Oil Change</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-label-bold text-[10px]">JR</div>
+<span>Juan Romero</span>
+</div>
+</td>
+<td class="py-4 px-6 text-outline">Oct 23, 14:00 PM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-bold text-[11px] bg-status-completed/10 text-status-completed border border-status-completed/20">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                        Completed
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4: In Progress -->
+<tr class="border-b border-surface-container-high table-row-hover transition-colors group">
+<td class="py-4 px-6 font-medium text-primary">#WO-2051</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">agriculture</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">John Deere Tractor</p>
+<p class="font-label-sm text-label-sm text-outline font-mono">TRC-001</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">Mechanic - Hydraulics</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-label-bold text-[10px]">MC</div>
+<span>Miguel Castro</span>
+</div>
+</td>
+<td class="py-4 px-6 text-outline">Oct 24, 10:00 AM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-bold text-[11px] bg-status-progress/10 text-status-progress border border-status-progress/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-progress animate-pulse"></span>
+                                        In Progress
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="text-outline hover:text-primary p-1 rounded transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-low border-t border-outline-variant p-4 flex items-center justify-between mt-auto">
+<p class="font-label-sm text-label-sm text-outline">Showing 1 to 4 of 24 entries</p>
+<div class="flex gap-1">
+<button class="p-1 border border-outline-variant rounded bg-surface-container-lowest text-outline hover:text-primary hover:border-outline disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center border border-primary bg-primary text-white rounded font-label-bold text-label-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container hover:border-outline rounded font-label-bold text-label-bold transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container hover:border-outline rounded font-label-bold text-label-bold transition-colors">3</button>
+<button class="p-1 border border-outline-variant rounded bg-surface-container-lowest text-outline hover:text-primary hover:border-outline transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

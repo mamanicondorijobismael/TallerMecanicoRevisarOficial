@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block page_title %}Recibo de Venta Directa{% endblock %}
+{% block subtitle %}Comprobante de transacción de mostrador{% endblock %}
+
+{% block content %}
+<div class="card p-8 max-w-2xl mx-auto print:shadow-none print:border-none print:p-0">
+    <div class="flex justify-between items-start mb-8 pb-6 border-b">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">TallerGes</h1>
+            <p class="text-sm text-gray-500">Recibo de Venta en Mostrador</p>
+        </div>
+        <div class="text-right">
+            <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Fecha</p>
+            <p class="text-lg font-medium">{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</p>
+            <p class="text-sm mt-2 text-gray-500">Cod. Transacción: #{{ movimiento.pk }}</p>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Detalles del Producto</p>
+        <div class="bg-gray-50 rounded-lg p-4 flex justify-between items-center border border-gray-100">
+            <div>
+                <p class="font-bold text-lg text-gray-900">{{ movimiento.producto.nombre }}</p>
+                <p class="text-sm text-gray-500">SKU: {{ movimiento.producto.codigo_sku|default:"N/A" }} | Categoría: {{ movimiento.producto.categoria.nombre }}</p>
+            </div>
+            {% if movimiento.producto.imagen %}
+            <img src="{{ movimiento.producto.imagen.url }}" class="w-16 h-16 object-cover rounded-md shadow-sm border border-gray-200">
+            {% endif %}
+        </div>
+    </div>
+
+    <table class="w-full text-left mb-8">
+        <thead>
+            <tr class="border-b-2 border-gray-200 text-gray-500 text-sm">
+                <th class="py-2">Descripción</th>
+                <th class="py-2 text-center">Cantidad</th>
+                <th class="py-2 text-right">Precio Unitario</th>
+                <th class="py-2 text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b border-gray-100">
+                <td class="py-4">{{ movimiento.producto.nombre }}</td>
+                <td class="py-4 text-center font-bold">{{ movimiento.cantidad|stringformat:"s"|slice:"1:" }}</td>
+                <td class="py-4 text-right">${{ movimiento.precio_unitario|floatformat:0 }}</td>
+                <td class="py-4 text-right font-bold text-lg">${{ movimiento.valor_total|stringformat:"s"|slice:"1:"|floatformat:0 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="flex justify-between items-center pt-4 border-t-2 border-gray-900">
+        <p class="text-sm text-gray-500">Atendido por: {{ movimiento.usuario }}</p>
+        <div class="text-right">
+            <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pagado</p>
+            <p class="text-3xl font-bold text-primary">${{ movimiento.valor_total|stringformat:"s"|slice:"1:"|floatformat:0 }}</p>
+        </div>
+    </div>
+
+    <div class="mt-10 pt-6 border-t flex justify-end gap-3 print:hidden">
+        <a href="{% url 'inventario:lista' %}" class="btn border border-gray-300 text-gray-700 hover:bg-gray-50">Volver al Inventario</a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Imprimir Recibo
+        </button>
+    </div>
+</div>
+
+{% endblock %}

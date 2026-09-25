@@ -1,0 +1,48 @@
+================================================================================
+          METODOLOGÍA ÁGIL SCRUM - SISTEMA TALLER MECÁNICO Y GOMERÍA
+================================================================================
+
+1. ESTRUCTURA DEL EQUIPO SCRUM
+--------------------------------------------------------------------------------
+- Product Owner (PO): Dueño del Taller / Gerencia
+- Scrum Master (SM): Líder Técnico
+- Development Team: Desarrolladores Full-Stack (Python/Django/Frontend)
+
+2. PRODUCT BACKLOG (HISTORIAS DE USUARIO)
+--------------------------------------------------------------------------------
+[ÉPICA 1: AUTENTICACIÓN Y SEGURIDAD]
+- US-01: Autenticación, control de roles (Dueño, Administrador, Mecánico) y sesiones.
+- US-02: Gestión y restablecimiento administrativo de contraseñas de personal.
+
+[ÉPICA 2: CLIENTES Y VEHÍCULOS]
+- US-03: Padrón de clientes con búsqueda interactiva y ficha histórica consolidada.
+- US-04: Registro vehicular con patente única, VIN, odómetro y actualización automática.
+
+[ÉPICA 3: INVENTARIO, REPUESTOS Y GOMERÍA]
+- US-05: Catálogo de repuestos y neumáticos con especificaciones técnicas de rodado.
+- US-06: Carga y ajuste rápido de stock (+ Stock) con detalle y motivo de movimiento.
+- US-07: Venta rápida de mostrador sin orden de trabajo con emisión de comprobante.
+
+[ÉPICA 4: ÓRDENES DE TRABAJO]
+- US-08: Emisión y asignación técnica de órdenes de trabajo con numeración anual.
+- US-09: Carga de mano de obra y repuestos con descuento automático de inventario.
+- US-10: Flujo de estados (Pendiente, En Proceso, Pausada, Completada, Cobrada).
+
+[ÉPICA 5: COBROS Y COMPROBANTES]
+- US-11: Emisión de comprobantes de cobro con soporte de pagos parciales/múltiples.
+
+[ÉPICA 6 Y 7: MANTENIMIENTO, KPIS Y REPORTES]
+- US-12: Agenda de citas y alertas de mantenimiento preventivo por kilometraje/fecha.
+- US-13: Dashboard con KPIs financieros, órdenes activas y stock crítico en tiempo real.
+
+
+3. PLANIFICACIÓN DE SPRINTS (4 ITERACIONES)
+--------------------------------------------------------------------------------
+* SPRINT 1 (Semanas 1-2): Arquitectura base, DB, autenticación, roles y tema Claro/Oscuro.
+* SPRINT 2 (Semanas 3-4): Módulos de Clientes, Vehículos, Inventario y botón "+ Stock".
+* SPRINT 3 (Semanas 5-6): Órdenes de trabajo, servicios, consumo de repuestos y venta directa.
+* SPRINT 4 (Semanas 7-8): Cobros, pagos fraccionados, citas, alertas preventivas y Dashboard.
+
+Total Historias: 13 US
+Total Story Points: 72 SP
+Estado Final: 100% Implementado y Validado.
