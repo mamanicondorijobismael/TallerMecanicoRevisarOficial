@@ -1,100 +1,153 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Catálogo de Repuestos{% endblock %}
-{% block subtitle %}Stock y compatibilidad técnica de repuestos{% endblock %}
+{% block subtitle %}Stock, existencias y compatibilidad técnica de repuestos mecánicos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<div class="flex gap-2">
+<div class="d-flex align-items-center gap-2">
   {% if user.es_administrador %}
-  <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-ghost btn-sm">Categorías</a>
-  {% endif %}
-  <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-primary btn-sm">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-    Nuevo Repuesto
+  <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">category</span>
+    <span>Categorías</span>
   </a>
+  <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">add</span>
+    <span>Nuevo Repuesto</span>
+  </a>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="card animate-in">
-  <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
-    <form method="GET" class="flex gap-3 flex-wrap">
-      <div class="search-wrap flex-1" style="min-width:240px">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-        <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre o SKU..." class="form-input">
+<div class="d-flex flex-column gap-4">
+  
+  <!-- Header Card -->
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+      <div class="sidebar-brand-icon bg-warning-subtle text-warning">
+        <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">build</span>
       </div>
-      <button type="submit" class="btn btn-ghost">Buscar</button>
-    </form>
+      <div>
+        <h2 class="h6 fw-bold text-primary mb-0">Catálogo Especializado de Repuestos</h2>
+        <p class="text-muted small mb-0">Piezas mecánicas, fabricantes, números de parte y compatibilidad</p>
+      </div>
+    </div>
+
+    {% if user.es_administrador %}
+    <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+      <span class="material-symbols-outlined fs-6">add_circle</span>
+      <span>Nuevo Repuesto</span>
+    </a>
+    {% endif %}
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Foto</th>
-          <th>Código SKU</th>
-          <th>Repuesto</th>
-          <th>Categoría</th>
-          <th style="text-align:center">Stock</th>
-          <th style="text-align:right">Precio Venta</th>
-          <th style="text-align:right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in repuestos %}
-        {% with p=r.producto %}
-        <tr>
-          <td style="width:48px">
-            <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-              {% if p.imagen %}
-                <img src="{{ p.imagen.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+  <div class="card-workshop overflow-hidden">
+    <div class="p-3 border-bottom bg-white">
+      <form method="GET" class="row g-2 align-items-center">
+        <div class="col-12 col-md-6 col-lg-5">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white text-muted">
+              <span class="material-symbols-outlined fs-6">search</span>
+            </span>
+            <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, SKU, marca o número de pieza..." class="form-control form-control-sm">
+          </div>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">search</span>
+            <span>Buscar</span>
+          </button>
+        </div>
+        {% if query %}
+        <div class="col-auto">
+          <a href="{% url 'inventario:repuestos' %}" class="btn btn-sm btn-link text-muted text-decoration-none">Limpiar</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th style="width: 50px;">Foto</th>
+            <th>Código SKU</th>
+            <th>Repuesto / Marca</th>
+            <th>Categoría</th>
+            <th class="text-center">Stock</th>
+            <th class="text-end">Precio Venta</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in repuestos %}
+          {% with p=r.producto %}
+          <tr>
+            <td>
+              <div class="product-thumb">
+                {% if p.imagen %}
+                  <img src="{{ p.imagen.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+                {% else %}
+                  <span class="material-symbols-outlined text-muted fs-5">settings</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="font-monospace text-primary fw-bold small">{{ p.codigo_sku }}</td>
+            <td>
+              <div class="fw-bold text-dark small">{{ p.nombre }}</div>
+              <div class="text-muted small" style="font-size: 0.72rem;">{{ r.marca_repuesto|default:"Genérico" }} · N° Pieza: {{ r.numero_parte|default:"—" }}</div>
+            </td>
+            <td class="text-muted small">{{ p.categoria.nombre|default:"Repuestos" }}</td>
+            <td class="text-center">
+              {% if p.stock_critico %}
+                <span class="badge-status status-cancelada">{{ p.stock_actual }} u. (Bajo)</span>
               {% else %}
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="badge-status status-completada">{{ p.stock_actual }} u.</span>
               {% endif %}
-            </div>
-          </td>
-          <td style="font-family:monospace;font-size:12px;color:var(--txt-muted)">{{ p.codigo_sku }}</td>
-          <td>
-            <div style="font-weight:700;color:var(--txt)">{{ p.nombre }}</div>
-            <div style="font-size:11px;color:var(--txt-dim)">{{ r.marca_repuesto|default:"Genérico" }} · N°: {{ r.numero_parte|default:"—" }}</div>
-          </td>
-          <td style="font-size:12px;color:var(--txt-muted)">{{ p.categoria.nombre|default:"Repuestos" }}</td>
-          <td style="text-align:center">
-            {% if p.stock_critico %}
-              <span class="badge status-cancelada">{{ p.stock_actual }}</span>
-            {% else %}
-              <span class="badge status-pagada">{{ p.stock_actual }}</span>
-            {% endif %}
-          </td>
-          <td style="text-align:right;font-weight:700;color:var(--txt)">${{ p.precio_venta|floatformat:2 }}</td>
-          <td style="text-align:right">
-            <div style="display:flex;gap:6px;justify-content:flex-end">
-              {% if user.es_administrador %}
-              <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-xs btn-secondary" title="Cargar o Ajustar Stock">+ Stock</a>
-              {% endif %}
-              <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-xs btn-primary">Vender</a>
-              <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-xs btn-ghost">Editar</a>
-            </div>
-          </td>
-        </tr>
-        {% endwith %}
-        {% empty %}
-        <tr>
-          <td colspan="7">
-            <div class="empty-state">
-              <p>No se encontraron repuestos registrados.</p>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+            <td class="text-end fw-bold text-dark small">${{ p.precio_venta|floatformat:2 }}</td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end align-items-center">
+                {% if user.es_administrador %}
+                <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Ajustar Stock">
+                  <span class="material-symbols-outlined fs-6">sync_alt</span>
+                  <span>+ Stock</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                  <span class="material-symbols-outlined fs-6">point_of_sale</span>
+                  <span>Vender</span>
+                </a>
+                <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
+                  <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">build</span>
+              <div class="fw-bold mb-1">No se encontraron repuestos registrados</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

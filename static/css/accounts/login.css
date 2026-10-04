@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Accounts Module - Login CSS
+   ========================================================================== */
+
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 992px) {
+  .login-wrapper {
+    flex-direction: row;
+  }
+}
+
+.login-brand-panel {
+  background-color: var(--tm-navy);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3.5rem;
+}
+
+.login-brand-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image: radial-gradient(circle at 100% 100%, var(--tm-gold) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.login-brand-stripes {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 14px, #ffffff 14px, #ffffff 15px);
+  pointer-events: none;
+}
+
+.login-form-panel {
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.login-form-box {
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-credentials-card {
+  background-color: #F8FAFC;
+  border: 1px solid var(--tm-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.credential-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.credential-item:last-child {
+  border-bottom: none;
+}
+
+.credential-item:hover {
+  background-color: #f1f5f9;
+  border-radius: 4px;
+}
+
+.credential-user {
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #334155;
+}

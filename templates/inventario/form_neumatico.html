@@ -1,97 +1,163 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}{{ title }}{% endblock %}
 {% block subtitle %}Registro y medidas de neumáticos{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/form.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'inventario:neumaticos' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Neumáticos
+<a href="{% url 'inventario:neumaticos' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Neumáticos</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<!-- Modal pre-abierto -->
-<div id="modal-neumatico-form" class="modal-overlay open" data-backdrop-redirect="{% url 'inventario:neumaticos' %}">
-  <div class="modal-box modal-lg">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">{{ title }}</div>
-        <div class="modal-subtitle">Completá los datos del neumático</div>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9 inventory-form-container">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">radio_button_checked</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">{{ title }}</h5>
+            <p class="modal-subtitle-tm">Especificaciones de medida, rodado, precios y stock</p>
+          </div>
+        </div>
       </div>
-      <a href="{% url 'inventario:neumaticos' %}" class="modal-close">✕</a>
+
+      <!-- Form Body -->
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Sección 1: Identificación y Medidas -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">straighten</span>
+              <span>1. Medidas & Especificaciones</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                <label class="form-label-pro" for="{{ form.nombre.id_for_label }}">Nombre / Descripción Comercial <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">tire_repair</span>
+                  </div>
+                  {{ form.nombre }}
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro" for="{{ form.codigo_sku.id_for_label }}">Código SKU</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">qr_code</span>
+                  </div>
+                  {{ form.codigo_sku }}
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro" for="{{ form.marca.id_for_label }}">Marca</label>
+                {{ form.marca }}
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro" for="{{ form.modelo.id_for_label }}">Modelo</label>
+                {{ form.modelo }}
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro" for="{{ form.medida.id_for_label }}">Medida (ej: 205/55 R16)</label>
+                {{ form.medida }}
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.indice_carga_velocidad.id_for_label }}">Índice Carga / Velocidad</label>
+                {{ form.indice_carga_velocidad }}
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.tipo_terreno.id_for_label }}">Tipo de Terreno</label>
+                {{ form.tipo_terreno }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Precios y Existencias -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">payments</span>
+              <span>2. Precios y Existencias</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro" for="{{ form.precio_costo.id_for_label }}">Precio Costo ($)</label>
+                {{ form.precio_costo }}
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro" for="{{ form.precio_venta.id_for_label }}">Precio Venta ($) <span class="req">*</span></label>
+                {{ form.precio_venta }}
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro" for="{{ form.stock_actual.id_for_label }}">Stock Actual</label>
+                {{ form.stock_actual }}
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro" for="{{ form.stock_minimo.id_for_label }}">Stock Mínimo</label>
+                {{ form.stock_minimo }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Fotografía -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Fotografía del Neumático</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label-pro" for="{{ form.imagen.id_for_label }}">Imagen del Producto</label>
+                {{ form.imagen }}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'inventario:neumaticos' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Neumático</span>
+          </button>
+        </div>
+      </form>
     </div>
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="modal-body space-y-4">
-        {% if form.errors %}
-        <div class="alert alert-error">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <div>
-            {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="md:col-span-2">
-            <label class="form-label">Nombre del Neumático *</label>
-            {{ form.nombre }}
-          </div>
-          <div>
-            <label class="form-label">Código SKU</label>
-            {{ form.codigo_sku }}
-          </div>
-          <div>
-            <label class="form-label">Categoría</label>
-            {{ form.categoria }}
-          </div>
-          <div>
-            <label class="form-label">Marca</label>
-            {{ form.marca }}
-          </div>
-          <div>
-            <label class="form-label">Modelo</label>
-            {{ form.modelo }}
-          </div>
-          <div>
-            <label class="form-label">Medida (ej: 205/55R16)</label>
-            {{ form.medida }}
-          </div>
-          <div>
-            <label class="form-label">Índice Carga / Velocidad</label>
-            {{ form.indice_carga_velocidad }}
-          </div>
-          <div>
-            <label class="form-label">Tipo de Terreno</label>
-            {{ form.tipo_terreno }}
-          </div>
-          <div>
-            <label class="form-label">Precio Costo ($)</label>
-            {{ form.precio_costo }}
-          </div>
-          <div>
-            <label class="form-label">Precio Venta ($)</label>
-            {{ form.precio_venta }}
-          </div>
-          <div>
-            <label class="form-label">Stock Actual</label>
-            {{ form.stock_actual }}
-          </div>
-          <div>
-            <label class="form-label">Stock Mínimo</label>
-            {{ form.stock_minimo }}
-          </div>
-          <div class="md:col-span-2">
-            <label class="form-label">Foto / Imagen del Neumático</label>
-            {{ form.imagen }}
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'inventario:neumaticos' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Neumático</button>
-      </div>
-    </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/form.js' %}"></script>
 {% endblock %}

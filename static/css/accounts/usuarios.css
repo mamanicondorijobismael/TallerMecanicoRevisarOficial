@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Accounts Module - Usuarios CSS
+   ========================================================================== */
+
+.user-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--tm-navy-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--tm-navy);
+  font-size: 0.75rem;
+  border: 1px solid var(--tm-border);
+}
+
+.modal-dialog-form {
+  max-width: 700px;
+}

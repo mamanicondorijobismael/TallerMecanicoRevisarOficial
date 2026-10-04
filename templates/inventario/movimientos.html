@@ -1,36 +1,45 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Historial de Movimientos de Stock{% endblock %}
 {% block subtitle %}Registro completo de entradas, salidas y ventas de productos{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'inventario:lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inventario
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<div class="flex gap-2">
-  <a href="{% url 'inventario:lista' %}" class="btn btn-ghost btn-sm">Ver Productos</a>
+<div class="d-flex gap-2">
+  <a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">inventory_2</span>
+    <span>Ver Catálogo</span>
+  </a>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="card animate-in">
-  <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
-    <h3 style="font-size:15px;font-weight:700;color:var(--txt)">Últimos 100 Movimientos Registrados</h3>
+<div class="card-workshop overflow-hidden">
+  <div class="p-3 border-bottom bg-white">
+    <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Últimos 100 Movimientos Registrados</h3>
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="tbl">
+  <div class="table-responsive">
+    <table class="table table-workshop mb-0">
       <thead>
         <tr>
           <th>Fecha y Hora</th>
           <th>Producto</th>
           <th>SKU</th>
           <th>Tipo</th>
-          <th style="text-align:center">Cantidad</th>
-          <th style="text-align:center">Stock Final</th>
+          <th class="text-center">Cantidad</th>
+          <th class="text-center">Stock Final</th>
           <th>Motivo / Detalle</th>
           <th>Usuario</th>
         </tr>
@@ -38,30 +47,29 @@
       <tbody>
         {% for m in movimientos %}
         <tr>
-          <td style="font-size:12px;color:var(--txt-muted)">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+          <td class="small text-muted">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
           <td>
-            <div style="font-weight:700;color:var(--txt)">{{ m.producto.nombre }}</div>
-            <div style="font-size:11px;color:var(--txt-dim)">{{ m.producto.categoria.nombre|default:"Sin Categoría" }}</div>
+            <div class="fw-bold text-dark small">{{ m.producto.nombre }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ m.producto.categoria.nombre|default:"Sin Categoría" }}</div>
           </td>
-          <td style="font-family:monospace;font-size:12px;color:var(--txt-muted)">{{ m.producto.codigo_sku }}</td>
+          <td class="font-monospace small text-muted">{{ m.producto.codigo_sku }}</td>
           <td>
-            <span class="badge {% if m.tipo_movimiento == 'ENTRADA' %}status-pagada{% elif m.tipo_movimiento == 'VENTA_DIRECTA' %}status-en_proceso{% else %}status-cancelada{% endif %}">
+            <span class="badge-status {% if m.tipo_movimiento == 'ENTRADA' %}status-completada{% elif m.tipo_movimiento == 'VENTA_DIRECTA' %}status-en_proceso{% else %}status-cancelada{% endif %}">
               {{ m.get_tipo_movimiento_display }}
             </span>
           </td>
-          <td style="text-align:center;font-weight:700;color:{% if m.cantidad > 0 %}var(--accent){% else %}#ef4444{% endif %}">
+          <td class="text-center fw-bold small {% if m.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
             {% if m.cantidad > 0 %}+{% endif %}{{ m.cantidad }}
           </td>
-          <td style="text-align:center;font-weight:600;color:var(--txt)">{{ m.stock_resultante }}</td>
-          <td style="font-size:12px;color:var(--txt-dim)">{{ m.motivo }}</td>
-          <td style="font-size:12px;color:var(--txt-muted)">{{ m.usuario|default:"Sistema" }}</td>
+          <td class="text-center fw-bold text-dark small">{{ m.stock_resultante }}</td>
+          <td class="small text-muted">{{ m.motivo }}</td>
+          <td class="small text-muted">{{ m.usuario|default:"Sistema" }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8">
-            <div class="empty-state">
-              <p>No hay movimientos registrados en el inventario.</p>
-            </div>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">history</span>
+            No hay movimientos registrados en el inventario.
           </td>
         </tr>
         {% endfor %}

@@ -1,32 +1,94 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}{{ title }}{% endblock %}
-{% block subtitle %}Agendar cita o turno{% endblock %}
+{% block subtitle %}Agendar cita o turno de taller{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reservas/form.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'reservas:lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Reservas
+<a href="{% url 'reservas:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Reservas</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<!-- Modal pre-abierto -->
-<div id="modal-reserva-form" class="modal-overlay open" data-backdrop-redirect="{% url 'reservas:lista' %}">
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <div class="modal-title">{{ title }}</div>
-      <a href="{% url 'reservas:lista' %}" class="modal-close">✕</a>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-8 reservation-form-container">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">event</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">{{ title }}</h5>
+            <p class="modal-subtitle-tm">Programá la fecha, cliente, vehículo y motivo de visita</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <form method="POST">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">calendar_month</span>
+              <span>Datos del Turno Programado</span>
+            </div>
+            <div class="row g-3">
+              {% for field in form %}
+              <div class="col-12 {% if 'textarea' not in field.field.widget.attrs.class %}col-md-6{% endif %}">
+                <label class="form-label-pro" for="{{ field.id_for_label }}">
+                  {{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                {% if field.help_text %}<div class="text-muted small mt-1" style="font-size: 0.72rem;">{{ field.help_text }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'reservas:lista' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Reserva</span>
+          </button>
+        </div>
+      </form>
     </div>
-    <form method="POST">
-      {% csrf_token %}
-      <div class="modal-body space-y-4">
-        {{ form.as_p }}
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'reservas:lista' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Reserva</button>
-      </div>
-    </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reservas/form.js' %}"></script>
 {% endblock %}

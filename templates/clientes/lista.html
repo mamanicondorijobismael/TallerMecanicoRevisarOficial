@@ -1,172 +1,280 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Clientes – El Taller del Maestro{% endblock %}
 {% block page_title %}Gestión de Clientes{% endblock %}
 {% block subtitle %}Base de datos de clientes y propietarios{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes/lista.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
+{% block topbar_actions %}
+<button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-cliente">
+  <span class="material-symbols-outlined fs-6">person_add</span>
+  <span>Nuevo Cliente</span>
+</button>
+{% endblock %}
+
 {% block content %}
-<div class="space-y-5 animate-in">
+<div class="d-flex flex-column gap-4">
   <!-- ── Header Card & Action ── -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="w-10 h-10 rounded-lg bg-[#0D284E]/10 text-[#0D284E] flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">person</span>
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+      <div class="sidebar-brand-icon bg-primary-subtle text-primary">
+        <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">person</span>
       </div>
       <div>
-        <h2 class="text-base font-bold text-[#0D284E] tracking-tight">Directorio de Clientes</h2>
-        <p class="text-xs text-slate-500">Historial, vehículos asociados y datos de contacto</p>
+        <h2 class="h6 fw-bold text-primary mb-0">Directorio de Clientes</h2>
+        <p class="text-muted small mb-0">Historial, vehículos asociados y datos de contacto</p>
       </div>
     </div>
 
-    <button onclick="openModal('modal-nuevo-cliente')" class="btn btn-primary btn-sm">
-      <span class="material-symbols-outlined text-[16px]">person_add</span>
+    <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-cliente">
+      <span class="material-symbols-outlined fs-6">person_add</span>
       <span>Nuevo Cliente</span>
     </button>
   </div>
 
   <!-- ── Table & Search Card ── -->
-  <div class="card overflow-hidden">
+  <div class="card-workshop overflow-hidden">
     <!-- Header + Búsqueda -->
-    <div class="p-4 border-b border-slate-200">
-      <form method="GET" class="flex gap-3 flex-wrap items-center">
-        <div class="search-wrap flex-1" style="min-width:240px">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-          <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, DNI, CUIT o teléfono..." class="form-input">
+    <div class="p-3 border-bottom bg-white">
+      <form method="GET" class="row g-2 align-items-center">
+        <div class="col-12 col-md-6 col-lg-5">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white text-muted">
+              <span class="material-symbols-outlined fs-6">search</span>
+            </span>
+            <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, DNI, CUIT o teléfono..." class="form-control form-control-sm">
+          </div>
         </div>
-        <button type="submit" class="btn btn-ghost">
-          <span class="material-symbols-outlined text-[18px]">search</span>
-          <span>Buscar</span>
-        </button>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">search</span>
+            <span>Buscar</span>
+          </button>
+        </div>
         {% if query %}
-        <a href="{% url 'clientes:lista' %}" class="btn btn-ghost text-xs text-slate-500">Limpiar</a>
+        <div class="col-auto">
+          <a href="{% url 'clientes:lista' %}" class="btn btn-sm btn-link text-muted text-decoration-none">Limpiar</a>
+        </div>
         {% endif %}
       </form>
     </div>
 
-  <!-- Tabla -->
-  <div class="overflow-x-auto">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Documento</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th style="text-align:center">Vehículos</th>
-          <th style="text-align:right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for cliente in clientes %}
-        <tr>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,rgba(255,107,0,0.2),rgba(255,107,0,0.08));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--brand)">
-                {% if cliente.foto %}
-                  <img src="{{ cliente.foto.url }}" style="width:100%;height:100%;object-fit:cover" data-lightbox="{{ cliente.foto.url }}" data-alt="{{ cliente.nombre_razon_social }}">
-                {% else %}
-                  {{ cliente.nombre_razon_social|slice:":1"|upper }}
-                {% endif %}
+    <!-- Tabla -->
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Documento</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th class="text-center">Vehículos</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cliente in clientes %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="client-avatar-table">
+                  {% if cliente.foto %}
+                    <img src="{{ cliente.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ cliente.foto.url }}" data-alt="{{ cliente.nombre_razon_social }}">
+                  {% else %}
+                    {{ cliente.nombre_razon_social|slice:":1"|upper }}
+                  {% endif %}
+                </div>
+                <span class="fw-semibold text-dark small">{{ cliente.nombre_razon_social }}</span>
               </div>
-              <span style="font-weight:600;color:var(--txt)">{{ cliente.nombre_razon_social }}</span>
-            </div>
-          </td>
-          <td style="font-family:monospace;font-size:12.5px;color:var(--txt-muted)">{{ cliente.documento }}</td>
-          <td style="color:var(--txt-muted)">{{ cliente.telefono|default:"—" }}</td>
-          <td style="color:var(--txt-muted);font-size:13px">{{ cliente.email|default:"—" }}</td>
-          <td style="text-align:center">
-            <span class="badge" style="background:rgba(59,130,246,0.12);color:#60A5FA;border:1px solid rgba(59,130,246,0.2)">{{ cliente.cantidad_vehiculos }}</span>
-          </td>
-          <td style="text-align:right">
-            <div style="display:flex;gap:6px;justify-content:flex-end">
-              <a href="{% url 'clientes:detalle' cliente.pk %}" class="btn btn-sm btn-ghost">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                Historial
-              </a>
-              <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-sm btn-secondary">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                Editar
-              </a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6">
-            <div class="empty-state">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <h3>No se encontraron clientes</h3>
-              <p>Registrá un nuevo cliente usando el botón de arriba.</p>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+            <td class="font-monospace text-muted small">{{ cliente.documento|default:"—" }}</td>
+            <td class="text-muted small">{{ cliente.telefono|default:"—" }}</td>
+            <td class="text-muted small">{{ cliente.email|default:"—" }}</td>
+            <td class="text-center">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ cliente.cantidad_vehiculos }}</span>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end align-items-center">
+                <a href="{% url 'clientes:detalle' cliente.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                  <span class="material-symbols-outlined fs-6">history</span>
+                  <span>Historial</span>
+                </a>
+                <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-sm btn-light border py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                  <span class="material-symbols-outlined fs-6">edit</span>
+                  <span>Editar</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">group_off</span>
+              <div class="fw-bold mb-1">No se encontraron clientes</div>
+              <p class="small text-muted mb-0">Registrá un nuevo cliente usando el botón de arriba.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 </div>
 
-<!-- ── MODAL: Nuevo Cliente ── -->
-<div id="modal-nuevo-cliente" class="modal-overlay">
-  <div class="modal-box modal-lg">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">Nuevo Cliente</div>
-        <div class="modal-subtitle">Completá los datos para registrar un cliente</div>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-nuevo-cliente')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <form method="POST" action="{% url 'clientes:crear' %}" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="modal-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div style="grid-column:1/-1">
-            <label class="form-label">Nombre o Razón Social *</label>
-            <input type="text" name="nombre_razon_social" required class="form-input" placeholder="Ej: Juan Pérez o Empresa SA">
+<!-- ── MODAL BOOTSTRAP: Nuevo Cliente (PRO UX) ── -->
+<div class="modal fade" id="modal-nuevo-cliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">person_add</span>
           </div>
           <div>
-            <label class="form-label">Documento (DNI/CUIT)</label>
-            <input type="text" name="documento" class="form-input" placeholder="20-12345678-9">
-          </div>
-          <div>
-            <label class="form-label">Teléfono / WhatsApp</label>
-            <input type="text" name="telefono" class="form-input" placeholder="+54 9 11 1234-5678">
-          </div>
-          <div>
-            <label class="form-label">Correo Electrónico</label>
-            <input type="email" name="email" class="form-input" placeholder="cliente@email.com">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;padding-top:20px">
-            <input type="checkbox" name="activo" id="activo-chk" checked style="width:16px;height:16px;accent-color:var(--brand)">
-            <label for="activo-chk" style="font-size:13px;font-weight:600;color:var(--txt-muted);cursor:pointer">Cliente Activo</label>
-          </div>
-          <div style="grid-column:1/-1">
-            <label class="form-label">Dirección</label>
-            <input type="text" name="direccion" class="form-input" placeholder="Calle Falsa 123, Buenos Aires">
-          </div>
-          <div>
-            <label class="form-label">Foto del Cliente</label>
-            <input type="file" name="foto" accept="image/*" class="form-input" style="padding:8px">
+            <h5 class="modal-title-tm" id="modalNuevoClienteLabel">Nuevo Cliente</h5>
+            <p class="modal-subtitle-tm">Registrá los datos personales, de contacto y fotografía del cliente</p>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-nuevo-cliente')">Cancelar</button>
-        <button type="submit" class="btn btn-primary">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          Guardar Cliente
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
         </button>
       </div>
-    </form>
+
+      <!-- Form -->
+      <form method="POST" action="{% url 'clientes:crear' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+          
+          <!-- Sección 1: Identificación y Estado -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">badge</span>
+              <span>1. Identificación Principal</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                <label class="form-label-pro">Nombre o Razón Social <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">person</span>
+                  </div>
+                  <input type="text" name="nombre_razon_social" required class="form-control-pro" placeholder="Ej: Juan Pérez o Empresa S.R.L.">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Documento / CUIT / DNI</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">fingerprint</span>
+                  </div>
+                  <input type="text" name="documento" class="form-control-pro" placeholder="Ej: 20-12345678-9">
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-switch-pro">
+                  <input type="checkbox" name="activo" id="activo-chk" checked class="form-check-input">
+                  <div>
+                    <div class="fw-bold text-dark small">Cliente Habilitado y Activo</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Permite generar órdenes de trabajo y presupuestos asociados</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Canales de Contacto -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">contact_phone</span>
+              <span>2. Canales de Contacto & Ubicación</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Teléfono / WhatsApp</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">call</span>
+                  </div>
+                  <input type="text" name="telefono" class="form-control-pro" placeholder="+54 9 11 1234-5678">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Correo Electrónico</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">mail</span>
+                  </div>
+                  <input type="email" name="email" class="form-control-pro" placeholder="cliente@ejemplo.com">
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro">Dirección Particular / Comercial</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">home_pin</span>
+                  </div>
+                  <input type="text" name="direccion" class="form-control-pro" placeholder="Av. Siempre Viva 742, Córdoba">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Fotografía / Avatar -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Fotografía o Logo del Cliente</span>
+            </div>
+            <div class="photo-dropzone-wrap" id="cliente-dropzone">
+              <div class="photo-preview-avatar">
+                <span class="material-symbols-outlined fs-2" id="cliente-foto-placeholder">account_circle</span>
+                <img src="" id="cliente-foto-preview" class="d-none" alt="Vista previa">
+              </div>
+              <div class="flex-grow-1">
+                <input type="file" name="foto" id="cliente-foto-input" accept="image/*" class="d-none">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <button type="button" onclick="document.getElementById('cliente-foto-input').click()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">upload</span>
+                    <span>Seleccionar imagen</span>
+                  </button>
+                  <button type="button" id="cliente-foto-remove" class="btn btn-sm btn-outline-danger d-none d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Arrastrá una imagen aquí o hacé clic en seleccionar. Formatos: PNG, JPG, WEBP (máx. 5MB)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Cliente</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/clientes/lista.js' %}"></script>
 {% endblock %}

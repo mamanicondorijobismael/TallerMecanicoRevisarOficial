@@ -1,55 +1,63 @@
 {% extends 'base.html' %}
-{% block page_title %}Agenda de Reservas{% endblock %}
+{% load static %}
+
+{% block page_title %}Agenda de Turnos &amp; Reservas{% endblock %}
 {% block subtitle %}Turnos y citas programadas para el taller{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reservas/lista.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'reservas:crear' %}" class="btn btn-primary">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-  Nueva Reserva
+<a href="{% url 'reservas:crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">add</span>
+  <span>Nueva Reserva</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="card animate-in">
-  <div class="overflow-x-auto">
-    <table class="tbl">
+<div class="card-workshop overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-workshop mb-0">
       <thead>
         <tr>
           <th>Fecha y Hora</th>
           <th>Cliente</th>
           <th>Vehículo</th>
           <th>Servicio Solicitado</th>
-          <th style="text-align:center">Estado</th>
-          <th style="text-align:right">Acciones</th>
+          <th class="text-center">Estado</th>
+          <th class="text-end">Acciones</th>
         </tr>
       </thead>
       <tbody>
         {% for r in reservas %}
         <tr>
-          <td style="font-weight:700;color:var(--brand);font-family:monospace">{{ r.fecha_hora|date:"d/m/Y H:i" }}</td>
-          <td style="font-weight:600;color:var(--txt)">{{ r.cliente.nombre_razon_social }}</td>
-          <td style="font-weight:700;letter-spacing:0.05em;color:var(--txt)">{{ r.vehiculo.patente|default:"—" }}</td>
-          <td style="color:var(--txt-muted);font-size:13px">{{ r.servicio_solicitado|truncatechars:40 }}</td>
-          <td style="text-align:center">
-            <span class="badge status-{{ r.estado|lower }}">{{ r.get_estado_display }}</span>
+          <td class="reservation-date-badge text-primary">{{ r.fecha_hora|date:"d/m/Y H:i" }} hs</td>
+          <td class="fw-semibold text-dark small">{{ r.cliente.nombre_razon_social }}</td>
+          <td>
+            <span class="badge bg-light text-secondary border font-monospace">{{ r.vehiculo.patente|default:"—" }}</span>
           </td>
-          <td style="text-align:right">
-            <a href="{% url 'reservas:editar' r.pk %}" class="btn btn-sm btn-ghost">Editar</a>
+          <td class="text-muted small">{{ r.servicio_solicitado|truncatechars:40 }}</td>
+          <td class="text-center">
+            <span class="badge-status status-{{ r.estado|lower }}">{{ r.get_estado_display }}</span>
+          </td>
+          <td class="text-end">
+            <a href="{% url 'reservas:editar' r.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;">Editar</a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6">
-            <div class="empty-state">
-              <p>No hay reservas agendadas en este momento.</p>
-            </div>
+          <td colspan="6" class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">calendar_month</span>
+            <div class="fw-bold mb-1">No hay reservas agendadas</div>
+            <p class="small text-muted mb-0">Agendá un nuevo turno usando el botón de arriba.</p>
           </td>
         </tr>
         {% endfor %}
@@ -57,4 +65,8 @@
     </table>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reservas/lista.js' %}"></script>
 {% endblock %}

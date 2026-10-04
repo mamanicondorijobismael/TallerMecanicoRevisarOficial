@@ -1,92 +1,337 @@
 {% extends 'base.html' %}
-{% block page_title %}Equipo y Asistencia{% endblock %}
-{% block subtitle %}Gestión de personal y roles de acceso{% endblock %}
+{% load static %}
+
+{% block page_title %}Personal &amp; Usuarios{% endblock %}
+{% block subtitle %}Gestión de personal, roles operativos y credenciales de acceso{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/usuarios.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn btn-outline btn-sm">
-  <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
   <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'usuario_crear' %}" class="btn btn-gold btn-sm">
-  <span class="material-symbols-outlined text-[18px]">person_add</span>
+{% if request.user.es_administrador %}
+<button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-usuario">
+  <span class="material-symbols-outlined fs-6">person_add</span>
   <span>Nuevo Usuario</span>
-</a>
+</button>
+{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="bg-white border border-card-border rounded-xl shadow-level-1 overflow-hidden">
-  <div class="overflow-x-auto">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Foto</th>
-          <th>Usuario</th>
-          <th>Nombre Completo</th>
-          <th>Rol</th>
-          <th>Estado</th>
-          <th style="text-align:right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in usuarios %}
-        <tr>
-          <td style="width:50px">
-            <div class="w-9 h-9 rounded-full overflow-hidden bg-[#0D284E]/10 flex items-center justify-center font-bold text-[#0D284E] text-xs border border-slate-200">
-              {% if u.foto %}
-                <img src="{{ u.foto.url }}" class="w-full h-full object-cover cursor-zoom-in" data-lightbox="{{ u.foto.url }}" data-alt="{{ u.nombre_completo }}">
+<div class="d-flex flex-column gap-4">
+  
+  <!-- ── Header Banner & KPIs ── -->
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-primary-subtle text-primary" style="width: 48px; height: 48px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-3">group</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem;">Total Personal</div>
+          <div class="fs-4 fw-black text-primary">{{ usuarios.count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-success-subtle text-success" style="width: 48px; height: 48px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-3">engineering</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem;">Técnicos Mecánicos</div>
+          <div class="fs-4 fw-black text-success">
+            {{ usuarios_mecanicos_count|default:"Activos en Taller" }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-warning-subtle text-warning" style="width: 48px; height: 48px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-3">admin_panel_settings</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem;">Administración</div>
+          <div class="fs-4 fw-black text-dark">Gestión & Control</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tabla de Usuarios ── -->
+  <div class="card-workshop overflow-hidden">
+    <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined text-primary fs-5">badge</span>
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Directorio de Cuentas y Personal</h3>
+      </div>
+      {% if request.user.es_administrador %}
+      <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-usuario">
+        <span class="material-symbols-outlined fs-6">person_add</span>
+        <span>Nuevo Usuario</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th style="width: 50px;">Foto</th>
+            <th>Nombre y Apellido</th>
+            <th>Usuario (Login)</th>
+            <th>Email / Contacto</th>
+            <th>Rol / Cargo</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+          <tr>
+            <td>
+              <div class="user-avatar-sm">
+                {% if u.foto %}
+                  <img src="{{ u.foto.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ u.foto.url }}" data-alt="{{ u.nombre_completo }}">
+                {% else %}
+                  {{ u.nombre_completo|slice:":1"|upper }}
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="fw-bold small text-dark">{{ u.nombre_completo }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">Alta: {{ u.date_joined|date:"d/m/Y" }}</div>
+            </td>
+            <td class="font-monospace fw-bold small text-primary">@{{ u.username }}</td>
+            <td>
+              <div class="small text-dark">{{ u.email }}</div>
+              {% if u.telefono %}
+              <div class="text-muted small" style="font-size: 0.72rem;">{{ u.telefono }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.rol == 'DUENO' %}
+                <span class="badge-status status-pendiente">
+                  <span class="material-symbols-outlined fs-6">military_tech</span>
+                  <span>Dueño / Gerente</span>
+                </span>
+              {% elif u.rol == 'ADMINISTRADOR' %}
+                <span class="badge-status status-en_proceso">
+                  <span class="material-symbols-outlined fs-6">shield_person</span>
+                  <span>Administrador</span>
+                </span>
               {% else %}
-                {{ u.nombre_completo|slice:":1"|upper }}
+                <span class="badge-status status-completada">
+                  <span class="material-symbols-outlined fs-6">build</span>
+                  <span>Técnico Mecánico</span>
+                </span>
               {% endif %}
-            </div>
-          </td>
-          <td class="font-mono font-bold text-slate-800 text-xs">{{ u.username }}</td>
-          <td class="font-semibold text-slate-800 text-xs">{{ u.nombre_completo }}</td>
-          <td>
-            {% if u.rol == 'DUENO' %}
-              <span class="badge status-pending">Dueño / Gerente</span>
-            {% elif u.rol == 'ADMINISTRADOR' %}
-              <span class="badge status-progress">Administrativo</span>
-            {% else %}
-              <span class="badge status-completed">Técnico Mecánico</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if u.is_active %}
-              <span class="badge status-completed">Activo</span>
-            {% else %}
-              <span class="badge status-alert">Inactivo</span>
-            {% endif %}
-          </td>
-          <td style="text-align:right">
-            <div class="flex gap-2 justify-end">
-              <a href="{% url 'usuario_editar' u.pk %}" class="btn btn-xs btn-outline">
-                <span class="material-symbols-outlined text-[14px]">edit</span>
-                <span>Editar</span>
-              </a>
-              {% if u != request.user %}
-              <form method="POST" action="{% url 'usuario_eliminar' u.pk %}" onsubmit="return confirm('¿Desactivar/eliminar a {{ u.nombre_completo }}?')">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-xs btn-danger">
-                  <span class="material-symbols-outlined text-[14px]">delete</span>
-                  <span>Eliminar</span>
-                </button>
-              </form>
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small fw-semibold">Activo</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small fw-semibold">Inactivo</span>
               {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="text-center py-10 text-slate-400">
-            No hay usuarios registrados.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end align-items-center">
+                {% if request.user.es_administrador %}
+                <a href="{% url 'usuario_editar' u.pk %}" class="btn btn-sm btn-light border py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;" title="Editar perfil">
+                  <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+                  <span>Editar</span>
+                </a>
+                <a href="{% url 'usuario_cambiar_password' u.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;" title="Cambiar contraseña">
+                  <span class="material-symbols-outlined fs-6">key</span>
+                </a>
+                {% if u != request.user %}
+                <form method="POST" action="{% url 'usuario_eliminar' u.pk %}" onsubmit="return confirm('¿Estás seguro de eliminar al usuario {{ u.nombre_completo }} (@{{ u.username }})? Esta acción no se puede deshacer.')" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;" title="Eliminar usuario">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                    <span>Eliminar</span>
+                  </button>
+                </form>
+                {% endif %}
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">group_off</span>
+              <div class="fw-bold mb-1">No hay usuarios registrados en el sistema</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+<!-- ── MODAL BOOTSTRAP: Nuevo Usuario (PRO UX) ── -->
+{% if request.user.es_administrador %}
+<div class="modal fade" id="modal-nuevo-usuario" tabindex="-1" aria-labelledby="modalNuevoUsuarioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">person_add</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm" id="modalNuevoUsuarioLabel">Nuevo Miembro del Equipo</h5>
+            <p class="modal-subtitle-tm">Creación de cuenta de usuario y asignación de rol en el taller</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" action="{% url 'usuario_crear' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          <!-- Sección 1: Datos Personales & Credenciales -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">badge</span>
+              <span>1. Credenciales de Ingreso & Nombre</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Nombre Completo <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">person</span>
+                  </div>
+                  <input type="text" name="nombre_completo" required class="form-control-pro" placeholder="Ej: Mario Gómez">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Usuario (Login) <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">alternate_email</span>
+                  </div>
+                  <input type="text" name="username" required class="form-control-pro font-monospace" placeholder="mgomez">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Correo Electrónico <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">mail</span>
+                  </div>
+                  <input type="email" name="email" required class="form-control-pro" placeholder="mario@taller.com">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Teléfono de Contacto</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">call</span>
+                  </div>
+                  <input type="text" name="telefono" class="form-control-pro" placeholder="+54 9 11 ...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Rol y Seguridad -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">security</span>
+              <span>2. Rol Operativo & Contraseña</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Rol de Acceso <span class="req">*</span></label>
+                <select name="rol" required class="form-select-pro">
+                  <option value="MECANICO">Técnico Mecánico</option>
+                  <option value="ADMINISTRADOR">Administrador / Recepción</option>
+                  <option value="DUENO">Dueño / Gerente</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Contraseña Inicial <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">lock</span>
+                  </div>
+                  <input type="password" name="password1" required class="form-control-pro" placeholder="••••••••">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Confirmar Contraseña <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">lock_reset</span>
+                  </div>
+                  <input type="password" name="password2" required class="form-control-pro" placeholder="••••••••">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Fotografía -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Foto de Perfil</span>
+            </div>
+            <div class="photo-dropzone-wrap" id="usuario-dropzone">
+              <div class="photo-preview-avatar">
+                <span class="material-symbols-outlined fs-2" id="usuario-foto-placeholder">account_circle</span>
+                <img src="" id="usuario-foto-preview" class="d-none" alt="Vista previa">
+              </div>
+              <div class="flex-grow-1">
+                <input type="file" name="foto" id="usuario-foto-input" accept="image/*" class="d-none">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <button type="button" onclick="document.getElementById('usuario-foto-input').click()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">upload</span>
+                    <span>Seleccionar foto</span>
+                  </button>
+                  <button type="button" id="usuario-foto-remove" class="btn btn-sm btn-outline-danger d-none d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Formatos: PNG, JPG, WEBP (máx. 3MB)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Crear Usuario</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/usuarios.js' %}"></script>
 {% endblock %}

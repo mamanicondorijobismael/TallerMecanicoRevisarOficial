@@ -206,6 +206,22 @@ def usuario_editar(request, pk):
 
 
 @login_required
+def usuario_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar o desactivar usuarios.')
+        return redirect('usuario_lista')
+    usuario = get_object_or_404(Usuario, pk=pk)
+    if usuario == request.user:
+        messages.error(request, 'No puedes eliminar tu propia cuenta de usuario.')
+        return redirect('usuario_lista')
+    if request.method == 'POST':
+        nombre = usuario.nombre_completo
+        usuario.delete()
+        messages.success(request, f'Usuario {nombre} eliminado correctamente.')
+    return redirect('usuario_lista')
+
+
+@login_required
 def perfil(request):
     form = UsuarioChangeForm(request.POST or None, request.FILES or None, instance=request.user)
     if request.method == 'POST' and form.is_valid():

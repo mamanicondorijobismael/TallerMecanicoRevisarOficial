@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Inventario Module - Lista CSS (TAMGO Industrial Pro UX)
+   ========================================================================== */
+
+/* Filter Pills Navigation */
+.filter-pill {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #E2E8F0;
+  background-color: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.filter-pill:hover {
+  background-color: #F8FAFC;
+  color: #0F172A;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+}
+
+.filter-pill.active {
+  background: linear-gradient(135deg, #0D284E 0%, #163A6C 100%);
+  color: #ffffff;
+  border-color: #0D284E;
+  box-shadow: 0 4px 10px rgba(13, 40, 78, 0.2);
+}
+
+.filter-pill.active .badge-count {
+  background-color: var(--tm-gold);
+  color: #000000;
+}
+
+.badge-count {
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background-color: #F1F5F9;
+  color: #475569;
+}
+
+/* Grid Cards (Industrial Bento Style) */
+.inventory-grid-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+.inventory-grid-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -6px rgba(13, 40, 78, 0.12);
+  border-color: var(--tm-blue-accent);
+}
+
+.inventory-grid-card.critical {
+  border-color: #FCA5A5;
+  box-shadow: 0 0 0 1px #EF4444, 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.card-img-wrap {
+  height: 180px;
+  background: linear-gradient(180deg, #F8FAFC 0%, #EDF2F7 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.inventory-grid-card:hover .card-img-wrap img {
+  transform: scale(1.06);
+}
+
+.card-sku-chip {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(13, 40, 78, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 3px 9px;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.04em;
+}
+
+.card-type-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--tm-navy);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Stock Health Bar */
+.stock-meter-wrap {
+  height: 4px;
+  background-color: #F1F5F9;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+
+.stock-meter-bar {
+  height: 100%;
+  border-radius: 9999px;
+  background-color: #16A34A;
+  transition: width 0.3s ease;
+}
+
+.stock-meter-bar.critical {
+  background-color: #DC2626;
+}
+
+/* Table Thumbnail */
+.product-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  background-color: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

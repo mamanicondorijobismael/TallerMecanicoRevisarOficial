@@ -1,68 +1,113 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Mi Perfil{% endblock %}
-{% block subtitle %}Actualizar datos personales y credenciales{% endblock %}
+{% block subtitle %}Actualizar datos personales y credenciales de acceso{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/perfil.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto animate-in">
-  <div class="card p-6">
-    <div class="flex items-center gap-4 mb-6 pb-6 border-b" style="border-color:var(--border)">
-      <div class="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-2xl overflow-hidden" style="background:linear-gradient(135deg,var(--brand),#FF8C00);color:#fff">
-        {% if user.foto %}
-          <img src="{{ user.foto.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" data-lightbox="{{ user.foto.url }}" data-alt="{{ user.nombre_completo }}">
-        {% else %}
-          {{ user.nombre_completo|slice:":1"|upper }}
-        {% endif %}
-      </div>
-      <div style="flex:1">
-        <h2 class="text-xl font-bold" style="font-family:'Outfit',sans-serif;color:var(--txt)">{{ user.nombre_completo }}</h2>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
-          <span class="badge" style="background:rgba(255,107,0,0.15);color:var(--brand);border:1px solid rgba(255,107,0,0.3)">{{ user.get_rol_display }}</span>
-          <a href="{% url 'cambiar_password' %}" class="btn btn-xs btn-ghost" style="display:inline-flex;align-items:center;gap:4px;">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-            Cambiar Contraseña
-          </a>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">account_circle</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">Mi Perfil de Usuario</h5>
+            <p class="modal-subtitle-tm">Información de contacto, foto y rol del sistema</p>
+          </div>
         </div>
+        <a href="{% url 'cambiar_password' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined fs-6">key</span>
+          <span>Cambiar Clave</span>
+        </a>
       </div>
-    </div>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
-      {% csrf_token %}
-      {% if form.errors %}
-      <div class="alert alert-error">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <div>
-          {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
-        </div>
-      </div>
-      {% endif %}
+      <!-- Form Body -->
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for field in form %}
-        <div class="flex flex-col">
-          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}
-          <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+          <!-- User Quick Banner -->
+          <div class="form-section-card d-flex align-items-center gap-3">
+            <div class="photo-preview-avatar">
+              {% if user.foto %}
+                <img src="{{ user.foto.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ user.foto.url }}" data-alt="{{ user.nombre_completo }}">
+              {% else %}
+                <span class="material-symbols-outlined fs-2">person</span>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1 min-w-0">
+              <h4 class="fs-6 fw-bold text-dark mb-0">{{ user.nombre_completo }}</h4>
+              <div class="font-monospace small text-muted">@{{ user.username }}</div>
+              <div class="mt-1">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5" style="font-size: 0.72rem;">{{ user.get_rol_display }}</span>
+              </div>
+            </div>
+          </div>
+
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
           {% endif %}
-        </div>
-        {% endfor %}
-      </div>
 
-      <div class="pt-6 border-t mt-6 flex justify-end gap-3" style="border-color:var(--border)">
-        <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          Guardar Cambios
-        </button>
-      </div>
-    </form>
+          <!-- Form Fields -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">badge</span>
+              <span>Datos Personales</span>
+            </div>
+            <div class="row g-3">
+              {% for field in form %}
+              <div class="col-12 {% if 'textarea' not in field.field.widget.attrs.class and 'foto' not in field.name %}col-md-6{% endif %}">
+                <label class="form-label-pro" for="{{ field.id_for_label }}">
+                  {{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="text-muted small mt-1" style="font-size: 0.72rem;">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'dashboard' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Cambios</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

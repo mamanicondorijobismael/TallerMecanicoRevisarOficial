@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Accounts Module - Dashboard CSS
+   ========================================================================== */
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid var(--tm-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--tm-navy-dark);
+  line-height: 1;
+  margin-bottom: 0;
+}
+
+.kpi-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  margin-top: 0.35rem;
+}
+
+.dueño-card {
+  background: #ffffff;
+  border: 1px solid var(--tm-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.order-row {
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.order-row:last-child {
+  border-bottom: none;
+}
+
+.order-row:hover {
+  background-color: #f8fafc;
+}
+
+.order-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background-color: var(--tm-navy-subtle);
+  color: var(--tm-navy);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.order-row:hover .order-avatar {
+  background-color: var(--tm-gold);
+  color: var(--tm-navy-dark);
+}

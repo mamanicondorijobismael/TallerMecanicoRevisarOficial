@@ -1,0 +1,15 @@
+/* ==========================================================================
+   Vehículos Module - Detalle CSS
+   ========================================================================== */
+
+.vehicle-detail-photo {
+  height: 200px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: #f1f5f9;
+  position: relative;
+  border: 1px solid var(--tm-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

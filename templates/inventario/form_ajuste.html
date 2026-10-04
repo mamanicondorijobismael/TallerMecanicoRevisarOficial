@@ -1,112 +1,138 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Cargar / Ajustar Stock{% endblock %}
 {% block subtitle %}{{ producto.nombre }} (SKU: {{ producto.codigo_sku }}){% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/form.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'inventario:lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inventario
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6 animate-in">
-  <!-- Info Card -->
-  <div class="card p-6" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-    <div style="width:80px;height:80px;border-radius:12px;overflow:hidden;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-      {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" data-lightbox="{{ producto.imagen.url }}" data-alt="{{ producto.nombre }}">
-      {% else %}
-        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-      {% endif %}
-    </div>
-    <div style="flex:1;min-width:200px">
-      <div style="font-size:12px;color:var(--txt-muted);font-family:monospace">SKU: {{ producto.codigo_sku }}</div>
-      <h2 style="font-size:18px;font-weight:700;color:var(--txt)">{{ producto.nombre }}</h2>
-      <div style="font-size:13px;color:var(--txt-dim);margin-top:4px">
-        Categoría: {{ producto.categoria.nombre|default:"General" }} · Tipo: {{ producto.get_tipo_producto_display }}
+<div class="row justify-content-center g-4">
+  <div class="col-12 col-lg-9 d-flex flex-column gap-4">
+    <!-- Info Card -->
+    <div class="card-workshop p-4 d-flex flex-column flex-sm-row gap-3 align-items-center">
+      <div class="product-thumb" style="width: 70px; height: 70px;">
+        {% if producto.imagen %}
+          <img src="{{ producto.imagen.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ producto.imagen.url }}" data-alt="{{ producto.nombre }}">
+        {% else %}
+          <span class="material-symbols-outlined text-muted fs-2">inventory_2</span>
+        {% endif %}
+      </div>
+      <div class="flex-grow-1 min-w-0">
+        <div class="font-monospace small text-muted">SKU: {{ producto.codigo_sku }}</div>
+        <h2 class="h5 fw-bold text-dark mb-1">{{ producto.nombre }}</h2>
+        <div class="small text-muted">
+          Categoría: {{ producto.categoria.nombre|default:"General" }} · Tipo: {{ producto.get_tipo_producto_display }}
+        </div>
+      </div>
+      <div class="text-sm-end border-top border-sm-top-0 pt-2 pt-sm-0">
+        <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.68rem;">Stock Actual</div>
+        <div class="fs-4 fw-black text-primary">{{ producto.stock_actual }} u.</div>
+        <div class="small text-muted" style="font-size: 0.72rem;">Mínimo: {{ producto.stock_minimo }} u.</div>
       </div>
     </div>
-    <div style="text-align:right">
-      <div style="font-size:12px;color:var(--txt-muted)">Stock Actual</div>
-      <div style="font-size:28px;font-weight:800;color:var(--accent)">{{ producto.stock_actual }} u.</div>
-      <div style="font-size:11px;color:var(--txt-dim)">Mínimo: {{ producto.stock_minimo }} u.</div>
-    </div>
-  </div>
 
-  <!-- Form Cargar Stock -->
-  <div class="card p-6">
-    <h3 style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:16px">Registrar Ingreso / Ajuste de Stock</h3>
-    <form method="POST" class="space-y-4">
-      {% csrf_token %}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="form-label">Tipo de Movimiento</label>
-          {{ form.tipo_movimiento }}
-          {% if form.tipo_movimiento.errors %}<div class="text-red-500 text-xs mt-1">{{ form.tipo_movimiento.errors.0 }}</div>{% endif %}
-        </div>
-        <div>
-          <label class="form-label">Cantidad a añadir / modificar</label>
-          {{ form.cantidad }}
-          {% if form.cantidad.errors %}<div class="text-red-500 text-xs mt-1">{{ form.cantidad.errors.0 }}</div>{% endif %}
+    <!-- Form Cargar Stock -->
+    <div class="modal-content shadow-sm border">
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">sync_alt</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">Registrar Ingreso / Ajuste de Stock</h5>
+            <p class="modal-subtitle-tm">Actualizá existencias por compra, devolución o ajuste manual</p>
+          </div>
         </div>
       </div>
 
-      <div>
-        <label class="form-label">Detalle / Motivo del ingreso</label>
-        {{ form.motivo }}
-        {% if form.motivo.errors %}<div class="text-red-500 text-xs mt-1">{{ form.motivo.errors.0 }}</div>{% endif %}
-        <p style="font-size:11px;color:var(--txt-muted);margin-top:4px">Ejemplo: "Factura de compra #1234 - Reposición de inventario"</p>
-      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">tune</span>
+              <span>Datos del Movimiento</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.tipo_movimiento.id_for_label }}">Tipo de Movimiento <span class="req">*</span></label>
+                {{ form.tipo_movimiento }}
+                {% if form.tipo_movimiento.errors %}<div class="text-danger small mt-1">{{ form.tipo_movimiento.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.cantidad.id_for_label }}">Cantidad a Añadir / Modificar <span class="req">*</span></label>
+                {{ form.cantidad }}
+                {% if form.cantidad.errors %}<div class="text-danger small mt-1">{{ form.cantidad.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro" for="{{ form.motivo.id_for_label }}">Detalle / Motivo del Ingreso <span class="req">*</span></label>
+                {{ form.motivo }}
+                {% if form.motivo.errors %}<div class="text-danger small mt-1">{{ form.motivo.errors.0 }}</div>{% endif %}
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Ejemplo: "Factura de compra #1234 - Reposición de inventario"</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
-        <a href="{% url 'inventario:lista' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Guardar Movimiento
-        </button>
-      </div>
-    </form>
-  </div>
+        <div class="modal-footer-tm">
+          <a href="{% url 'inventario:lista' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">add_box</span>
+            <span>Guardar Movimiento</span>
+          </button>
+        </div>
+      </form>
+    </div>
 
-  <!-- Historial de Movimientos de este producto -->
-  <div class="card p-6">
-    <h3 style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:12px">Últimos Movimientos de {{ producto.nombre }}</h3>
-    <div class="overflow-x-auto">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Tipo</th>
-            <th style="text-align:center">Cantidad</th>
-            <th style="text-align:center">Stock Resultante</th>
-            <th>Motivo / Detalle</th>
-            <th>Usuario</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in producto.movimientos.all|slice:":10" %}
-          <tr>
-            <td style="font-size:12px;color:var(--txt-muted)">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
-            <td>
-              <span class="badge {% if m.cantidad > 0 %}status-pagada{% else %}status-cancelada{% endif %}">
-                {{ m.get_tipo_movimiento_display }}
-              </span>
-            </td>
-            <td style="text-align:center;font-weight:700;color:{% if m.cantidad > 0 %}var(--accent){% else %}#ef4444{% endif %}">
-              {% if m.cantidad > 0 %}+{% endif %}{{ m.cantidad }}
-            </td>
-            <td style="text-align:center;font-weight:600;color:var(--txt)">{{ m.stock_resultante }}</td>
-            <td style="font-size:12px;color:var(--txt-dim)">{{ m.motivo }}</td>
-            <td style="font-size:12px;color:var(--txt-muted)">{{ m.usuario|default:"Sistema" }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" style="text-align:center;color:var(--txt-muted);padding:16px">Sin movimientos registrados.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Historial de Movimientos de este producto -->
+    <div class="card-workshop p-4">
+      <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider">Últimos Movimientos Registrados</h3>
+      <div class="table-responsive">
+        <table class="table table-workshop mb-0">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-center">Stock Resultante</th>
+              <th>Motivo / Detalle</th>
+              <th>Usuario</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in producto.movimientos.all|slice:":10" %}
+            <tr>
+              <td class="small text-muted">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+              <td>
+                <span class="badge-status {% if m.cantidad > 0 %}status-completada{% else %}status-cancelada{% endif %}">
+                  {{ m.get_tipo_movimiento_display }}
+                </span>
+              </td>
+              <td class="text-center fw-bold small {% if m.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
+                {% if m.cantidad > 0 %}+{% endif %}{{ m.cantidad }}
+              </td>
+              <td class="text-center fw-bold text-dark small">{{ m.stock_resultante }}</td>
+              <td class="small text-muted">{{ m.motivo }}</td>
+              <td class="small text-muted">{{ m.usuario|default:"Sistema" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-3 text-muted small">Sin movimientos registrados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

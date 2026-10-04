@@ -1,0 +1,11 @@
+/* ==========================================================================
+   Facturas Module - Lista CSS
+   ========================================================================== */
+
+.invoice-badge-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+}

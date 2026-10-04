@@ -1,97 +1,107 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Cobros y Pagos{% endblock %}
-{% block subtitle %}Historial de comprobantes y cobros{% endblock %}
+{% block subtitle %}Historial de comprobantes y cobranzas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facturas/lista.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="card animate-in">
+<div class="card-workshop overflow-hidden">
   <!-- Header + filtros -->
-  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="search-wrap" style="min-width:220px">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-          <input type="text" name="q" value="{{ query }}" placeholder="N° comprobante o cliente..." class="form-input">
+  <div class="p-3 border-bottom bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex gap-2 align-items-center flex-wrap flex-grow-1">
+      <form method="GET" class="d-flex gap-2 flex-wrap flex-grow-1">
+        <div class="input-group input-group-sm" style="max-width: 280px;">
+          <span class="input-group-text bg-white text-muted">
+            <span class="material-symbols-outlined fs-6">search</span>
+          </span>
+          <input type="text" name="q" value="{{ query }}" placeholder="N° comprobante o cliente..." class="form-control form-control-sm">
         </div>
-        <select name="estado" class="form-input" style="min-width:160px">
+        <select name="estado" class="form-select form-select-sm" style="width: auto;">
           <option value="">Todos los estados</option>
           <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
           <option value="PARCIAL"   {% if estado_filter == 'PARCIAL'   %}selected{% endif %}>Pago parcial</option>
           <option value="PAGADA"    {% if estado_filter == 'PAGADA'    %}selected{% endif %}>Cobrado</option>
           <option value="ANULADA"   {% if estado_filter == 'ANULADA'   %}selected{% endif %}>Anulado</option>
         </select>
-        <button type="submit" class="btn btn-ghost">Filtrar</button>
+        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+          <span class="material-symbols-outlined fs-6">filter_list</span>
+          <span>Filtrar</span>
+        </button>
       </form>
     </div>
-    <div style="display:flex;gap:8px">
-      <span class="badge status-pagada">Cobrado</span>
-      <span class="badge status-parcial">Parcial</span>
-      <span class="badge status-pendiente">Pendiente</span>
+    <div class="d-flex gap-1">
+      <span class="badge-status status-completada">Cobrado</span>
+      <span class="badge-status status-en_proceso">Parcial</span>
+      <span class="badge-status status-pendiente">Pendiente</span>
     </div>
   </div>
+
   <!-- Tabla -->
-  <div class="overflow-x-auto">
-    <table class="tbl">
+  <div class="table-responsive">
+    <table class="table table-workshop mb-0">
       <thead>
         <tr>
           <th>Comprobante</th>
           <th>Fecha</th>
           <th>Cliente</th>
           <th>Orden</th>
-          <th style="text-align:right">Subtotal</th>
-          <th style="text-align:right">Total</th>
-          <th style="text-align:center">Estado</th>
-          <th style="text-align:right">Acciones</th>
+          <th class="text-end">Subtotal</th>
+          <th class="text-end">Total</th>
+          <th class="text-center">Estado</th>
+          <th class="text-end">Acciones</th>
         </tr>
       </thead>
       <tbody>
         {% for f in facturas %}
         <tr>
           <td>
-            <span style="font-family:monospace;font-weight:800;color:var(--brand);font-size:13px"># {{ f.numero_factura }}</span>
+            <span class="font-monospace fw-bold text-primary small"># {{ f.numero_factura }}</span>
           </td>
-          <td style="color:var(--txt-muted);font-size:12.5px">{{ f.fecha_emision|date:"d/m/Y" }}</td>
+          <td class="text-muted small">{{ f.fecha_emision|date:"d/m/Y" }}</td>
           <td>
-            <div style="font-weight:600;color:var(--txt)">{{ f.cliente.nombre_razon_social }}</div>
-            <div style="font-size:11px;color:var(--txt-dim);font-family:monospace">{{ f.cliente.documento }}</div>
+            <div class="fw-bold text-dark small">{{ f.cliente.nombre_razon_social }}</div>
+            <div class="text-muted font-monospace" style="font-size: 0.72rem;">{{ f.cliente.documento }}</div>
           </td>
           <td>
-            <a href="{% url 'ordenes:detalle' f.orden.pk %}" class="btn btn-xs btn-ghost">#{{ f.orden.numero_orden }}</a>
+            <a href="{% url 'ordenes:detalle' f.orden.pk %}" class="badge bg-light text-secondary border text-decoration-none">OT #{{ f.orden.numero_orden }}</a>
           </td>
-          <td style="text-align:right;color:var(--txt-muted)">${{ f.subtotal|floatformat:2 }}</td>
-          <td style="text-align:right;font-weight:700;font-size:15px;color:var(--txt)">${{ f.total|floatformat:2 }}</td>
-          <td style="text-align:center">
+          <td class="text-end text-muted small">${{ f.subtotal|floatformat:2 }}</td>
+          <td class="text-end fw-bold text-dark fs-6">${{ f.total|floatformat:2 }}</td>
+          <td class="text-center">
             {% if f.estado_pago == 'PAGADA' %}
-              <span class="badge status-pagada">COBRADO</span>
+              <span class="badge-status status-completada">COBRADO</span>
             {% elif f.estado_pago == 'PARCIAL' %}
-              <span class="badge status-parcial">PARCIAL</span>
+              <span class="badge-status status-en_proceso">PARCIAL</span>
             {% elif f.estado_pago == 'ANULADA' %}
-              <span class="badge status-anulada">ANULADO</span>
+              <span class="badge-status status-cancelada">ANULADO</span>
             {% else %}
-              <span class="badge status-pendiente">PENDIENTE</span>
+              <span class="badge-status status-pendiente">PENDIENTE</span>
             {% endif %}
           </td>
-          <td style="text-align:right">
-            <a href="{% url 'facturas:detalle' f.pk %}" class="btn btn-sm btn-primary">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              Gestionar
+          <td class="text-end">
+            <a href="{% url 'facturas:detalle' f.pk %}" class="btn btn-sm btn-tm-gold py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+              <span class="material-symbols-outlined fs-6">payments</span>
+              <span>Gestionar</span>
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8">
-            <div class="empty-state">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              <h3>No hay comprobantes registrados</h3>
-              <p>Los cobros se generan desde una orden de trabajo completada.</p>
-            </div>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">receipt_long</span>
+            <div class="fw-bold mb-1">No hay comprobantes registrados</div>
+            <p class="small text-muted mb-0">Los cobros se generan desde una orden de trabajo completada.</p>
           </td>
         </tr>
         {% endfor %}
@@ -99,4 +109,8 @@
     </table>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/facturas/lista.js' %}"></script>
 {% endblock %}

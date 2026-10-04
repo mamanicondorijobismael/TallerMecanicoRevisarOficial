@@ -1,0 +1,19 @@
+/* ==========================================================================
+   Inventario Module - Venta CSS
+   ========================================================================== */
+
+.receipt-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border: 1px solid var(--tm-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+}
+
+.receipt-header {
+  border-bottom: 2px dashed #e2e8f0;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+}

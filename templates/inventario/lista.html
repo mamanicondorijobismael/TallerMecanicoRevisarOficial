@@ -1,107 +1,186 @@
 {% extends 'base.html' %}
-{% block title %}Inventario – El Taller del Maestro{% endblock %}
+{% load static %}
+
+{% block title %}Inventario & Repuestos – El Taller del Maestro{% endblock %}
 {% block page_title %}Inventario de Productos{% endblock %}
-{% block subtitle %}Control de stock, repuestos y neumáticos{% endblock %}
+{% block subtitle %}Control de existencias, repuestos mecánicos y neumáticos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2">
+  {% if user.es_administrador %}
+  <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">
+    <span class="material-symbols-outlined fs-6">add</span>
+    <span>Nuevo Repuesto</span>
+  </button>
+  <button type="button" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-neumatico">
+    <span class="material-symbols-outlined fs-6">add</span>
+    <span>Nuevo Neumático</span>
+  </button>
+  {% endif %}
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="space-y-6 animate-in">
-  <!-- ── 1. Page Header & Actions Bar (Tamgo Style) ── -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="w-10 h-10 rounded-lg bg-[#0D284E]/10 text-[#0D284E] flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<div class="d-flex flex-column gap-4">
+
+  <!-- ── 1. KPI Summary Cards ── -->
+  <div class="row g-3">
+    <div class="col-6 col-lg-3">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-primary-subtle text-primary" style="width: 44px; height: 44px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-4">inventory_2</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Total Catálogo</div>
+          <div class="fs-4 fw-black text-primary">{{ total_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-warning-subtle text-warning" style="width: 44px; height: 44px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-4">settings</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Repuestos</div>
+          <div class="fs-4 fw-black text-dark">{{ repuestos_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon bg-info-subtle text-info" style="width: 44px; height: 44px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-4">tire_repair</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Neumáticos</div>
+          <div class="fs-4 fw-black text-dark">{{ neumaticos_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-workshop p-3 d-flex align-items-center gap-3 {% if criticos_count > 0 %}border-danger bg-danger-subtle bg-opacity-25{% endif %}">
+        <div class="sidebar-brand-icon bg-danger-subtle text-danger" style="width: 44px; height: 44px; border-radius: 0.75rem;">
+          <span class="material-symbols-outlined fs-4">warning</span>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Stock Crítico</div>
+          <div class="fs-4 fw-black {% if criticos_count > 0 %}text-danger{% else %}text-muted{% endif %}">{{ criticos_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Action Hub & View Switcher ── -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+      <div class="sidebar-brand-icon bg-primary-subtle text-primary">
+        <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">warehouse</span>
       </div>
       <div class="min-w-0">
-        <h2 class="text-base font-bold text-[#0D284E] tracking-tight">Catálogo de Inventario</h2>
-        <p class="text-xs text-slate-500 truncate">Gestión de repuestos, neumáticos, stock y precios</p>
+        <h2 class="h6 fw-bold text-primary mb-0">Gestión de Inventario & Stock</h2>
+        <p class="text-muted small mb-0 text-truncate">Catálogo maestro, precios de venta, reposiciones y compatibilidad</p>
       </div>
     </div>
 
-    <div class="flex items-center gap-2 flex-wrap w-full md:w-auto justify-start md:justify-end">
+    <div class="d-flex align-items-center gap-2 flex-wrap w-100 w-md-auto justify-content-start justify-content-md-end">
       <!-- Switcher Grid / Table -->
-      <div class="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+      <div class="btn-group btn-group-sm" role="group">
         <a href="?view=grid{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
-           class="px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 transition-all {% if view_mode == 'grid' %}bg-white shadow-sm text-[#0D284E]{% else %}text-slate-500 hover:text-slate-800{% endif %}" title="Vista en tarjetas">
-          <span class="material-symbols-outlined text-[15px]">grid_view</span>
-          <span class="hidden sm:inline">Tarjetas</span>
+           class="btn {% if view_mode == 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %} d-flex align-items-center gap-1" title="Vista en tarjetas">
+          <span class="material-symbols-outlined fs-6">grid_view</span>
+          <span class="d-none d-sm-inline">Tarjetas</span>
         </a>
         <a href="?view=table{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
-           class="px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 transition-all {% if view_mode == 'table' %}bg-white shadow-sm text-[#0D284E]{% else %}text-slate-500 hover:text-slate-800{% endif %}" title="Vista en tabla">
-          <span class="material-symbols-outlined text-[15px]">list</span>
-          <span class="hidden sm:inline">Tabla</span>
+           class="btn {% if view_mode == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %} d-flex align-items-center gap-1" title="Vista en tabla">
+          <span class="material-symbols-outlined fs-6">list</span>
+          <span class="d-none d-sm-inline">Tabla</span>
         </a>
       </div>
 
-      <a href="{% url 'inventario:movimientos' %}" class="btn btn-outline btn-sm">
-        <span class="material-symbols-outlined text-[15px]">history</span>
+      <a href="{% url 'inventario:movimientos' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-6">history</span>
         <span>Movimientos</span>
       </a>
 
       {% if user.es_administrador %}
-      <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-outline btn-sm">
-        <span class="material-symbols-outlined text-[15px]">category</span>
+      <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-6">category</span>
         <span>Categorías</span>
       </a>
       {% endif %}
 
-      <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-primary btn-sm">
-        <span class="material-symbols-outlined text-[16px]">add</span>
-        <span>Repuesto</span>
-      </a>
-      <a href="{% url 'inventario:neumatico_crear' %}" class="btn btn-secondary btn-sm">
-        <span class="material-symbols-outlined text-[16px]">add</span>
-        <span>Neumático</span>
-      </a>
+      {% if user.es_administrador %}
+      <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">
+        <span class="material-symbols-outlined fs-6">add</span>
+        <span>+ Repuesto</span>
+      </button>
+      <button type="button" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-neumatico">
+        <span class="material-symbols-outlined fs-6">add</span>
+        <span>+ Neumático</span>
+      </button>
+      {% endif %}
     </div>
   </div>
 
-
-  <!-- ── 2. Filter Pills & Fast Tabs (Stitch Tamgo Style) ── -->
-  <div class="flex flex-wrap items-center gap-2">
+  <!-- ── 3. Filter Navigation Pills ── -->
+  <div class="d-flex flex-wrap align-items-center gap-2">
     <a href="{% url 'inventario:lista' %}{% if view_mode != 'grid' %}?view={{ view_mode }}{% endif %}" 
-       class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if not tipo_filter and not criticos_only %}bg-[#0D284E] text-white shadow-sm border-l-4 border-[#F2B705]{% else %}bg-white text-slate-600 hover:bg-slate-50 border border-slate-200{% endif %}">
-      Todos los Productos ({{ total_count }})
+       class="filter-pill {% if not tipo_filter and not criticos_only %}active{% endif %}">
+      <span>Todos los Productos</span>
+      <span class="badge-count">{{ total_count }}</span>
     </a>
 
     <a href="?tipo=REPUESTO{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if tipo_filter == 'REPUESTO' %}bg-[#0D284E] text-white shadow-sm border-l-4 border-[#F2B705]{% else %}bg-white text-slate-600 hover:bg-slate-50 border border-slate-200{% endif %}">
-      Repuestos ({{ repuestos_count }})
+       class="filter-pill {% if tipo_filter == 'REPUESTO' %}active{% endif %}">
+      <span>Repuestos</span>
+      <span class="badge-count">{{ repuestos_count }}</span>
     </a>
 
     <a href="?tipo=NEUMATICO{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if tipo_filter == 'NEUMATICO' %}bg-[#0D284E] text-white shadow-sm border-l-4 border-[#F2B705]{% else %}bg-white text-slate-600 hover:bg-slate-50 border border-slate-200{% endif %}">
-      Neumáticos ({{ neumaticos_count }})
+       class="filter-pill {% if tipo_filter == 'NEUMATICO' %}active{% endif %}">
+      <span>Neumáticos</span>
+      <span class="badge-count">{{ neumaticos_count }}</span>
     </a>
 
     <a href="?criticos=1{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all sm:ml-auto flex items-center gap-1.5 {% if criticos_only %}bg-red-600 text-white shadow-sm{% else %}bg-red-50 text-red-700 hover:bg-red-100 border border-red-200{% endif %}">
-      <span class="material-symbols-outlined text-[16px] {% if criticos_only %}text-white{% else %}text-red-500{% endif %}">warning</span>
-      <span>Stock Crítico ({{ criticos_count }})</span>
+       class="filter-pill ms-sm-auto d-flex align-items-center gap-1 {% if criticos_only %}bg-danger text-white border-danger{% else %}text-danger border-danger-subtle bg-danger-subtle{% endif %}">
+      <span class="material-symbols-outlined fs-6">warning</span>
+      <span>Stock Crítico</span>
+      <span class="badge-count bg-danger text-white">{{ criticos_count }}</span>
     </a>
   </div>
 
-  <!-- ── 3. Search & Search Filter Bar ── -->
-  <div class="card p-4">
-    <form method="GET" class="flex gap-3 flex-wrap items-center">
+  <!-- ── 4. Search & Filter Bar ── -->
+  <div class="card-workshop p-3">
+    <form method="GET" class="row g-2 align-items-center">
       <input type="hidden" name="view" value="{{ view_mode }}">
       {% if tipo_filter %}<input type="hidden" name="tipo" value="{{ tipo_filter }}">{% endif %}
       {% if criticos_only %}<input type="hidden" name="criticos" value="1">{% endif %}
 
-      <div class="search-wrap flex-1" style="min-width:240px">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-        <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, SKU, medida o marca..." class="form-input">
+      <div class="col-12 col-md-6 col-lg-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white text-muted">
+            <span class="material-symbols-outlined fs-6">search</span>
+          </span>
+          <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, SKU, código o marca..." class="form-control form-control-sm">
+        </div>
       </div>
 
       {% if categorias %}
-      <div style="min-width:180px">
-        <select name="categoria" class="form-input" onchange="this.form.submit()">
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <select id="categoriaFilterSelect" name="categoria" class="form-select form-select-sm">
           <option value="">Todas las categorías</option>
           {% for cat in categorias %}
           <option value="{{ cat.id }}" {% if categoria_filter == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nombre }}</option>
@@ -110,95 +189,107 @@
       </div>
       {% endif %}
 
-      <button type="submit" class="btn btn-ghost">
-        <span class="material-symbols-outlined text-[18px]">search</span>
-        <span>Buscar</span>
-      </button>
+      <div class="col-12 col-sm-6 col-md-2">
+        <button type="submit" class="btn btn-sm btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-1">
+          <span class="material-symbols-outlined fs-6">search</span>
+          <span>Buscar</span>
+        </button>
+      </div>
 
       {% if query or categoria_filter %}
-      <a href="?view={{ view_mode }}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" class="btn btn-ghost text-xs text-slate-500">
-        Limpiar
-      </a>
+      <div class="col-auto">
+        <a href="?view={{ view_mode }}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" class="btn btn-sm btn-link text-muted text-decoration-none">
+          Limpiar
+        </a>
+      </div>
       {% endif %}
     </form>
   </div>
 
-  <!-- ── 4. Main Inventory View ── -->
+  <!-- ── 5. Main Inventory View ── -->
   {% if view_mode == 'table' %}
     <!-- ── TABLE VIEW ── -->
-    <div class="card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="tbl">
+    <div class="card-workshop overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-workshop mb-0">
           <thead>
             <tr>
               <th style="width:50px">Foto</th>
               <th>Código SKU</th>
-              <th>Producto</th>
+              <th>Producto / Descripción</th>
               <th>Categoría</th>
-              <th style="text-align:center">Stock</th>
-              <th style="text-align:right">Precio Venta</th>
-              <th style="text-align:right">Acciones</th>
+              <th class="text-center">Stock Actual</th>
+              <th class="text-end">Precio Venta</th>
+              <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {% for p in productos %}
             <tr>
               <td>
-                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
+                <div class="product-thumb">
                   {% if p.imagen %}
-                    <img src="{{ p.imagen.url }}" class="w-full h-full object-cover cursor-zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+                    <img src="{{ p.imagen.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
                   {% else %}
-                    <span class="material-symbols-outlined text-slate-400 text-[20px]">
+                    <span class="material-symbols-outlined text-muted fs-5">
                       {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}
                     </span>
                   {% endif %}
                 </div>
               </td>
-              <td class="font-mono text-xs text-slate-500 font-bold">{{ p.codigo_sku }}</td>
+              <td class="font-monospace fw-bold text-primary small">{{ p.codigo_sku }}</td>
               <td>
-                <div class="font-bold text-slate-900 text-sm">{{ p.nombre }}</div>
-                <div class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                  <span class="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold {% if p.tipo_producto == 'NEUMATICO' %}bg-sky-100 text-sky-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                <div class="fw-bold text-dark small">{{ p.nombre }}</div>
+                <div class="text-muted small d-flex align-items-center gap-1 mt-0.5" style="font-size: 0.72rem;">
+                  <span class="badge {% if p.tipo_producto == 'NEUMATICO' %}bg-info-subtle text-info border border-info-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
                     {{ p.get_tipo_producto_display }}
                   </span>
                   {% if p.repuesto and p.repuesto.marca_repuesto %}
-                    <span>· {{ p.repuesto.marca_repuesto }}</span>
+                    <span>· Marca: {{ p.repuesto.marca_repuesto }}</span>
                   {% elif p.neumatico %}
-                    <span class="font-mono">· {{ p.neumatico.medida }}</span>
+                    <span class="font-monospace">· Medida: {{ p.neumatico.medida }}</span>
                   {% endif %}
                 </div>
               </td>
-              <td class="text-xs text-slate-600">{{ p.categoria.nombre|default:"General" }}</td>
-              <td style="text-align:center">
+              <td class="text-muted small">{{ p.categoria.nombre|default:"General" }}</td>
+              <td class="text-center">
                 {% if p.stock_critico %}
-                  <span class="badge status-cancelada">{{ p.stock_actual }} u. (Bajo)</span>
+                  <span class="badge-status status-cancelada">{{ p.stock_actual }} u. (Bajo)</span>
                 {% else %}
-                  <span class="badge status-pagada">{{ p.stock_actual }} u.</span>
+                  <span class="badge-status status-completada">{{ p.stock_actual }} u.</span>
                 {% endif %}
               </td>
-              <td style="text-align:right" class="font-bold text-slate-900 text-sm">${{ p.precio_venta|floatformat:2 }}</td>
-              <td style="text-align:right">
-                <div class="flex gap-1.5 justify-end items-center">
+              <td class="text-end fw-bold text-dark small">${{ p.precio_venta|floatformat:2 }}</td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end align-items-center">
                   {% if user.es_administrador %}
-                  <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-xs btn-secondary" title="Ajustar Stock">+ Stock</a>
+                  <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Ajustar Stock">
+                    <span class="material-symbols-outlined fs-6">sync_alt</span>
+                    <span>+ Stock</span>
+                  </a>
                   {% endif %}
-                  <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-xs btn-primary" title="Venta directa">Vender</a>
+                  <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Venta rápida de mostrador">
+                    <span class="material-symbols-outlined fs-6">point_of_sale</span>
+                    <span>Vender</span>
+                  </a>
                   {% if p.tipo_producto == 'REPUESTO' %}
-                  <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-xs btn-ghost">Editar</a>
+                  <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+                    <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+                  </a>
                   {% else %}
-                  <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-xs btn-ghost">Editar</a>
+                  <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+                    <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+                  </a>
                   {% endif %}
                 </div>
               </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7">
-                <div class="empty-state">
-                  <span class="material-symbols-outlined text-[44px] text-slate-300 mb-2">inventory_2</span>
-                  <h3>No se encontraron productos</h3>
-                  <p>Probá cambiando los filtros o registrá un nuevo producto arriba.</p>
-                </div>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">inventory_2</span>
+                <div class="fw-bold mb-1">No se encontraron productos</div>
+                <p class="small text-muted mb-0">Probá cambiando los filtros o registrá un nuevo producto arriba.</p>
               </td>
             </tr>
             {% endfor %}
@@ -209,123 +300,369 @@
 
   {% else %}
     <!-- ── BENTO GRID VIEW (Tamgo Industrial Cards) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    <div class="row g-4">
       {% for p in productos %}
-      <div class="bg-white rounded-xl border {% if p.stock_critico %}border-red-300 ring-1 ring-red-200{% else %}border-slate-200{% endif %} shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
-        
-        <div>
-          <!-- Thumbnail & Badges Top -->
-          <div class="h-44 bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
-            {% if p.imagen %}
-              <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" 
-                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-zoom-in" 
-                   data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
-            {% else %}
-              <div class="flex flex-col items-center justify-center text-slate-400">
-                <span class="material-symbols-outlined text-[44px] opacity-40">
-                  {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}
-                </span>
-                <span class="text-[10px] uppercase font-bold tracking-wider mt-1 opacity-50">Sin Foto</span>
-              </div>
-            {% endif %}
-
-            <!-- Category / Type Chip -->
-            <div class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur px-2.5 py-1 rounded-md text-[11px] font-bold text-[#0D284E] flex items-center gap-1 shadow-sm border border-slate-200/60">
-              <span class="material-symbols-outlined text-[13px] text-[#F2B705]">
-                {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}build{% endif %}
-              </span>
-              <span>{{ p.get_tipo_producto_display }}</span>
-            </div>
-
-            <!-- SKU Chip -->
-            <div class="absolute bottom-2.5 left-2.5 bg-[#001330]/80 backdrop-blur px-2 py-0.5 rounded text-[10px] font-mono font-bold text-white tracking-wider">
-              SKU: {{ p.codigo_sku }}
-            </div>
-          </div>
-
-          <!-- Body Info -->
-          <div class="p-4">
-            <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5 truncate">
-              {{ p.categoria.nombre|default:"General" }}
-            </div>
-            <h3 class="font-bold text-slate-900 text-sm leading-snug line-clamp-1 group-hover:text-[#0D284E]" title="{{ p.nombre }}">
-              {{ p.nombre }}
-            </h3>
-
-            {% if p.repuesto and p.repuesto.marca_repuesto %}
-              <p class="text-xs text-slate-500 mt-1 truncate">Marca: {{ p.repuesto.marca_repuesto }}</p>
-            {% elif p.neumatico %}
-              <p class="text-xs font-mono text-slate-600 mt-1 truncate">Medida: {{ p.neumatico.medida }}</p>
-            {% endif %}
-
-            <!-- Stock & Price section -->
-            <div class="flex justify-between items-end mt-4 pt-3 border-t border-slate-100">
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stock Actual</p>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <span class="text-xl font-black {% if p.stock_critico %}text-red-600{% else %}text-slate-900{% endif %}">
-                    {{ p.stock_actual }}
+      <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="inventory-grid-card h-100 {% if p.stock_critico %}critical{% endif %}">
+          <div>
+            <!-- Thumbnail & Badges Top -->
+            <div class="card-img-wrap">
+              {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" 
+                     class="w-100 h-100 object-fit-cover cursor-zoom-in" 
+                     data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+              {% else %}
+                <div class="d-flex flex-column align-items-center justify-content-center text-muted">
+                  <span class="material-symbols-outlined fs-1 text-black-50">
+                    {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}
                   </span>
-                  {% if p.stock_critico %}
-                    <span class="px-1.5 py-0.5 bg-red-100 text-red-700 font-bold text-[10px] rounded border border-red-200 flex items-center gap-0.5">
-                      <span class="material-symbols-outlined text-[12px]">warning</span> Bajo
+                  <span class="small fw-bold text-uppercase mt-1" style="font-size: 0.65rem;">Sin Foto</span>
+                </div>
+              {% endif %}
+
+              <!-- Category / Type Chip -->
+              <div class="card-type-chip">
+                <span class="material-symbols-outlined fs-6 text-warning" style="vertical-align: -2px;">
+                  {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}build{% endif %}
+                </span>
+                <span>{{ p.get_tipo_producto_display }}</span>
+              </div>
+
+              <!-- SKU Chip -->
+              <div class="card-sku-chip">
+                {{ p.codigo_sku }}
+              </div>
+            </div>
+
+            <!-- Body Info -->
+            <div class="p-3">
+              <div class="text-muted fw-bold text-uppercase small mb-1" style="font-size: 0.68rem;">
+                {{ p.categoria.nombre|default:"General" }}
+              </div>
+              <h3 class="fw-bold text-dark fs-6 text-truncate mb-1" title="{{ p.nombre }}">
+                {{ p.nombre }}
+              </h3>
+
+              {% if p.repuesto and p.repuesto.marca_repuesto %}
+                <p class="text-muted small mb-0 text-truncate">Marca: {{ p.repuesto.marca_repuesto }}</p>
+              {% elif p.neumatico %}
+                <p class="text-muted small mb-0 font-monospace text-truncate">Medida: {{ p.neumatico.medida }}</p>
+              {% endif %}
+
+              <!-- Stock & Price section -->
+              <div class="d-flex justify-content-between align-items-end mt-3 pt-3 border-top">
+                <div>
+                  <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Existencias</div>
+                  <div class="d-flex align-items-center gap-1 mt-0.5">
+                    <span class="fs-5 fw-black {% if p.stock_critico %}text-danger{% else %}text-dark{% endif %}">
+                      {{ p.stock_actual }}
                     </span>
-                  {% else %}
-                    <span class="px-1.5 py-0.5 bg-green-100 text-green-700 font-bold text-[10px] rounded">
-                      En Stock
-                    </span>
-                  {% endif %}
+                    <span class="text-muted small" style="font-size: 0.72rem;">u.</span>
+                    {% if p.stock_critico %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size: 0.65rem;">
+                        Crítico
+                      </span>
+                    {% else %}
+                      <span class="badge bg-success-subtle text-success ms-1" style="font-size: 0.65rem;">
+                        OK
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="text-end">
+                  <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Precio Venta</div>
+                  <div class="fs-5 fw-black text-primary mt-0.5">${{ p.precio_venta|floatformat:2 }}</div>
                 </div>
               </div>
-
-              <div class="text-right">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Precio Unitario</p>
-                <p class="text-lg font-black text-[#0D284E] mt-0.5">${{ p.precio_venta|floatformat:2 }}</p>
-              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Card Footer Actions -->
-        <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5">
-          <div class="flex gap-1.5">
-            {% if user.es_administrador %}
-            <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-xs btn-secondary" title="Ajustar Stock">
-              + Stock
+          <!-- Card Footer Actions -->
+          <div class="p-2 bg-light border-top d-flex align-items-center justify-content-between">
+            <div class="d-flex gap-1">
+              {% if user.es_administrador %}
+              <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Ajustar Stock">
+                <span class="material-symbols-outlined fs-6">sync_alt</span>
+                <span>+ Stock</span>
+              </a>
+              {% endif %}
+              <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Venta rápida de mostrador">
+                <span class="material-symbols-outlined fs-6">point_of_sale</span>
+                <span>Vender</span>
+              </a>
+            </div>
+
+            {% if p.tipo_producto == 'REPUESTO' %}
+            <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+              <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+            </a>
+            {% else %}
+            <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+              <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
             </a>
             {% endif %}
-            <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-xs btn-primary" title="Venta rápida">
-              Vender
-            </a>
           </div>
-
-          {% if p.tipo_producto == 'REPUESTO' %}
-          <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-xs btn-ghost text-slate-600 hover:text-slate-900" title="Editar detalles">
-            <span class="material-symbols-outlined text-[15px]">edit</span>
-          </a>
-          {% else %}
-          <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-xs btn-ghost text-slate-600 hover:text-slate-900" title="Editar detalles">
-            <span class="material-symbols-outlined text-[15px]">edit</span>
-          </a>
-          {% endif %}
         </div>
-
       </div>
       {% empty %}
-      <div class="col-span-full">
-        <div class="card p-12 text-center empty-state">
-          <span class="material-symbols-outlined text-[48px] text-slate-300 mb-2">inventory_2</span>
-          <h3 class="text-base font-bold text-slate-800">No se encontraron productos</h3>
-          <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">No hay productos que coincidan con los filtros aplicados o el término de búsqueda.</p>
-          <div class="mt-4 flex gap-2 justify-center">
-            <a href="{% url 'inventario:lista' %}" class="btn btn-outline btn-sm">Ver todos</a>
-            <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-primary btn-sm">+ Nuevo Repuesto</a>
+      <div class="col-12">
+        <div class="card-workshop p-5 text-center text-muted">
+          <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">inventory_2</span>
+          <h3 class="fs-6 fw-bold text-dark">No se encontraron productos</h3>
+          <p class="small text-muted mb-3">No hay productos que coincidan con los filtros aplicados.</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <a href="{% url 'inventario:lista' %}" class="btn btn-outline-secondary btn-sm">Ver todos</a>
+            {% if user.es_administrador %}
+            <button type="button" class="btn btn-tm-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">+ Nuevo Repuesto</button>
+            {% endif %}
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
   {% endif %}
-
 </div>
+
+<!-- ── MODAL BOOTSTRAP: Nuevo Repuesto (PRO UX) ── -->
+{% if user.es_administrador %}
+<div class="modal fade" id="modal-nuevo-repuesto" tabindex="-1" aria-labelledby="modalNuevoRepuestoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">settings</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm" id="modalNuevoRepuestoLabel">Nuevo Repuesto Mecánico</h5>
+            <p class="modal-subtitle-tm">Carga rápida al catálogo con precios y control de stock</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+      </div>
+
+      <form method="POST" action="{% url 'inventario:repuesto_crear' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+          
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">inventory_2</span>
+              <span>1. Identificación Principal</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                <label class="form-label-pro">Nombre del Repuesto <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">settings</span>
+                  </div>
+                  <input type="text" name="nombre" required class="form-control-pro" placeholder="Ej: Pastillas de Freno Delanteras">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Código SKU</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">qr_code</span>
+                  </div>
+                  <input type="text" name="codigo_sku" class="form-control-pro font-monospace" placeholder="REP-001">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Categoría</label>
+                <select name="categoria" class="form-select-pro">
+                  <option value="">-- Sin categoría --</option>
+                  {% for c in categorias %}
+                    <option value="{{ c.pk }}">{{ c.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Fabricante / Marca</label>
+                <input type="text" name="marca_repuesto" class="form-control-pro" placeholder="Ej: Bosch, Brembo">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Número de Pieza</label>
+                <input type="text" name="numero_parte" class="form-control-pro font-monospace" placeholder="0986AB1234">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">payments</span>
+              <span>2. Precios & Existencias</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Precio Costo ($)</label>
+                <input type="number" step="0.01" name="precio_costo" value="0.00" class="form-control-pro">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Precio Venta ($) <span class="req">*</span></label>
+                <input type="number" step="0.01" name="precio_venta" required value="0.00" class="form-control-pro fw-bold text-primary">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Stock Inicial</label>
+                <input type="number" name="stock_actual" value="0" min="0" class="form-control-pro">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Stock Mínimo</label>
+                <input type="number" name="stock_minimo" value="2" min="0" class="form-control-pro">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Fotografía & Compatibilidad</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label-pro">Modelos / Vehículos Compatibles</label>
+                <input type="text" name="compatible_con" class="form-control-pro" placeholder="Ej: Toyota Hilux 2016-2023, Ford Ranger 3.2">
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro">Foto del Repuesto</label>
+                <input type="file" name="imagen" accept="image/*" class="form-control-pro">
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Repuesto</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL BOOTSTRAP: Nuevo Neumático (PRO UX) ── -->
+<div class="modal fade" id="modal-nuevo-neumatico" tabindex="-1" aria-labelledby="modalNuevoNeumaticoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">tire_repair</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm" id="modalNuevoNeumaticoLabel">Nuevo Neumático</h5>
+            <p class="modal-subtitle-tm">Especificaciones de medida, rodado, precios y existencias</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+      </div>
+
+      <form method="POST" action="{% url 'inventario:neumatico_crear' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">straighten</span>
+              <span>1. Medidas & Especificaciones</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                <label class="form-label-pro">Nombre / Denominación Comercial <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">tire_repair</span>
+                  </div>
+                  <input type="text" name="nombre" required class="form-control-pro" placeholder="Ej: Michelin Primacy 4 205/55 R16">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Código SKU</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">qr_code</span>
+                  </div>
+                  <input type="text" name="codigo_sku" class="form-control-pro font-monospace" placeholder="NEU-001">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Marca</label>
+                <input type="text" name="marca_neumatico" class="form-control-pro" placeholder="Ej: Pirelli, Michelin, Bridgestone">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Modelo</label>
+                <input type="text" name="modelo_neumatico" class="form-control-pro" placeholder="Ej: Cinturato P7">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label-pro">Medida (ej: 205/55 R16) <span class="req">*</span></label>
+                <input type="text" name="medida" required class="form-control-pro font-monospace" placeholder="205/55 R16">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">payments</span>
+              <span>2. Precios & Existencias</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Precio Costo ($)</label>
+                <input type="number" step="0.01" name="precio_costo" value="0.00" class="form-control-pro">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Precio Venta ($) <span class="req">*</span></label>
+                <input type="number" step="0.01" name="precio_venta" required value="0.00" class="form-control-pro fw-bold text-primary">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Stock Inicial</label>
+                <input type="number" name="stock_actual" value="0" min="0" class="form-control-pro">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Stock Mínimo</label>
+                <input type="number" name="stock_minimo" value="4" min="0" class="form-control-pro">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Fotografía del Neumático</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label-pro">Imagen del Producto</label>
+                <input type="file" name="imagen" accept="image/*" class="form-control-pro">
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Neumático</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/lista.js' %}"></script>
 {% endblock %}

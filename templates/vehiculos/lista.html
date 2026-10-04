@@ -1,92 +1,299 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Vehículos{% endblock %}
-{% block subtitle %}Base de datos de unidades registradas{% endblock %}
+{% block subtitle %}Base de datos de unidades y parque automotor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vehiculos/lista.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'vehiculos:crear' %}" class="btn btn-primary">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-  Nuevo Vehículo
-</a>
+<button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">
+  <span class="material-symbols-outlined fs-6">add</span>
+  <span>Nuevo Vehículo</span>
+</button>
 {% endblock %}
 
 {% block content %}
-<div class="animate-in" style="display:flex;flex-direction:column;gap:20px">
-  <!-- Filtro -->
-  <div class="card" style="padding:16px">
-    <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap">
-      <div class="search-wrap" style="flex:1;min-width:260px">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-        <input type="text" name="q" value="{{ query }}" placeholder="Patente, marca, modelo o cliente..." class="form-input">
+<div class="d-flex flex-column gap-4">
+  <!-- ── Header Card & Action ── -->
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+      <div class="sidebar-brand-icon bg-primary-subtle text-primary">
+        <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">directions_car</span>
       </div>
-      <button type="submit" class="btn btn-ghost">Buscar</button>
+      <div>
+        <h2 class="h6 fw-bold text-primary mb-0">Parque Automotor</h2>
+        <p class="text-muted small mb-0">Unidades registradas, historial de servicios y especificaciones</p>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">
+      <span class="material-symbols-outlined fs-6">add_circle</span>
+      <span>Nuevo Vehículo</span>
+    </button>
+  </div>
+
+  <!-- Filtro -->
+  <div class="card-workshop p-3">
+    <form method="GET" class="row g-2 align-items-center">
+      <div class="col-12 col-md-6 col-lg-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white text-muted">
+            <span class="material-symbols-outlined fs-6">search</span>
+          </span>
+          <input type="text" name="q" value="{{ query }}" placeholder="Patente, marca, modelo o cliente..." class="form-control form-control-sm">
+        </div>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+          <span class="material-symbols-outlined fs-6">search</span>
+          <span>Buscar</span>
+        </button>
+      </div>
+      {% if query %}
+      <div class="col-auto">
+        <a href="{% url 'vehiculos:lista' %}" class="btn btn-sm btn-link text-muted text-decoration-none">Limpiar</a>
+      </div>
+      {% endif %}
     </form>
   </div>
 
   <!-- Grid de tarjetas -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px">
+  <div class="row g-4">
     {% for vehiculo in vehiculos %}
-    <div class="card card-hover" style="overflow:hidden">
-      <!-- Imagen -->
-      <div style="height:180px;background:var(--bg-card2);position:relative;overflow:hidden">
-        {% if vehiculo.foto %}
-          <img src="{{ vehiculo.foto.url }}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;transition:transform 0.4s ease"
-               data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.patente }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}"
-               onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        {% else %}
-          <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--txt-dim)">
-            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 4.5L5 9m14 0V7a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0l-7 4.5M5 9l7 4.5m0 0v6"/></svg>
-            <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.3;margin-top:6px">Sin foto</span>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <div class="vehicle-card h-100">
+        <!-- Imagen -->
+        <div class="vehicle-img-wrap">
+          {% if vehiculo.foto %}
+            <img src="{{ vehiculo.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in"
+                 data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.patente }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
+          {% else %}
+            <div class="d-flex flex-column align-items-center justify-content-center text-muted">
+              <span class="material-symbols-outlined fs-1 text-black-50">directions_car</span>
+              <span class="small fw-bold text-uppercase mt-1" style="font-size: 0.65rem;">Sin foto</span>
+            </div>
+          {% endif %}
+          <!-- Placa badge -->
+          <div class="vehicle-plate-badge">
+            {{ vehiculo.patente|upper }}
           </div>
-        {% endif %}
-        <!-- Placa badge -->
-        <div style="position:absolute;top:12px;left:12px">
-          <span style="background:rgba(7,10,18,0.85);backdrop-filter:blur(8px);color:#fff;padding:4px 12px;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:0.12em;border:1px solid rgba(255,255,255,0.15)">{{ vehiculo.patente|upper }}</span>
-        </div>
-        <!-- Marca overlay -->
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 14px;background:linear-gradient(to top,rgba(7,10,18,0.85),transparent)">
-          <h4 style="color:#fff;font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;margin:0">{{ vehiculo.marca }} {{ vehiculo.modelo }}</h4>
-        </div>
-      </div>
-      <!-- Info -->
-      <div style="padding:14px 16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div>
-            <p style="font-size:10px;color:var(--txt-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Propietario</p>
-            <a href="{% url 'clientes:detalle' vehiculo.cliente.pk %}" style="font-size:13px;font-weight:600;color:var(--txt);text-decoration:none" onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--txt)'">{{ vehiculo.cliente.nombre_razon_social|truncatechars:22 }}</a>
-          </div>
-          <div style="text-align:right">
-            <p style="font-size:10px;color:var(--txt-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Km</p>
-            <p style="font-size:13px;font-weight:700;color:var(--txt)">{{ vehiculo.kilometraje_actual|default:"—" }}</p>
+          <!-- Marca overlay -->
+          <div class="vehicle-brand-overlay">
+            <h4 class="h6 fw-bold mb-0 text-truncate text-white">{{ vehiculo.marca }} {{ vehiculo.modelo }}</h4>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)">
-          <div style="display:flex;gap:6px">
-            <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--txt-muted);border:1px solid var(--border);font-size:10px">{{ vehiculo.anio|default:"S/A" }}</span>
-            <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--txt-muted);border:1px solid var(--border);font-size:10px">{{ vehiculo.get_color_display }}</span>
+        <!-- Info -->
+        <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="min-w-0 pe-2">
+              <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Propietario</div>
+              <a href="{% url 'clientes:detalle' vehiculo.cliente.pk %}" class="fw-semibold text-dark text-decoration-none small text-truncate d-block">{{ vehiculo.cliente.nombre_razon_social|truncatechars:20 }}</a>
+            </div>
+            <div class="text-end flex-shrink-0">
+              <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Km</div>
+              <div class="fw-bold text-dark small">{{ vehiculo.kilometraje_actual|default:"—" }}</div>
+            </div>
           </div>
-          <a href="{% url 'vehiculos:detalle' vehiculo.pk %}" class="btn btn-sm btn-ghost" style="font-size:12px">
-            Ver ficha
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          </a>
+          <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+            <div class="d-flex gap-1">
+              <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.anio|default:"S/A" }}</span>
+              <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.get_color_display }}</span>
+            </div>
+            <a href="{% url 'vehiculos:detalle' vehiculo.pk %}" class="btn btn-sm btn-link text-secondary text-decoration-none p-0 d-flex align-items-center gap-1 small fw-semibold" style="font-size: 0.75rem;">
+              <span>Ver ficha</span>
+              <span class="material-symbols-outlined fs-6">arrow_forward</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
     {% empty %}
-    <div style="grid-column:1/-1">
-      <div class="card empty-state">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <h3>No se encontraron vehículos</h3>
-        <p>Probá con otros términos o registrá un nuevo vehículo.</p>
+    <div class="col-12">
+      <div class="card-workshop p-5 text-center text-muted">
+        <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">directions_car</span>
+        <h3 class="fs-6 fw-bold text-dark">No se encontraron vehículos</h3>
+        <p class="small text-muted mb-3">Probá con otros términos o registrá un nuevo vehículo.</p>
+        <button type="button" class="btn btn-tm-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">Nuevo Vehículo</button>
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
+
+<!-- ── MODAL BOOTSTRAP: Nuevo Vehículo (PRO UX) ── -->
+<div class="modal fade" id="modal-nuevo-vehiculo" tabindex="-1" aria-labelledby="modalNuevoVehiculoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">directions_car</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm" id="modalNuevoVehiculoLabel">Nuevo Vehículo</h5>
+            <p class="modal-subtitle-tm">Registrá las especificaciones técnicas y asigná el propietario</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" action="{% url 'vehiculos:crear' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          <!-- Sección 1: Propietario e Identificación -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">assignment_ind</span>
+              <span>1. Propietario & Placa</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-7">
+                <label class="form-label-pro">Cliente / Propietario <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">person</span>
+                  </div>
+                  <select name="cliente" required class="form-select-pro">
+                    <option value="">-- Seleccionar Cliente --</option>
+                    {% for c in clientes %}
+                      <option value="{{ c.pk }}">{{ c.nombre_razon_social }} {% if c.documento %}({{ c.documento }}){% endif %}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-12 col-md-5">
+                <label class="form-label-pro">Placa / Patente <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">tag</span>
+                  </div>
+                  <input type="text" name="patente" required class="form-control-pro text-uppercase fw-bold font-monospace" placeholder="Ej: ABC-123">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Especificaciones Técnicas -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">tune</span>
+              <span>2. Especificaciones Técnicas</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Marca</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">minor_crash</span>
+                  </div>
+                  <input type="text" name="marca" class="form-control-pro" placeholder="Ej: Toyota, Ford, Chevrolet">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Modelo</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">commute</span>
+                  </div>
+                  <input type="text" name="modelo" class="form-control-pro" placeholder="Ej: Corolla, Ranger, Cruze">
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Año</label>
+                <input type="number" name="anio" min="1900" max="2030" class="form-control-pro" placeholder="2022">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label-pro">Color</label>
+                <select name="color" class="form-select-pro">
+                  <option value="BLANCO">Blanco</option>
+                  <option value="NEGRO">Negro</option>
+                  <option value="GRIS">Gris / Plata</option>
+                  <option value="AZUL">Azul</option>
+                  <option value="ROJO">Rojo</option>
+                  <option value="VERDE">Verde</option>
+                  <option value="OTRO">Otro</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro">Kilometraje Actual (km)</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">speed</span>
+                  </div>
+                  <input type="number" name="kilometraje_actual" min="0" class="form-control-pro" placeholder="Ej: 45000">
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro">VIN / Número de Chasis</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">vpn_key</span>
+                  </div>
+                  <input type="text" name="vin" class="form-control-pro font-monospace" placeholder="17 caracteres alfanuméricos">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Fotografía del Vehículo -->
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span>3. Fotografía de la Unidad</span>
+            </div>
+            <div class="photo-dropzone-wrap" id="vehiculo-dropzone">
+              <div class="photo-preview-avatar">
+                <span class="material-symbols-outlined fs-2" id="vehiculo-foto-placeholder">directions_car</span>
+                <img src="" id="vehiculo-foto-preview" class="d-none" alt="Vista previa">
+              </div>
+              <div class="flex-grow-1">
+                <input type="file" name="foto" id="vehiculo-foto-input" accept="image/*" class="d-none">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <button type="button" onclick="document.getElementById('vehiculo-foto-input').click()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">upload</span>
+                    <span>Seleccionar foto</span>
+                  </button>
+                  <button type="button" id="vehiculo-foto-remove" class="btn btn-sm btn-outline-danger d-none d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Arrastrá una foto aquí o hacé clic en seleccionar. Formatos: PNG, JPG, WEBP</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Registrar Vehículo</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/vehiculos/lista.js' %}"></script>
 {% endblock %}

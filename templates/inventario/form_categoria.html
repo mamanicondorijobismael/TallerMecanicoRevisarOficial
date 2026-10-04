@@ -1,107 +1,115 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Gestión y catálogo de categorías{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/categorias.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:categoria_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Categorías</span>
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="card p-8">
-        <div class="flex items-center gap-4 mb-6 border-b pb-4">
-            <a href="{% url 'inventario:categoria_lista' %}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Volver">
-                <i data-lucide="arrow-left" class="w-5 h-5 text-gray-500"></i>
-            </a>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                </div>
-                <h2 class="text-2xl font-bold">{{ title }}</h2>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge" id="icon-preview">
+            <span class="material-symbols-outlined">{{ form.icono.value|default:'category' }}</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">{{ title }}</h5>
+            <p class="modal-subtitle-tm">Organización y clasificación de artículos del catálogo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <form method="POST" action="{% if form.instance.pk %}{% url 'inventario:categoria_editar' form.instance.pk %}{% else %}{% url 'inventario:categoria_crear' %}{% endif %}">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
             </div>
+          </div>
+          {% endif %}
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">folder</span>
+              <span>Datos de la Categoría</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.nombre.id_for_label }}">Nombre de la Categoría <span class="req">*</span></label>
+                {{ form.nombre }}
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label-pro" for="{{ form.tipo.id_for_label }}">Tipo de Productos <span class="req">*</span></label>
+                {{ form.tipo }}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-pro" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                {{ form.descripcion }}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-pro">Icono Representativo</label>
+                {{ form.icono }}
+                <div class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border mt-2">
+                  <button type="button" onclick="selectCategoryIcon('inventory_2')" class="icon-selector-btn" id="icon-btn-inventory_2" title="Caja"><span class="material-symbols-outlined fs-5">inventory_2</span></button>
+                  <button type="button" onclick="selectCategoryIcon('tire_repair')" class="icon-selector-btn" id="icon-btn-tire_repair" title="Neumático"><span class="material-symbols-outlined fs-5">tire_repair</span></button>
+                  <button type="button" onclick="selectCategoryIcon('build')" class="icon-selector-btn" id="icon-btn-build" title="Herramienta"><span class="material-symbols-outlined fs-5">build</span></button>
+                  <button type="button" onclick="selectCategoryIcon('settings')" class="icon-selector-btn" id="icon-btn-settings" title="Engranaje"><span class="material-symbols-outlined fs-5">settings</span></button>
+                  <button type="button" onclick="selectCategoryIcon('oil_barrel')" class="icon-selector-btn" id="icon-btn-oil_barrel" title="Aceite"><span class="material-symbols-outlined fs-5">oil_barrel</span></button>
+                  <button type="button" onclick="selectCategoryIcon('speed')" class="icon-selector-btn" id="icon-btn-speed" title="Velocímetro"><span class="material-symbols-outlined fs-5">speed</span></button>
+                  <button type="button" onclick="selectCategoryIcon('car_repair')" class="icon-selector-btn" id="icon-btn-car_repair" title="Taller"><span class="material-symbols-outlined fs-5">car_repair</span></button>
+                  <button type="button" onclick="selectCategoryIcon('electrical_services')" class="icon-selector-btn" id="icon-btn-electrical_services" title="Electricidad"><span class="material-symbols-outlined fs-5">electrical_services</span></button>
+                  <button type="button" onclick="selectCategoryIcon('battery_charging_full')" class="icon-selector-btn" id="icon-btn-battery_charging_full" title="Batería"><span class="material-symbols-outlined fs-5">battery_charging_full</span></button>
+                  <button type="button" onclick="selectCategoryIcon('filter_alt')" class="icon-selector-btn" id="icon-btn-filter_alt" title="Filtro"><span class="material-symbols-outlined fs-5">filter_alt</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <form method="POST" action="{% if form.instance.pk %}{% url 'inventario:categoria_editar' form.instance.pk %}{% else %}{% url 'inventario:categoria_crear' %}{% endif %}" class="space-y-5">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="bg-red-50 text-red-700 p-4 rounded-lg text-sm mb-4">
-                Por favor corrija los errores indicados abajo.
-            </div>
-            {% endif %}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre de la Categoría</label>
-                    {{ form.nombre }}
-                    {% if form.nombre.errors %}<p class="text-red-500 text-xs mt-1 font-medium">{{ form.nombre.errors.0 }}</p>{% endif %}
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Productos</label>
-                    {{ form.tipo }}
-                    <p class="text-[11px] text-gray-400 mt-1">¿Esta categoría es para Repuestos o para Neumáticos?</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
-                    {{ form.descripcion }}
-                </div>
-
-                <div class="md:col-span-2">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-semibold text-gray-700">Seleccionar Icono</label>
-                        <div id="icon-preview" class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
-                            <i data-lucide="box" class="w-6 h-6"></i>
-                        </div>
-                    </div>
-                    {{ form.icono }}
-                    <div class="grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <button type="button" onclick="selectIcon('box')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-box"><i data-lucide="box" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('tire')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-tire"><i data-lucide="tire" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('tool')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-tool"><i data-lucide="tool" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('cog')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-cog"><i data-lucide="cog" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('wrench')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-wrench"><i data-lucide="wrench" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('droplet')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-droplet"><i data-lucide="droplet" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('disc')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-disc"><i data-lucide="disc" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('zap')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-zap"><i data-lucide="zap" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('link')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-link"><i data-lucide="link" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('thermometer')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-thermometer"><i data-lucide="thermometer" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('wind')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-wind"><i data-lucide="wind" class="w-5 h-5"></i></button>
-                        <button type="button" onclick="selectIcon('filter')" class="icon-btn w-10 h-10 flex items-center justify-center rounded-lg border bg-white hover:bg-primary hover:text-white transition-all" id="icon-filter"><i data-lucide="filter" class="w-5 h-5"></i></button>
-                    </div>
-                </div>
-
-                <script>
-                    function selectIcon(name) {
-                        document.querySelector('input[name="icono"]').value = name;
-                        
-                        // Actualizar Preview
-                        const preview = document.getElementById('icon-preview');
-                        preview.innerHTML = `<i data-lucide="${name}" class="w-6 h-6"></i>`;
-                        lucide.createIcons();
-
-                        // Quitar clase activa de todos
-                        document.querySelectorAll('.icon-btn').forEach(btn => {
-                            btn.classList.remove('bg-primary', 'text-white', 'border-primary');
-                            btn.classList.add('bg-white', 'text-gray-600');
-                        });
-                        // Agregar a seleccionado
-                        const active = document.getElementById('icon-' + name);
-                        if (active) {
-                            active.classList.add('bg-primary', 'text-white', 'border-primary');
-                            active.classList.remove('bg-white', 'text-gray-600');
-                        }
-                    }
-                    window.addEventListener('DOMContentLoaded', () => {
-                        const current = document.querySelector('input[name="icono"]').value;
-                        if (current) selectIcon(current);
-                        else selectIcon('box');
-                    });
-                </script>
-            </div>
-
-            <div class="pt-6 flex justify-end gap-3 border-t">
-                <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-ghost px-6">Cancelar</a>
-                <button type="submit" class="btn btn-primary px-8 shadow-lg shadow-primary/20 font-bold">
-                    Guardar Cambios
-                </button>
-            </div>
-        </form>
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Categoría</span>
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/categorias.js' %}"></script>
 {% endblock %}

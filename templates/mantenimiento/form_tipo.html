@@ -1,57 +1,89 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Configuración de plan de mantenimiento preventivo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/mantenimiento/form.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'mantenimiento:tipos' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Planes</span>
+</a>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="card p-8 shadow-xl border-t-4 border-secondary animate-in">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary">
-                <i data-lucide="settings" class="w-6 h-6"></i>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 maintenance-form-container">
+    <div class="card-workshop p-4">
+      <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+        <div>
+          <h3 class="h5 fw-bold text-primary mb-1">{{ title }}</h3>
+          <p class="text-muted small mb-0">Configuración de periodicidad y precio base</p>
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger small py-2 mb-3">
+          <div class="fw-bold mb-1">Por favor corrige los siguientes errores:</div>
+          {% for field in form %}
+            {% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label form-label-tm" for="{{ form.nombre.id_for_label }}">Nombre del Servicio <span class="text-danger">*</span></label>
+            {{ form.nombre }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label form-label-tm" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            {{ form.descripcion }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label form-label-tm" for="{{ form.precio_base.id_for_label }}">Precio Base ($)</label>
+            {{ form.precio_base }}
+          </div>
+
+          <div class="col-12">
+            <div class="p-3 bg-light rounded border border-start-4 border-primary">
+              <h4 class="small fw-bold text-primary text-uppercase mb-2">Intervalos de Mantenimiento</h4>
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label form-label-tm small" for="{{ form.intervalo_km.id_for_label }}">Cada cuántos Km</label>
+                  {{ form.intervalo_km }}
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label form-label-tm small" for="{{ form.intervalo_meses.id_for_label }}">Cada cuántos Meses</label>
+                  {{ form.intervalo_meses }}
+                </div>
+              </div>
             </div>
-            <h2 class="text-2xl font-bold">Configurar Plan de Servicio</h2>
+          </div>
         </div>
 
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Servicio</label>
-                    {{ form.nombre }}
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
-                    {{ form.descripcion }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Precio Base</label>
-                    {{ form.precio_base }}
-                </div>
-
-                <div class="border-l-4 border-secondary pl-4 bg-secondary/5 p-3 rounded-r-xl md:col-span-2">
-                    <h4 class="text-xs font-bold uppercase text-secondary mb-3">Intervalos de Mantenimiento</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-1">Cada cuántos Kilómetros (km)</label>
-                            {{ form.intervalo_km }}
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-1">Cada cuántos Meses</label>
-                            {{ form.intervalo_meses }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-6 flex justify-end gap-3 border-t">
-                <a href="{% url 'mantenimiento:tipos' %}" class="btn btn-ghost px-6">Cancelar</a>
-                <button type="submit" class="btn btn-secondary px-8 shadow-lg shadow-secondary/20 font-bold">
-                    Guardar Plan
-                </button>
-            </div>
-        </form>
+        <div class="pt-4 border-top mt-4 d-flex justify-content-end gap-2">
+          <a href="{% url 'mantenimiento:tipos' %}" class="btn btn-light border btn-sm">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Plan</span>
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/mantenimiento/form.js' %}"></script>
 {% endblock %}

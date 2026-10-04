@@ -15,7 +15,9 @@ def vehiculo_list(request):
             Q(patente__icontains=query) | Q(marca__icontains=query) |
             Q(modelo__icontains=query) | Q(cliente__nombre_razon_social__icontains=query)
         )
-    return render(request, 'vehiculos/lista.html', {'vehiculos': qs, 'query': query})
+    from apps.clientes.models import Cliente
+    clientes = Cliente.objects.filter(activo=True).order_by('nombre_razon_social')
+    return render(request, 'vehiculos/lista.html', {'vehiculos': qs, 'query': query, 'clientes': clientes})
 
 
 @login_required

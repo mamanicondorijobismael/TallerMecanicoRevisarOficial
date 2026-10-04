@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Inventario Module - Categorías CSS
+   ========================================================================== */
+
+.category-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--tm-border);
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  background-color: #ffffff;
+}
+
+.category-card-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  border-color: var(--tm-blue-light);
+}
+
+.category-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tm-navy);
+  border: 1px solid #e2e8f0;
+}
+
+.icon-selector-btn {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.icon-selector-btn.active, .icon-selector-btn:hover {
+  background-color: var(--tm-navy);
+  color: #ffffff;
+  border-color: var(--tm-navy);
+}

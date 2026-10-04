@@ -1,43 +1,103 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Venta Directa de Producto{% endblock %}
 {% block subtitle %}{{ producto.nombre }} (Stock disponible: {{ producto.stock_actual }}){% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/venta.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="card p-6 max-w-lg mx-auto">
-    {% if producto.imagen %}
-    <div class="mb-6 flex justify-center">
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="max-w-[250px] w-full h-auto object-cover rounded-xl shadow-lg border border-gray-200">
-    </div>
-    {% endif %}
-
-    <div class="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-        <p class="text-sm text-orange-800">
-            <strong>Información:</strong> La venta directa descuenta inmediatamente el stock y registra un ingreso, pero no se asocia a ninguna orden de trabajo.
-            Ideal para venta en mostrador (mostrador o "por si solo").
-        </p>
-    </div>
-    
-    <div class="flex justify-between items-center mb-6 border-b pb-4">
-        <div>
-            <p class="text-xs text-gray-500 uppercase font-bold">Precio Unitario</p>
-            <p class="text-xl font-bold text-primary">${{ producto.precio_venta }}</p>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">point_of_sale</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm">Venta Directa de Mostrador</h5>
+            <p class="modal-subtitle-tm">Despacho inmediato de stock sin orden de trabajo</p>
+          </div>
         </div>
-        <div class="text-right">
-            <p class="text-xs text-gray-500 uppercase font-bold">Stock Actual</p>
-            <p class="text-xl font-bold {% if producto.stock_critico %}text-red-600{% else %}text-green-600{% endif %}">{{ producto.stock_actual }}</p>
-        </div>
-    </div>
+      </div>
 
-    <form method="POST" class="space-y-4">
+      <!-- Form Body -->
+      <form method="POST">
         {% csrf_token %}
-        <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Cantidad a Vender</label>
-            <input type="number" name="cantidad" min="1" max="{{ producto.stock_actual }}" value="1" required class="form-input text-lg font-bold">
-            <p class="text-xs text-gray-500 mt-1">Saldrá del inventario mediante FIFO o lote disponible.</p>
+        <div class="modal-body-tm">
+
+          <!-- Product Preview Card -->
+          <div class="form-section-card d-flex align-items-center gap-3">
+            <div class="product-thumb" style="width: 60px; height: 60px;">
+              {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ producto.imagen.url }}" data-alt="{{ producto.nombre }}">
+              {% else %}
+                <span class="material-symbols-outlined text-muted fs-3">inventory_2</span>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1 min-w-0">
+              <h4 class="fs-6 fw-bold text-dark mb-0 text-truncate">{{ producto.nombre }}</h4>
+              <div class="font-monospace small text-muted">SKU: {{ producto.codigo_sku }}</div>
+              <div class="d-flex gap-2 mt-1">
+                <span class="badge bg-light text-secondary border">Disponible: {{ producto.stock_actual }} u.</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Precio: ${{ producto.precio_venta|floatformat:2 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantity and Total Card -->
+          <div class="form-section-card mb-0">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">calculate</span>
+              <span>Liquidación de Venta</span>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label-pro" for="id_cantidad">Cantidad a Despachar <span class="req">*</span></label>
+              <div class="input-icon-group">
+                <div class="input-icon-lead">
+                  <span class="material-symbols-outlined">numbers</span>
+                </div>
+                <input type="number" name="cantidad" id="id_cantidad" min="1" max="{{ producto.stock_actual }}" value="1" required class="form-control-pro form-control-lg fw-bold text-center">
+              </div>
+              <input type="hidden" id="id_precio_unitario" value="{{ producto.precio_venta }}">
+              <div class="text-muted small mt-1" style="font-size: 0.72rem;">Se descontará automáticamente del stock disponible.</div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 text-center border">
+              <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem;">Total a Cobrar</div>
+              <div class="h3 fw-black text-primary mb-0 mt-1" id="sale-total-display">${{ producto.precio_venta|floatformat:2 }}</div>
+            </div>
+          </div>
+
         </div>
-        <div class="pt-4 flex justify-end gap-2">
-            <a href="{% url 'inventario:lista' %}" class="btn btn-ghost">Cancelar</a>
-            <button type="submit" class="btn btn-secondary text-white font-bold">Confirmar Venta</button>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'inventario:lista' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">shopping_bag</span>
+            <span>Confirmar y Emitir Recibo</span>
+          </button>
         </div>
-    </form>
+      </form>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/venta.js' %}"></script>
 {% endblock %}

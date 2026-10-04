@@ -19,9 +19,14 @@ def orden_list(request):
             Q(numero_orden__icontains=query) | Q(vehiculo__patente__icontains=query) |
             Q(vehiculo__cliente__nombre_razon_social__icontains=query)
         )
+    from apps.vehiculos.models import Vehiculo
+    from apps.accounts.models import Usuario
+    vehiculos = Vehiculo.objects.filter(activo=True).select_related('cliente').order_by('patente')
+    mecanicos = Usuario.objects.filter(is_active=True).order_by('nombre_completo', 'username')
     estados = OrdenTrabajo.Estado.choices
     return render(request, 'ordenes/lista.html', {
-        'ordenes': qs, 'query': query, 'estado_filter': estado_filter, 'estados': estados
+        'ordenes': qs, 'query': query, 'estado_filter': estado_filter, 'estados': estados,
+        'vehiculos': vehiculos, 'mecanicos': mecanicos
     })
 
 
@@ -43,20 +48,56 @@ def orden_crear(request):
     if not request.user.es_administrador:
         messages.error(request, 'Sin permisos para crear órdenes.')
         return redirect('ordenes:lista')
-    form = OrdenTrabajoForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        orden = form.save(commit=False)
-        orden.creado_por = request.user
-        if not orden.kilometraje and orden.vehiculo:
-            orden.kilometraje = orden.vehiculo.kilometraje_actual
-        orden.save()
-        # Update vehicle odometer
-        vehiculo = orden.vehiculo
+    if request.method == 'POST':
+        # Procesar creación manual desde el modal (campos name="vehiculo", "mecanico", etc.)
+        from apps.vehiculos.models import Vehiculo
+        from apps.accounts.models import Usuario
+        vehiculo_id = request.POST.get('vehiculo')
+        mecanico_id = request.POST.get('mecanico') or None
+        kilometraje_val = request.POST.get('kilometraje') or 0
+        diagnostico_val = request.POST.get('diagnostico', '')
+        observaciones_val = request.POST.get('observaciones', '')
+        fecha_prometida_val = request.POST.get('fecha_prometida') or None
+
+        try:
+            vehiculo = Vehiculo.objects.get(pk=vehiculo_id)
+        except (Vehiculo.DoesNotExist, ValueError, TypeError):
+            messages.error(request, 'Debe seleccionar un vehículo válido.')
+            return redirect('ordenes:lista')
+
+        mecanico = None
+        if mecanico_id:
+            try:
+                mecanico = Usuario.objects.get(pk=mecanico_id)
+            except (Usuario.DoesNotExist, ValueError):
+                pass
+
+        # Procesar fecha
+        fecha_prometida = None
+        if fecha_prometida_val:
+            from django.utils.dateparse import parse_datetime
+            fecha_prometida = parse_datetime(fecha_prometida_val)
+
+        orden = OrdenTrabajo.objects.create(
+            vehiculo=vehiculo,
+            mecanico=mecanico,
+            creado_por=request.user,
+            kilometraje=int(kilometraje_val) if kilometraje_val else vehiculo.kilometraje_actual,
+            diagnostico=diagnostico_val,
+            observaciones=observaciones_val,
+            fecha_prometida=fecha_prometida,
+        )
+
+        # Actualizar odómetro del vehículo
         if orden.kilometraje and orden.kilometraje > vehiculo.kilometraje_actual:
             vehiculo.kilometraje_actual = orden.kilometraje
             vehiculo.save()
+
         messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
         return redirect('ordenes:detalle', pk=orden.pk)
+
+    # GET: renderizar formulario standalone
+    form = OrdenTrabajoForm()
     return render(request, 'ordenes/form.html', {'form': form, 'title': 'Nueva Orden de Trabajo'})
 
 
@@ -145,6 +186,9 @@ def agregar_producto(request, pk):
 
 @login_required
 def eliminar_servicio(request, pk, spk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
+        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado not in ['FACTURADA', 'CANCELADA']:
         DetalleServicio.objects.filter(pk=spk, orden=orden).delete()
@@ -154,6 +198,9 @@ def eliminar_servicio(request, pk, spk):
 
 @login_required
 def eliminar_producto(request, pk, ppk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
+        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado not in ['FACTURADA', 'CANCELADA']:
         DetalleProducto.objects.filter(pk=ppk, orden=orden).delete()

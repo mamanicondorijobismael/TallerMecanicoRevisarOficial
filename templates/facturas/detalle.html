@@ -1,116 +1,140 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Comprobante de Cobro #{{ factura.numero_factura }}{% endblock %}
 {% block subtitle %}Gestión de liquidación y pagos del cliente{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facturas/detalle.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'facturas:lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Cobros
+<a href="{% url 'facturas:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Cobros</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<span class="badge status-{{ factura.estado_pago|lower }} text-sm px-4 py-1.5 font-bold">
+<span class="badge-status status-{{ factura.estado_pago|lower }} py-1 px-3 fw-bold">
   {{ factura.get_estado_pago_display|upper }}
 </span>
 {% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in">
+<div class="row g-4">
   <!-- Datos del Comprobante -->
-  <div class="card p-6 space-y-5">
-    <h3 class="font-bold text-base" style="font-family:'Outfit',sans-serif;color:var(--txt)">Detalle del Cobro</h3>
-    <div class="space-y-3 text-sm">
-      <div class="flex justify-between py-2 border-b" style="border-color:var(--border)">
-        <span class="text-gray-400">Cliente</span>
-        <span class="font-bold" style="color:var(--txt)">{{ factura.cliente.nombre_razon_social }}</span>
+  <div class="col-12 col-md-6 d-flex flex-column gap-4">
+    <div class="invoice-summary-card">
+      <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider">Detalle del Cobro</h3>
+      <div class="d-flex flex-column gap-2 small">
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Cliente</span>
+          <span class="fw-bold text-dark">{{ factura.cliente.nombre_razon_social }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Orden de Trabajo</span>
+          <a href="{% url 'ordenes:detalle' factura.orden.pk %}" class="fw-bold text-primary text-decoration-none">OT #{{ factura.orden.numero_orden }}</a>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Fecha de Emisión</span>
+          <span class="text-dark">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Monto Total</span>
+          <span class="fs-5 fw-black text-dark">${{ factura.total|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 align-items-center">
+          <span class="text-muted fw-bold">Saldo Pendiente:</span>
+          <span class="fs-5 fw-black {% if factura.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
+            ${{ factura.saldo_pendiente|floatformat:2 }}
+          </span>
+        </div>
       </div>
-      <div class="flex justify-between py-2 border-b" style="border-color:var(--border)">
-        <span class="text-gray-400">Orden de Trabajo</span>
-        <a href="{% url 'ordenes:detalle' factura.orden.pk %}" class="font-bold text-brand hover:underline">OT#{{ factura.orden.numero_orden }}</a>
-      </div>
-      <div class="flex justify-between py-2 border-b" style="border-color:var(--border)">
-        <span class="text-gray-400">Fecha de Emisión</span>
-        <span style="color:var(--txt)">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
-      </div>
-      <div class="flex justify-between py-2 border-b" style="border-color:var(--border)">
-        <span class="text-gray-400">Monto Total</span>
-        <span class="font-black text-xl" style="font-family:'Outfit',sans-serif;color:var(--txt)">${{ factura.total|floatformat:2 }}</span>
-      </div>
-      <div class="flex justify-between py-2 items-center">
-        <span class="text-gray-400 font-semibold">Saldo Pendiente:</span>
-        <span class="font-black text-lg {% if factura.saldo_pendiente > 0 %}text-red-400{% else %}text-green-400{% endif %}" style="font-family:'Outfit',sans-serif">
-          ${{ factura.saldo_pendiente|floatformat:2 }}
-        </span>
-      </div>
-    </div>
 
-    {% if factura.saldo_pendiente > 0 %}
-    <div class="pt-4 border-t" style="border-color:var(--border)">
-      <button onclick="openModal('modal-pago')" class="btn btn-primary w-full justify-center">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Registrar Pago / Abono
-      </button>
+      {% if factura.saldo_pendiente > 0 %}
+      <div class="pt-3 border-top mt-3">
+        <button type="button" class="btn btn-tm-gold w-100 d-flex align-items-center justify-content-center gap-1 fw-bold" data-bs-toggle="modal" data-bs-target="#modal-pago">
+          <span class="material-symbols-outlined fs-6">payments</span>
+          <span>Registrar Pago / Abono</span>
+        </button>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
   <!-- Historial de Pagos -->
-  <div class="card p-6 space-y-4">
-    <h3 class="font-bold text-base" style="font-family:'Outfit',sans-serif;color:var(--txt)">Historial de Pagos Registrados</h3>
-    <div class="space-y-3">
-      {% for p in pagos %}
-      <div class="p-3 rounded-xl border flex items-center justify-between" style="background:var(--bg-card2);border-color:var(--border)">
-        <div>
-          <p class="font-bold text-sm" style="color:var(--txt)">${{ p.monto|floatformat:2 }} <span class="text-xs text-gray-400 font-normal">· {{ p.get_metodo_pago_display }}</span></p>
-          <p class="text-[11px] text-gray-500">{{ p.fecha|date:"d/m/Y H:i" }}{% if p.referencia %} · Ref: {{ p.referencia }}{% endif %}</p>
+  <div class="col-12 col-md-6 d-flex flex-column gap-4">
+    <div class="card-workshop p-4">
+      <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider">Historial de Pagos Registrados</h3>
+      <div class="d-flex flex-column gap-2">
+        {% for p in pagos %}
+        <div class="p-3 rounded bg-light border d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-bold text-dark small">${{ p.monto|floatformat:2 }} <span class="text-muted fw-normal" style="font-size: 0.75rem;">· {{ p.get_metodo_pago_display }}</span></div>
+            <div class="text-muted small mt-0.5" style="font-size: 0.72rem;">{{ p.fecha|date:"d/m/Y H:i" }}{% if p.referencia %} · Ref: {{ p.referencia }}{% endif %}</div>
+          </div>
+          <span class="badge-status status-completada" style="font-size: 0.68rem;">PAGADO</span>
         </div>
-        <span class="badge status-pagada text-[10px]">PAGADO</span>
+        {% empty %}
+        <p class="small text-muted fst-italic text-center py-4 mb-0">No hay pagos registrados para este comprobante.</p>
+        {% endfor %}
       </div>
-      {% empty %}
-      <p class="text-sm text-gray-500 italic text-center py-6">No hay pagos registrados para este comprobante.</p>
-      {% endfor %}
     </div>
   </div>
 </div>
 
-<!-- Modal para Registrar Pago -->
+<!-- Modal Bootstrap para Registrar Pago -->
 {% if factura.saldo_pendiente > 0 %}
-<div id="modal-pago" class="modal-overlay">
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <div class="modal-title">Registrar Pago</div>
-      <button class="modal-close" onclick="closeModal('modal-pago')">✕</button>
+<div class="modal fade" id="modal-pago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fs-6 fw-bold text-white d-flex align-items-center gap-2" id="modalPagoLabel">
+          <span class="material-symbols-outlined fs-5 text-warning">payments</span>
+          <span>Registrar Pago</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'facturas:pago' factura.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="d-flex flex-column gap-3">
+            <div>
+              <label class="form-label form-label-tm">Monto a pagar ($)</label>
+              <input type="number" name="monto" step="0.01" max="{{ factura.saldo_pendiente|stringformat:'f' }}" value="{{ factura.saldo_pendiente|stringformat:'f' }}" class="form-control form-control-tm fw-bold" required>
+            </div>
+            <div>
+              <label class="form-label form-label-tm">Método de pago</label>
+              <select name="metodo_pago" class="form-select form-select-tm">
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="TARJETA_DEBITO">Tarjeta Débito</option>
+                <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
+                <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                <option value="MERCADO_PAGO">Mercado Pago</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label form-label-tm">Referencia / Nro Comprobante</label>
+              <input type="text" name="referencia" class="form-control form-control-tm" placeholder="Ej: Transf #123456">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Confirmar Pago</span>
+          </button>
+        </div>
+      </form>
     </div>
-    <form method="POST" action="{% url 'facturas:pago' factura.pk %}">
-      {% csrf_token %}
-      <div class="modal-body space-y-4">
-        <div>
-          <label class="form-label">Monto a pagar ($)</label>
-          <input type="number" name="monto" step="0.01" max="{{ factura.saldo_pendiente|stringformat:'f' }}" value="{{ factura.saldo_pendiente|stringformat:'f' }}" class="form-input font-bold" required>
-        </div>
-        <div>
-          <label class="form-label">Método de pago</label>
-          <select name="metodo_pago" class="form-input">
-            <option value="EFECTIVO">Efectivo</option>
-            <option value="TARJETA_DEBITO">Tarjeta Débito</option>
-            <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
-            <option value="TRANSFERENCIA">Transferencia Bancaria</option>
-            <option value="MERCADO_PAGO">Mercado Pago</option>
-            <option value="CHEQUE">Cheque</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Referencia / Nro Comprobante</label>
-          <input type="text" name="referencia" class="form-input" placeholder="Ej: Transf #123456">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-pago')">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Confirmar Pago</button>
-      </div>
-    </form>
   </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/facturas/detalle.js' %}"></script>
 {% endblock %}

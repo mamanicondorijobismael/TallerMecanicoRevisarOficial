@@ -1,113 +1,128 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Reporte de Movimientos de Stock{% endblock %}
 {% block subtitle %}Histórico de entradas, salidas y ajustes de inventario{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reportes/dashboard.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'inventario:lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inventario
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
 </a>
 {% endblock %}
+
 {% block content %}
-<div class="space-y-6">
-    <!-- Filtros -->
-    <div class="card p-5 no-print">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Inicio</label>
-                <input type="date" name="inicio" value="{{ inicio }}" class="form-input">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Fin</label>
-                <input type="date" name="fin" value="{{ fin }}" class="form-input">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Movimiento</label>
-                <select name="tipo" class="form-input">
-                    <option value="">Todos</option>
-                    <option value="ENTRADA" {% if tipo == 'ENTRADA' %}selected{% endif %}>Entradas</option>
-                    <option value="SALIDA" {% if tipo == 'SALIDA' %}selected{% endif %}>Salidas</option>
-                    <option value="VENTA_DIRECTA" {% if tipo == 'VENTA_DIRECTA' %}selected{% endif %}>Ventas Directas</option>
-                    <option value="AJUSTE" {% if tipo == 'AJUSTE' %}selected{% endif %}>Ajustes</option>
-                </select>
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" class="btn btn-primary flex-1">Filtrar</button>
-                <button type="button" onclick="window.print()" class="btn btn-ghost">
-                    <i data-lucide="printer" class="w-4 h-4"></i>
-                </button>
-            </div>
-        </form>
-    </div>
+<div class="d-flex flex-column gap-4">
+  <!-- Filtros -->
+  <div class="card-workshop p-3 no-print">
+    <form method="GET" class="row g-3 align-items-end">
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Fecha Inicio</label>
+        <input type="date" name="inicio" value="{{ inicio }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Fecha Fin</label>
+        <input type="date" name="fin" value="{{ fin }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Tipo de Movimiento</label>
+        <select name="tipo" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="ENTRADA" {% if tipo == 'ENTRADA' %}selected{% endif %}>Entradas</option>
+          <option value="SALIDA" {% if tipo == 'SALIDA' %}selected{% endif %}>Salidas</option>
+          <option value="VENTA_DIRECTA" {% if tipo == 'VENTA_DIRECTA' %}selected{% endif %}>Ventas Directas</option>
+          <option value="AJUSTE" {% if tipo == 'AJUSTE' %}selected{% endif %}>Ajustes</option>
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-tm-gold btn-sm flex-fill d-flex align-items-center justify-content-center gap-1">
+          <span class="material-symbols-outlined fs-6">filter_list</span>
+          <span>Filtrar</span>
+        </button>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm" title="Imprimir">
+          <span class="material-symbols-outlined fs-6">print</span>
+        </button>
+      </div>
+    </form>
+  </div>
 
-    <!-- Resumen -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card p-6 border-l-4 border-green-500">
-            <p class="text-sm text-gray-500 font-medium">Total Entradas en Periodo</p>
-            <p class="text-3xl font-bold text-green-600">{{ total_entradas }} <span class="text-sm font-normal text-gray-400">unidades</span></p>
-        </div>
-        <div class="card p-6 border-l-4 border-red-500">
-            <p class="text-sm text-gray-500 font-medium">Total Salidas en Periodo</p>
-            <p class="text-3xl font-bold text-red-600">{{ total_salidas }} <span class="text-sm font-normal text-gray-400">unidades</span></p>
-        </div>
+  <!-- Resumen -->
+  <div class="row g-3">
+    <div class="col-12 col-sm-6">
+      <div class="card-workshop p-3 border-start border-4 border-success">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem;">Total Entradas en Periodo</div>
+        <div class="h3 fw-black text-success mb-0">{{ total_entradas }} <span class="fs-6 text-muted fw-normal">unidades</span></div>
+      </div>
     </div>
+    <div class="col-12 col-sm-6">
+      <div class="card-workshop p-3 border-start border-4 border-danger">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem;">Total Salidas en Periodo</div>
+        <div class="h3 fw-black text-danger mb-0">{{ total_salidas }} <span class="fs-6 text-muted fw-normal">unidades</span></div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Tabla Detallada -->
-    <div class="card overflow-hidden">
-        <div class="bg-gray-50 px-6 py-4 border-b">
-            <h3 class="font-bold">Detalle de Movimientos</h3>
-            <p class="text-xs text-gray-500">Desde {{ inicio }} hasta {{ fin }}</p>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase text-[10px] font-bold">
-                        <th class="py-3 px-6">Fecha y Hora</th>
-                        <th class="py-3 px-6">Producto</th>
-                        <th class="py-3 px-6 text-center">Tipo</th>
-                        <th class="py-3 px-6 text-center">Cantidad</th>
-                        <th class="py-3 px-6 text-center">Stock Resultante</th>
-                        <th class="py-3 px-6">Motivo</th>
-                        <th class="py-3 px-6">Usuario</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for m in movimientos %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-6 text-gray-500 font-mono text-xs">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
-                        <td class="py-4 px-6">
-                            <span class="font-bold text-gray-800">{{ m.producto.nombre }}</span><br>
-                            <span class="text-[10px] text-gray-400">{{ m.producto.codigo_sku }}</span>
-                        </td>
-                        <td class="py-4 px-6 text-center">
-                            {% if m.tipo_movimiento == 'ENTRADA' %}
-                                <span class="px-2 py-1 rounded-md bg-green-100 text-green-700 text-[10px] font-bold">ENTRADA</span>
-                            {% elif m.tipo_movimiento == 'SALIDA' or m.tipo_movimiento == 'VENTA_DIRECTA' %}
-                                <span class="px-2 py-1 rounded-md bg-red-100 text-red-700 text-[10px] font-bold">SALIDA</span>
-                            {% else %}
-                                <span class="px-2 py-1 rounded-md bg-blue-100 text-blue-700 text-[10px] font-bold">AJUSTE</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-4 px-6 text-center font-black {% if m.cantidad > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                            {{ m.cantidad|stringformat:"+d" }}
-                        </td>
-                        <td class="py-4 px-6 text-center font-bold text-gray-600">
-                            {{ m.stock_resultante }}
-                        </td>
-                        <td class="py-4 px-6 text-xs text-gray-500 italic max-w-xs truncate" title="{{ m.motivo }}">
-                            {{ m.motivo }}
-                        </td>
-                        <td class="py-4 px-6 text-xs text-gray-400">{{ m.usuario }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="py-10 text-center text-gray-400">No se encontraron movimientos en este periodo.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <!-- Tabla Detallada -->
+  <div class="card-workshop overflow-hidden">
+    <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Detalle de Movimientos</h3>
+        <p class="text-muted small mb-0" style="font-size: 0.72rem;">Desde {{ inicio }} hasta {{ fin }}</p>
+      </div>
     </div>
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Producto</th>
+            <th class="text-center">Tipo</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-center">Stock Resultante</th>
+            <th>Motivo</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td class="font-monospace text-muted small">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+            <td>
+              <div class="fw-bold text-dark small">{{ m.producto.nombre }}</div>
+              <div class="font-monospace text-muted" style="font-size: 0.72rem;">{{ m.producto.codigo_sku }}</div>
+            </td>
+            <td class="text-center">
+              {% if m.tipo_movimiento == 'ENTRADA' %}
+                <span class="badge-status status-completada">ENTRADA</span>
+              {% elif m.tipo_movimiento == 'SALIDA' or m.tipo_movimiento == 'VENTA_DIRECTA' %}
+                <span class="badge-status status-cancelada">SALIDA</span>
+              {% else %}
+                <span class="badge-status status-en_proceso">AJUSTE</span>
+              {% endif %}
+            </td>
+            <td class="text-center fw-black small {% if m.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
+              {{ m.cantidad|stringformat:"+d" }}
+            </td>
+            <td class="text-center fw-bold text-dark small">
+              {{ m.stock_resultante }}
+            </td>
+            <td class="small text-muted text-truncate" style="max-width: 200px;" title="{{ m.motivo }}">
+              {{ m.motivo }}
+            </td>
+            <td class="small text-muted">{{ m.usuario }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-5 text-center text-muted small">No se encontraron movimientos en este periodo.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
-
 {% endblock %}

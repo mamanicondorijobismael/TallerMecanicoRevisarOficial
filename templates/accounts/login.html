@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es" data-bs-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>El Taller del Maestro - Iniciar Sesión</title>
+  <title>El Taller del Maestro – Iniciar Sesión</title>
   <meta name="description" content="Acceso al sistema de gestión de El Taller del Maestro"/>
 
   <!-- Google Fonts: Inter -->
@@ -15,145 +15,151 @@
   <!-- Material Symbols Outlined -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-  <!-- Tailwind CSS & Config -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="{% static 'js/tailwind.config.js' %}"></script>
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
 
-  <!-- Estilos Principales -->
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}"/>
+  <!-- Base Custom Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}"/>
+  
+  <!-- Module Specific CSS -->
+  <link rel="stylesheet" href="{% static 'css/accounts/login.css' %}"/>
 </head>
-<body class="bg-[#F1F3F5] text-[#141b2b] min-h-screen flex flex-col lg:flex-row">
+<body>
 
-  <!-- ── Left Side: TAMGO Industrial Branding ── -->
-  <div class="hidden lg:flex w-1/2 bg-[#0D284E] flex-col justify-between p-12 relative overflow-hidden text-white">
-    <div class="relative z-10 flex flex-col gap-2">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-          <span class="material-symbols-outlined text-[#0D284E] text-3xl">build</span>
+<div class="login-wrapper">
+  <!-- ── Left Side: Industrial Branding ── -->
+  <div class="login-brand-panel d-none d-lg-flex col-lg-6">
+    <div class="login-brand-pattern"></div>
+    <div class="login-brand-stripes"></div>
+
+    <div class="position-relative z-1">
+      <div class="d-flex align-items-center gap-3">
+        <div class="sidebar-brand-icon" style="width: 48px; height: 48px;">
+          <span class="material-symbols-outlined fs-2 text-primary" style="font-variation-settings: 'FILL' 1;">build</span>
         </div>
         <div>
-          <h1 class="text-3xl font-black tracking-tight text-[#F2B705]">El Taller del Maestro</h1>
-          <p class="text-sm font-semibold text-slate-300 uppercase tracking-widest">Sistema de Gestión</p>
+          <h1 class="h3 fw-black text-warning mb-0" style="letter-spacing: -0.02em;">El Taller del Maestro</h1>
+          <div class="small fw-semibold text-white-50 text-uppercase tracking-widest">Sistema de Gestión Industrial</div>
         </div>
       </div>
     </div>
 
-    <div class="relative z-10 max-w-lg space-y-4 my-auto">
-      <div class="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-semibold tracking-wider uppercase text-[#F2B705] border border-white/10">
+    <div class="position-relative z-1 my-auto pe-xl-5">
+      <div class="badge bg-white bg-opacity-10 text-warning border border-white border-opacity-10 rounded-pill px-3 py-2 mb-3 text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
         Industrial Tech v2.0
       </div>
-      <h2 class="text-3xl font-bold leading-tight text-white">
+      <h2 class="display-6 fw-bold text-white mb-3 lh-sm">
         Precisión, durabilidad y control integral para talleres mecánicos de alto rendimiento.
       </h2>
-      <p class="text-sm text-slate-300 leading-relaxed">
+      <p class="text-white-50 leading-relaxed small">
         Gestión centralizada de órdenes de trabajo, inventario de repuestos y neumáticos, control de flota de vehículos, trazabilidad financiera y auditoría continua.
       </p>
     </div>
 
-    <div class="relative z-10 text-xs text-slate-400 border-t border-white/10 pt-4 flex justify-between items-center">
+    <div class="position-relative z-1 text-white-50 small border-top border-white border-opacity-10 pt-3 d-flex justify-content-between">
       <span>El Taller del Maestro &copy; {% now "Y" %}</span>
-      <span>Seguridad & Control</span>
+      <span>Seguridad &amp; Control</span>
     </div>
-
-    <!-- Decorative background elements -->
-    <div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 100% 100%, #F2B705 0%, transparent 60%);"></div>
-    <div class="absolute inset-0 z-0 opacity-10 pointer-events-none" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, #ffffff 12px, #ffffff 13px);"></div>
   </div>
 
   <!-- ── Right Side: Login Form ── -->
-  <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white relative">
-    <div class="w-full max-w-md flex flex-col gap-6 relative z-10">
+  <div class="login-form-panel col-12 col-lg-6">
+    <div class="login-form-box">
       <!-- Mobile Brand Header -->
-      <div class="lg:hidden flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-lg bg-[#0D284E] flex items-center justify-center text-white">
-          <span class="material-symbols-outlined text-2xl text-[#F2B705]">build</span>
+      <div class="d-flex align-items-center gap-3 mb-4 d-lg-none">
+        <div class="sidebar-brand-icon bg-primary text-warning">
+          <span class="material-symbols-outlined fs-4" style="font-variation-settings: 'FILL' 1;">build</span>
         </div>
         <div>
-          <h1 class="text-2xl font-black text-[#0D284E]">El Taller del Maestro</h1>
-          <p class="text-xs text-slate-500 font-semibold tracking-wider uppercase">Sistema de Gestión</p>
+          <h1 class="h4 fw-black text-primary mb-0">El Taller del Maestro</h1>
+          <div class="text-muted small fw-semibold text-uppercase">Sistema de Gestión</div>
         </div>
       </div>
 
-      <div>
-        <h2 class="text-2xl font-bold text-[#001330]">Bienvenido al Sistema</h2>
-        <p class="text-sm text-slate-500 mt-1">Ingresa tus credenciales para acceder a tu panel de control.</p>
+      <div class="mb-4">
+        <h2 class="h3 fw-bold text-dark mb-1">Bienvenido al Sistema</h2>
+        <p class="text-muted small mb-0">Ingresa tus credenciales para acceder a tu panel de control.</p>
       </div>
 
       <!-- Messages / Feedback -->
       {% if messages %}
-        <div class="space-y-2">
+        <div class="mb-3">
           {% for message in messages %}
-          <div class="p-3 rounded-lg text-sm flex items-center gap-2 border {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-200{% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
-            <span class="material-symbols-outlined text-[18px]">
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}info{% endif %} d-flex align-items-center gap-2 small py-2">
+            <span class="material-symbols-outlined fs-5">
               {% if message.tags == 'error' %}error{% else %}info{% endif %}
             </span>
-            <span>{{ message }}</span>
+            <div>{{ message }}</div>
           </div>
           {% endfor %}
         </div>
       {% endif %}
 
-      <form method="POST" class="flex flex-col gap-4">
+      <form method="POST" class="d-flex flex-column gap-3">
         {% csrf_token %}
 
         <!-- Username -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold uppercase tracking-wider text-slate-700" for="username">Usuario</label>
-          <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">person</span>
-            <input class="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:border-[#3E5A7B] focus:ring-2 focus:ring-[#3E5A7B]/20 transition-all text-sm text-slate-900 bg-white outline-none" id="username" name="username" placeholder="Nombre de usuario" type="text" required autofocus/>
+        <div>
+          <label class="form-label form-label-tm text-uppercase" for="username">Usuario</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted">
+              <span class="material-symbols-outlined fs-5">person</span>
+            </span>
+            <input class="form-control form-control-tm border-start-0 ps-0" id="username" name="username" placeholder="Nombre de usuario" type="text" required autofocus/>
           </div>
         </div>
 
         <!-- Password -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold uppercase tracking-wider text-slate-700" for="password">Contraseña</label>
-          <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">lock</span>
-            <input class="w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg focus:border-[#3E5A7B] focus:ring-2 focus:ring-[#3E5A7B]/20 transition-all text-sm text-slate-900 bg-white outline-none" id="password" name="password" placeholder="••••••••" type="password" required/>
-            <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" id="togglePassword" type="button" title="Mostrar/ocultar contraseña">
-              <span class="material-symbols-outlined text-[20px]" id="visibilityIcon">visibility_off</span>
+        <div>
+          <label class="form-label form-label-tm text-uppercase" for="password">Contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted">
+              <span class="material-symbols-outlined fs-5">lock</span>
+            </span>
+            <input class="form-control form-control-tm border-start-0 border-end-0 ps-0" id="password" name="password" placeholder="••••••••" type="password" required/>
+            <button class="btn btn-outline-secondary border-start-0 border text-muted" id="togglePassword" type="button" title="Mostrar/ocultar contraseña">
+              <span class="material-symbols-outlined fs-5" id="visibilityIcon">visibility_off</span>
             </button>
           </div>
         </div>
 
         <!-- Login Button -->
-        <button class="w-full mt-2 bg-[#F2B705] hover:bg-[#dfa700] text-[#001330] font-bold text-sm uppercase tracking-wider py-3 rounded-lg shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2" type="submit">
-          <span class="material-symbols-outlined text-[20px]">login</span>
+        <button class="btn btn-tm-gold w-100 py-2 mt-2 d-flex align-items-center justify-content-center gap-2 text-uppercase fw-bold" type="submit">
+          <span class="material-symbols-outlined fs-5">login</span>
           <span>Iniciar Sesión</span>
         </button>
       </form>
 
-      <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Credenciales de acceso:</p>
-        <div class="space-y-1.5 text-xs">
-          <div class="flex justify-between items-center py-1 border-b border-slate-200">
-            <span class="font-mono text-slate-700 cursor-pointer hover:text-[#0D284E]" onclick="fillLogin('admin', 'admin123')">admin / admin123</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Dueño / Admin</span>
-          </div>
-          <div class="flex justify-between items-center py-1 border-b border-slate-200">
-            <span class="font-mono text-slate-700 cursor-pointer hover:text-[#0D284E]" onclick="fillLogin('recepcionista', 'admin123')">recepcionista / admin123</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">Recepción</span>
-          </div>
-          <div class="flex justify-between items-center py-1 border-b border-slate-200">
-            <span class="font-mono text-slate-700 cursor-pointer hover:text-[#0D284E]" onclick="fillLogin('mecanico1', 'admin123')">mecanico1 / admin123</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">Mecánico</span>
-          </div>
-          <div class="flex justify-between items-center py-1 border-b border-slate-200">
-            <span class="font-mono text-slate-700 cursor-pointer hover:text-[#0D284E]" onclick="fillLogin('mecanico2', 'admin123')">mecanico2 / admin123</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">Mecánico</span>
-          </div>
-          <div class="flex justify-between items-center py-1">
-            <span class="font-mono text-slate-700 cursor-pointer hover:text-[#0D284E]" onclick="fillLogin('supervisor', 'admin123')">supervisor / admin123</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">Supervisor</span>
-          </div>
+      <!-- Quick Demo Credentials -->
+      <div class="login-credentials-card mt-4">
+        <div class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.72rem; letter-spacing: 0.05em;">Credenciales de acceso rápido:</div>
+        <div class="credential-item" onclick="fillLogin('admin', 'admin123')">
+          <span class="credential-user">admin / admin123</span>
+          <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size: 0.68rem;">Dueño / Admin</span>
         </div>
-        <p class="text-[10px] text-slate-400 mt-2">Hacé clic en un usuario para completar automáticamente.</p>
+        <div class="credential-item" onclick="fillLogin('recepcionista', 'admin123')">
+          <span class="credential-user">recepcionista / admin123</span>
+          <span class="badge bg-warning-subtle text-warning-emphasis fw-bold" style="font-size: 0.68rem;">Recepción</span>
+        </div>
+        <div class="credential-item" onclick="fillLogin('mecanico1', 'admin123')">
+          <span class="credential-user">mecanico1 / admin123</span>
+          <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 0.68rem;">Mecánico 1</span>
+        </div>
+        <div class="credential-item" onclick="fillLogin('mecanico2', 'admin123')">
+          <span class="credential-user">mecanico2 / admin123</span>
+          <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 0.68rem;">Mecánico 2</span>
+        </div>
+        <div class="credential-item" onclick="fillLogin('supervisor', 'admin123')">
+          <span class="credential-user">supervisor / admin123</span>
+          <span class="badge bg-info-subtle text-info-emphasis fw-bold" style="font-size: 0.68rem;">Supervisor</span>
+        </div>
+        <div class="text-muted mt-2" style="font-size: 0.68rem;">Hacé clic en cualquier usuario para completar el formulario.</div>
       </div>
 
     </div>
   </div>
+</div>
 
-  <script src="{% static 'js/login.js' %}"></script>
+<script src="{% static 'js/accounts/login.js' %}"></script>
 </body>
 </html>

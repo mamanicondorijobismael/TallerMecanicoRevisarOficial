@@ -1,59 +1,70 @@
 {% extends 'base.html' %}
-{% block page_title %}Tipos de Servicio{% endblock %}
-{% block content %}
-<div class="card p-6 shadow-xl animate-in">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div class="flex items-center gap-3">
-            <a href="{% url 'mantenimiento:alertas' %}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Volver">
-                <i data-lucide="arrow-left" class="w-5 h-5 text-gray-500"></i>
-            </a>
-            <div>
-                <h3 class="font-bold text-2xl text-on-surface">Planes de Mantenimiento</h3>
-                <p class="text-sm text-on-surface-variant">Configuración de servicios e intervalos</p>
-            </div>
-        </div>
-        <a href="{% url 'mantenimiento:tipo_crear' %}" class="btn btn-primary">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            Nuevo Plan
-        </a>
-    </div>
+{% load static %}
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-left">
-            <thead>
-                <tr class="border-b border-gray-100 text-[11px] font-black uppercase tracking-widest text-gray-400">
-                    <th class="py-4 px-4">Servicio</th>
-                    <th class="py-4 px-4">Precio Base</th>
-                    <th class="py-4 px-4">Intervalo km</th>
-                    <th class="py-4 px-4">Intervalo meses</th>
-                    <th class="py-4 px-4 text-right">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                {% for t in tipos %}
-                <tr class="group hover:bg-gray-50/50 transition-colors">
-                    <td class="py-4 px-4">
-                        <span class="font-bold text-gray-800">{{ t.nombre }}</span>
-                        <p class="text-xs text-gray-400">{{ t.descripcion|truncatechars:50 }}</p>
-                    </td>
-                    <td class="py-4 px-4">
-                        <span class="font-mono font-bold text-green-600">${{ t.precio_base }}</span>
-                    </td>
-                    <td class="py-4 px-4 text-gray-600">
-                        {{ t.intervalo_km|default:"-" }} km
-                    </td>
-                    <td class="py-4 px-4 text-gray-600">
-                        {{ t.intervalo_meses|default:"-" }} meses
-                    </td>
-                    <td class="py-4 px-4 text-right">
-                        <a href="{% url 'mantenimiento:tipo_editar' t.pk %}" class="inline-flex p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% block page_title %}Planes de Mantenimiento{% endblock %}
+{% block subtitle %}Configuración de servicios e intervalos de kilometraje{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/mantenimiento/alertas.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'mantenimiento:alertas' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Alertas</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'mantenimiento:tipo_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">add</span>
+  <span>Nuevo Plan</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card-workshop overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-workshop mb-0">
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th class="text-end">Precio Base</th>
+          <th>Intervalo km</th>
+          <th>Intervalo meses</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tipos %}
+        <tr>
+          <td>
+            <div class="fw-bold text-dark small">{{ t.nombre }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ t.descripcion|truncatechars:50 }}</div>
+          </td>
+          <td class="text-end font-monospace fw-bold text-success small">${{ t.precio_base|floatformat:2 }}</td>
+          <td class="text-muted small">{{ t.intervalo_km|default:"-" }} km</td>
+          <td class="text-muted small">{{ t.intervalo_meses|default:"-" }} meses</td>
+          <td class="text-end">
+            <a href="{% url 'mantenimiento:tipo_editar' t.pk %}" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 0.72rem;">
+              <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">format_list_bulleted</span>
+            <div class="fw-bold mb-1">No hay planes configurados</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/mantenimiento/alertas.js' %}"></script>
 {% endblock %}

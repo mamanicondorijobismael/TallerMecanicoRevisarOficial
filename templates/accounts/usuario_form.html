@@ -1,58 +1,90 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}{{ title }}{% endblock %}
-{% block subtitle %}Gestión de usuarios del sistema{% endblock %}
+{% block subtitle %}Gestión de usuarios y personal del taller{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/usuarios.css' %}"/>
+{% endblock %}
 
 {% block back_button %}
-<a href="{% url 'usuario_lista' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Personal
+<a href="{% url 'usuario_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Personal</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<!-- Modal pre-abierto -->
-<div id="modal-usuario-form" class="modal-overlay open" data-backdrop-redirect="{% url 'usuario_lista' %}">
-  <div class="modal-box modal-lg">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">{{ title }}</div>
-        <div class="modal-subtitle">Completá los datos del usuario del sistema</div>
-      </div>
-      <a href="{% url 'usuario_lista' %}" class="modal-close">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </a>
-    </div>
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="modal-body">
-        {% if form.errors %}
-        <div class="alert alert-error" style="margin-bottom:16px">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="modal-content shadow-sm border">
+      
+      <!-- Modal Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">manage_accounts</span>
+          </div>
           <div>
-            <strong style="display:block;margin-bottom:4px">Corregí los siguientes errores:</strong>
-            {% for field in form %}{% if field.errors %}<div>{{ field.label }}: {{ field.errors.0 }}</div>{% endif %}{% endfor %}
+            <h5 class="modal-title-tm">{{ title }}</h5>
+            <p class="modal-subtitle-tm">Datos de cuenta, rol de acceso y perfil del miembro del equipo</p>
           </div>
         </div>
-        {% endif %}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          {% for field in form %}
-          <div {% if field.field.widget.attrs.class and 'textarea' in field.field.widget.attrs.class %}style="grid-column:1/-1"{% endif %}>
-            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-            {{ field }}
-            {% if field.help_text %}<p style="color:var(--txt-dim);font-size:11px;margin-top:4px">{{ field.help_text }}</p>{% endif %}
-            {% if field.errors %}<p style="color:#F87171;font-size:11px;margin-top:4px">{{ field.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Form Body -->
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
           </div>
-          {% endfor %}
+          {% endif %}
+
+          <div class="form-section-card">
+            <div class="form-section-header">
+              <span class="material-symbols-outlined">badge</span>
+              <span>Información del Usuario & Permisos</span>
+            </div>
+            <div class="row g-3">
+              {% for field in form %}
+              <div class="col-12 {% if 'textarea' not in field.field.widget.attrs.class %}col-md-6{% endif %}">
+                <label class="form-label-pro" for="{{ field.id_for_label }}">
+                  {{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="text-muted small mt-1" style="font-size: 0.72rem;">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
         </div>
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'usuario_lista' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          Guardar Usuario
-        </button>
-      </div>
-    </form>
+
+        <!-- Footer -->
+        <div class="modal-footer-tm">
+          <a href="{% url 'usuario_lista' %}" class="btn btn-light border btn-sm px-3">Cancelar</a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Guardar Usuario</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

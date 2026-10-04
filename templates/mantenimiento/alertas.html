@@ -1,73 +1,93 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block page_title %}Alertas de Mantenimiento{% endblock %}
 {% block subtitle %}Seguimiento de servicios preventivos y kilometraje{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/mantenimiento/alertas.css' %}"/>
+{% endblock %}
+
 {% block back_button %}
-<a href="{% url 'dashboard' %}" class="btn-back">
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-  Inicio
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
 </a>
 {% endblock %}
 
 {% block topbar_actions %}
-<div class="flex gap-2">
-  <a href="{% url 'mantenimiento:tipos' %}" class="btn btn-ghost btn-sm">Planes</a>
-  <a href="{% url 'mantenimiento:crear' %}" class="btn btn-primary btn-sm">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-    Programar Alerta
+<div class="d-flex gap-2">
+  <a href="{% url 'mantenimiento:tipos' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">list_alt</span>
+    <span>Planes</span>
+  </a>
+  <a href="{% url 'mantenimiento:crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">add</span>
+    <span>Programar Alerta</span>
   </a>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="card p-6 animate-in">
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-    {% for a in alertas %}
-    <div class="p-5 rounded-2xl border transition-all" style="background:var(--bg-card2);border-color:var(--border)">
-      <div class="flex justify-between items-start mb-3">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">{{ a.tipo_servicio.nombre }}</span>
-        {% if a.estado == 'PENDIENTE' %}
-          {% if a.km_estimado and a.vehiculo.kilometraje_actual >= a.km_estimado %}
-            <span class="badge status-cancelada">VENCIDO</span>
+<div class="row g-4">
+  {% for a in alertas %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="alert-item-card h-100">
+      <div>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem;">{{ a.tipo_servicio.nombre }}</span>
+          {% if a.estado == 'PENDIENTE' %}
+            {% if a.km_estimado and a.vehiculo.kilometraje_actual >= a.km_estimado %}
+              <span class="badge-status status-cancelada">VENCIDO</span>
+            {% else %}
+              <span class="badge-status status-en_proceso">PROGRAMADO</span>
+            {% endif %}
           {% else %}
-            <span class="badge status-en_proceso">PROGRAMADO</span>
+            <span class="badge-status status-completada">{{ a.get_estado_display }}</span>
           {% endif %}
-        {% else %}
-          <span class="badge status-pagada">{{ a.get_estado_display }}</span>
-        {% endif %}
-      </div>
-
-      <h4 class="font-black text-xl text-white uppercase tracking-wider" style="font-family:'Outfit',sans-serif">{{ a.vehiculo.patente }}</h4>
-      <p class="text-xs text-gray-400 mb-4 mt-1">
-        {{ a.vehiculo.marca }} {{ a.vehiculo.modelo }} <br>
-        <span class="text-brand font-semibold">{{ a.vehiculo.cliente.nombre_razon_social }}</span>
-      </p>
-
-      <div class="rounded-xl p-3 flex justify-between items-center mb-4" style="background:var(--bg);border:1px solid var(--border)">
-        <div class="text-center flex-1 border-r" style="border-color:var(--border)">
-          <p class="text-[10px] uppercase font-bold text-gray-500">Objetivo</p>
-          <p class="font-bold text-white text-xs">{{ a.km_estimado|default:"—" }} km</p>
         </div>
-        <div class="text-center flex-1">
-          <p class="text-[10px] uppercase font-bold text-gray-500">Actual</p>
-          <p class="font-bold text-brand text-xs">{{ a.vehiculo.kilometraje_actual }} km</p>
+
+        <h4 class="h5 fw-black text-primary text-uppercase tracking-wider mb-1 font-monospace">{{ a.vehiculo.patente }}</h4>
+        <div class="text-muted small mb-3">
+          {{ a.vehiculo.marca }} {{ a.vehiculo.modelo }} <br>
+          <span class="fw-semibold text-dark">{{ a.vehiculo.cliente.nombre_razon_social }}</span>
+        </div>
+
+        <div class="km-comparison-box mb-3">
+          <div class="text-center flex-fill border-end">
+            <div class="text-muted fw-bold text-uppercase" style="font-size: 0.62rem;">Objetivo</div>
+            <div class="fw-bold text-dark small">{{ a.km_estimado|default:"—" }} km</div>
+          </div>
+          <div class="text-center flex-fill">
+            <div class="text-muted fw-bold text-uppercase" style="font-size: 0.62rem;">Actual</div>
+            <div class="fw-bold text-primary small">{{ a.vehiculo.kilometraje_actual }} km</div>
+          </div>
         </div>
       </div>
 
-      <div class="flex gap-2">
+      <div class="d-flex gap-2 pt-2 border-top">
         {% if a.estado == 'PENDIENTE' %}
-          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'ATENDIDA' %}" class="btn btn-xs btn-primary flex-1 justify-center">Atender</a>
-          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'IGNORADA' %}" class="btn btn-xs btn-ghost flex-1 justify-center">Ignorar</a>
+          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'ATENDIDA' %}" class="btn btn-sm btn-tm-gold flex-fill">Atender</a>
+          <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'IGNORADA' %}" class="btn btn-sm btn-light border flex-fill">Ignorar</a>
         {% else %}
-          <a href="{% url 'vehiculos:detalle' a.vehiculo.pk %}" class="btn btn-xs btn-ghost w-full justify-center">Ver Ficha</a>
+          <a href="{% url 'vehiculos:detalle' a.vehiculo.pk %}" class="btn btn-sm btn-outline-secondary w-100">Ver Ficha</a>
         {% endif %}
       </div>
     </div>
-    {% empty %}
-    <div class="col-span-full py-12 text-center text-gray-500 text-sm">
-      No hay alertas de mantenimiento registradas.
-    </div>
-    {% endfor %}
   </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card-workshop p-5 text-center text-muted">
+      <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">notifications_off</span>
+      <div class="fw-bold mb-1">No hay alertas de mantenimiento registradas</div>
+      <p class="small text-muted mb-3">Podés programar una alerta de servicio preventivo usando el botón superior.</p>
+      <a href="{% url 'mantenimiento:crear' %}" class="btn btn-tm-gold btn-sm">Programar Alerta</a>
+    </div>
+  </div>
+  {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/mantenimiento/alertas.js' %}"></script>
 {% endblock %}

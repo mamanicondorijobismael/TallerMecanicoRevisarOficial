@@ -1,0 +1,10 @@
+/* ==========================================================================
+   Reservas Module - Lista CSS
+   ========================================================================== */
+
+.reservation-date-badge {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  color: var(--tm-navy);
+  font-size: 0.85rem;
+}
