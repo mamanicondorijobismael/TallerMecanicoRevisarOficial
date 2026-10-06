@@ -15,7 +15,7 @@ def reserva_list(request):
         qs = qs.filter(estado=estado_filter)
     if query:
         from django.db.models import Q
-        qs = qs.filter(Q(cliente__nombre_razon_social__icontains=query) | Q(vehiculo__patente__icontains=query))
+        qs = qs.filter(Q(cliente__nombre_razon_social__icontains=query) | Q(vehiculo__placa__icontains=query))
     return render(request, 'reservas/lista.html', {'reservas': qs, 'query': query, 'estado_filter': estado_filter, 'hoy': timezone.now().date()})
 
 
@@ -38,3 +38,31 @@ def reserva_editar(request, pk):
         messages.success(request, 'Reserva actualizada.')
         return redirect('reservas:lista')
     return render(request, 'reservas/form.html', {'form': form, 'title': f'Editar Reserva', 'reserva': reserva})
+
+
+@login_required
+def reserva_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar reservas.')
+        return redirect('reservas:lista')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido para esta acción.')
+        return redirect('reservas:lista')
+
+    reserva = get_object_or_404(Reserva, pk=pk)
+    cliente_nombre = reserva.cliente.nombre_razon_social
+    fecha = reserva.fecha_hora.strftime('%d/%m/%Y %H:%M')
+
+    try:
+        if reserva.orden_generada:
+            reserva.estado = 'CANCELADA'
+            reserva.save()
+            messages.success(request, f'La reserva de "{cliente_nombre}" ({fecha}) fue cancelada porque tiene una orden asociada.')
+        else:
+            reserva.delete()
+            messages.success(request, f'La reserva de "{cliente_nombre}" ({fecha}) fue eliminada exitosamente.')
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar la solicitud: {str(e)}')
+
+    return redirect('reservas:lista')

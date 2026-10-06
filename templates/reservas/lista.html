@@ -49,7 +49,23 @@
             <span class="badge-status status-{{ r.estado|lower }}">{{ r.get_estado_display }}</span>
           </td>
           <td class="text-end">
-            <a href="{% url 'reservas:editar' r.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;">Editar</a>
+            <div class="d-flex gap-1 justify-content-end align-items-center">
+              <a href="{% url 'reservas:editar' r.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;">Editar</a>
+              {% if request.user.es_administrador %}
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1"
+                      style="font-size: 0.72rem;"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalEliminarReserva"
+                      data-reserva-cliente="{{ r.cliente.nombre_razon_social }}"
+                      data-reserva-fecha="{{ r.fecha_hora|date:'d/m/Y H:i' }} hs"
+                      data-reserva-vehiculo="{{ r.vehiculo.patente|default:'Sin vehículo' }}"
+                      data-reserva-url="{% url 'reservas:eliminar' r.pk %}"
+                      title="Eliminar o cancelar reserva">
+                <span class="material-symbols-outlined fs-6">delete</span>
+              </button>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% empty %}
@@ -65,6 +81,53 @@
     </table>
   </div>
 </div>
+
+{% if request.user.es_administrador %}
+<!-- ── MODAL: Confirmar Eliminación de Reserva ── -->
+<div class="modal fade" id="modalEliminarReserva" tabindex="-1" aria-labelledby="modalEliminarReservaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">event_busy</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarReservaLabel">¿Eliminar turno agendado?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará el turno de la agenda.</p>
+
+        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Fecha / Hora</span>
+            <span id="deleteReservaFecha" class="badge bg-primary text-white font-monospace px-2 py-1"></span>
+          </div>
+          <div class="text-dark fw-semibold small" id="deleteReservaCliente"></div>
+          <div class="text-muted small mt-1" style="font-size: 0.72rem;">Vehículo: <span id="deleteReservaVehiculo" class="fw-semibold"></span></div>
+        </div>
+
+        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
+          Si la reserva ya generó una orden de trabajo, se cancelará para resguardar la trazabilidad del taller.
+        </div>
+
+        <form id="formEliminarReserva" method="POST" action="">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

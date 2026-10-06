@@ -281,6 +281,19 @@
                     <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
                   </a>
                   {% endif %}
+                  {% if user.es_administrador %}
+                  <button type="button"
+                          class="btn btn-sm btn-outline-danger py-1 px-2"
+                          style="font-size: 0.72rem;"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEliminarProducto"
+                          data-producto-nombre="{{ p.nombre }}"
+                          data-producto-sku="{{ p.codigo_sku }}"
+                          data-producto-url="{% url 'inventario:producto_eliminar' p.pk %}"
+                          title="Eliminar producto">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                  {% endif %}
                 </div>
               </td>
             </tr>
@@ -393,15 +406,30 @@
               </a>
             </div>
 
-            {% if p.tipo_producto == 'REPUESTO' %}
-            <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
-              <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
-            </a>
-            {% else %}
-            <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
-              <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
-            </a>
-            {% endif %}
+            <div class="d-flex gap-1 align-items-center">
+              {% if p.tipo_producto == 'REPUESTO' %}
+              <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+                <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+              </a>
+              {% else %}
+              <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+                <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+              </a>
+              {% endif %}
+              {% if user.es_administrador %}
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger py-1 px-2"
+                      style="font-size: 0.72rem;"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalEliminarProducto"
+                      data-producto-nombre="{{ p.nombre }}"
+                      data-producto-sku="{{ p.codigo_sku }}"
+                      data-producto-url="{% url 'inventario:producto_eliminar' p.pk %}"
+                      title="Eliminar producto">
+                <span class="material-symbols-outlined fs-6">delete</span>
+              </button>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -659,9 +687,52 @@
     </div>
   </div>
 </div>
+{% if user.es_administrador %}
+<!-- ── MODAL: Confirmar Eliminación de Producto ── -->
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-labelledby="modalEliminarProductoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">delete_forever</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarProductoLabel">¿Eliminar producto?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará el artículo del catálogo activo.</p>
+
+        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Código SKU</span>
+            <span id="deleteProductoSku" class="badge bg-dark text-white font-monospace px-2 py-1"></span>
+          </div>
+          <div class="text-dark fw-semibold small" id="deleteProductoNombre"></div>
+        </div>
+
+        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
+          Si posee movimientos de stock o fue usado en órdenes previas, se desactivará del catálogo para resguardar la trazabilidad contable.
+        </div>
+
+        <form id="formEliminarProducto" method="POST" action="">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endif %}
 
-{% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/inventario/lista.js' %}"></script>

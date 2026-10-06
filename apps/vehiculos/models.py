@@ -16,8 +16,8 @@ class Vehiculo(ModeloBase):
     placa = models.CharField(max_length=10, unique=True, verbose_name='Placa')
     marca = models.CharField(max_length=30, verbose_name='Marca')
     modelo = models.CharField(max_length=50, verbose_name='Modelo')
-    anio = models.IntegerField(validators=[MinValueValidator(1900)], null=True, blank=True, verbose_name='Anio')
-    vin = models.CharField(max_length=20, unique=True, null=True, blank=True, verbose_name='VIN / Nro. Chasis')
+    anio = models.IntegerField(null=True, blank=True, verbose_name='Anio')
+    vin = models.CharField(max_length=50, unique=True, null=True, blank=True, verbose_name='VIN / Nro. Chasis')
     color = models.CharField(max_length=20, choices=COLORES, default='BLANCO', verbose_name='Color')
     kilometraje_actual = models.PositiveIntegerField(default=0, verbose_name='Kilometraje actual')
     foto = models.ImageField(upload_to='vehiculos/', null=True, blank=True, verbose_name='Foto')
@@ -32,9 +32,15 @@ class Vehiculo(ModeloBase):
             models.Index(fields=['cliente']),
         ]
 
-    def __str__(self):
-        return f'{self.placa} - {self.marca} {self.modelo} ({self.anio})'
+    @property
+    def patente(self):
+        return self.placa
+
+    @patente.setter
+    def patente(self, value):
+        self.placa = value
 
     @property
     def ultimo_servicio(self):
-        return self.ordenes.filter(estado__in=['COMPLETADA', 'ENTREGADA']).order_by('-fecha_creacion').first()
+        return self.ordenes.filter(estado__in=['COMPLETADA', 'ENTREGADA', 'FACTURADA']).order_by('-fecha_creacion').first()
+

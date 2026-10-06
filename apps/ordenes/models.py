@@ -75,8 +75,15 @@ class OrdenTrabajo(ModeloBase):
         return sum(d.subtotal for d in self.productos.all())
 
     @property
+    def subtotal_repuestos_externos(self):
+        try:
+            return sum(d.subtotal for d in self.repuestos_externos.all())
+        except Exception:
+            return 0
+
+    @property
     def subtotal(self):
-        return self.subtotal_servicios + self.subtotal_productos
+        return self.subtotal_servicios + self.subtotal_productos + self.subtotal_repuestos_externos
 
     @property
     def iva_monto(self):
@@ -90,7 +97,15 @@ class OrdenTrabajo(ModeloBase):
 
     @property
     def costo_total(self):
-        return sum(d.costo_total for d in self.productos.all())
+        try:
+            costo_internos = sum(d.costo_total for d in self.productos.all())
+        except Exception:
+            costo_internos = 0
+        try:
+            costo_externos = sum(d.subtotal for d in self.repuestos_externos.all())
+        except Exception:
+            costo_externos = 0
+        return costo_internos + costo_externos
 
     @property
     def ganancia_bruta(self):
@@ -140,3 +155,23 @@ class DetalleProducto(models.Model):
     @property
     def costo_total(self):
         return self.cantidad * self.producto.precio_costo
+
+
+class RepuestoExterno(models.Model):
+    """Repuesto comprado de afuera (no del inventario del taller)."""
+    orden = models.ForeignKey(OrdenTrabajo, on_delete=models.CASCADE, related_name='repuestos_externos', verbose_name='Orden')
+    descripcion = models.CharField(max_length=200, verbose_name='Descripción del repuesto')
+    proveedor = models.CharField(max_length=100, blank=True, verbose_name='Proveedor / Origen')
+    cantidad = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name='Cantidad')
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], verbose_name='Precio unitario')
+
+    class Meta:
+        verbose_name = 'Repuesto Externo'
+        verbose_name_plural = 'Repuestos Externos'
+
+    def __str__(self):
+        return f'{self.descripcion} x{self.cantidad} (externo)'
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario

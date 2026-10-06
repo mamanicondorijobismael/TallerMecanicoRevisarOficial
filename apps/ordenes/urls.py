@@ -13,4 +13,7 @@ urlpatterns = [
     path('<int:pk>/servicios/<int:spk>/eliminar/', views.eliminar_servicio, name='eliminar_servicio'),
     path('<int:pk>/productos/agregar/', views.agregar_producto, name='agregar_producto'),
     path('<int:pk>/productos/<int:ppk>/eliminar/', views.eliminar_producto, name='eliminar_producto'),
+    path('<int:pk>/repuestos-externos/agregar/', views.agregar_repuesto_externo, name='agregar_repuesto_externo'),
+    path('<int:pk>/repuestos-externos/<int:rpk>/eliminar/', views.eliminar_repuesto_externo, name='eliminar_repuesto_externo'),
+    path('<int:pk>/eliminar/', views.orden_eliminar, name='eliminar'),
 ]

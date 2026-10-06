@@ -430,46 +430,7 @@ label.form-label {
   border-bottom-right-radius: 0.95rem;
 }
 
-/* Visor Lightbox */
-#lightbox-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 19, 48, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 120;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s ease;
-}
-#lightbox-overlay.open { opacity: 1; pointer-events: all; }
-#lightbox-img {
-  max-width: min(92vw, 960px);
-  max-height: 88vh;
-  border-radius: 0.75rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  object-fit: contain;
-  transform: scale(0.95);
-  transition: transform 0.22s ease;
-}
-#lightbox-overlay.open #lightbox-img { transform: scale(1); }
-#lightbox-close {
-  position: absolute;
-  top: 20px; right: 20px;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: background 0.15s ease;
-}
-#lightbox-close:hover { background: #DC2626; border-color: #DC2626; }
+/* Visor Lightbox delegado a base.css */
 
 /* Alertas Globales */
 .alert {

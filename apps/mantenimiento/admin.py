@@ -13,5 +13,6 @@ class TipoServicioAdmin(admin.ModelAdmin):
 class AlertaMantenimientoAdmin(admin.ModelAdmin):
     list_display = ('vehiculo', 'tipo_servicio', 'estado', 'km_estimado', 'fecha_estimada', 'fecha_creacion')
     list_filter = ('estado', 'fecha_estimada')
-    search_fields = ('vehiculo__patente', 'vehiculo__cliente__nombre_razon_social', 'tipo_servicio__nombre')
+    search_fields = ('vehiculo__placa', 'vehiculo__cliente__nombre_razon_social', 'tipo_servicio__nombre')
     raw_id_fields = ('vehiculo', 'tipo_servicio')
+

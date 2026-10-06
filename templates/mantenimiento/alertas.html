@@ -65,12 +65,24 @@
         </div>
       </div>
 
-      <div class="d-flex gap-2 pt-2 border-top">
+      <div class="d-flex gap-2 pt-2 border-top align-items-center">
         {% if a.estado == 'PENDIENTE' %}
           <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'ATENDIDA' %}" class="btn btn-sm btn-tm-gold flex-fill">Atender</a>
           <a href="{% url 'mantenimiento:cambiar_estado' a.pk 'IGNORADA' %}" class="btn btn-sm btn-light border flex-fill">Ignorar</a>
         {% else %}
-          <a href="{% url 'vehiculos:detalle' a.vehiculo.pk %}" class="btn btn-sm btn-outline-secondary w-100">Ver Ficha</a>
+          <a href="{% url 'vehiculos:detalle' a.vehiculo.pk %}" class="btn btn-sm btn-outline-secondary flex-fill">Ver Ficha</a>
+        {% endif %}
+        {% if request.user.es_administrador %}
+        <button type="button"
+                class="btn btn-sm btn-outline-danger px-2 py-1"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEliminarAlerta"
+                data-alerta-servicio="{{ a.tipo_servicio.nombre }}"
+                data-alerta-vehiculo="{{ a.vehiculo.patente }} – {{ a.vehiculo.marca }} {{ a.vehiculo.modelo }}"
+                data-alerta-url="{% url 'mantenimiento:eliminar' a.pk %}"
+                title="Eliminar alerta">
+          <span class="material-symbols-outlined fs-6">delete</span>
+        </button>
         {% endif %}
       </div>
     </div>
@@ -86,6 +98,47 @@
   </div>
   {% endfor %}
 </div>
+
+{% if request.user.es_administrador %}
+<!-- ── MODAL: Confirmar Eliminación de Alerta ── -->
+<div class="modal fade" id="modalEliminarAlerta" tabindex="-1" aria-labelledby="modalEliminarAlertaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">notification_important</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarAlertaLabel">¿Eliminar alerta preventiva?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará la alerta de mantenimiento del sistema.</p>
+
+        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Servicio</span>
+            <span id="deleteAlertaServicio" class="badge bg-primary text-white font-monospace px-2 py-1"></span>
+          </div>
+          <div class="text-dark fw-semibold small" id="deleteAlertaVehiculo"></div>
+        </div>
+
+        <form id="formEliminarAlerta" method="POST" action="">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

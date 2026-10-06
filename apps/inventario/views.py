@@ -281,3 +281,56 @@ def categoria_eliminar(request, pk):
 def movimientos_list(request):
     qs = MovimientoStock.objects.select_related('producto').order_by('-fecha_movimiento')[:100]
     return render(request, 'inventario/movimientos.html', {'movimientos': qs})
+
+
+from django.db.models import RestrictedError, ProtectedError
+
+@login_required
+def producto_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar productos.')
+        return redirect('inventario:lista')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido para esta acción.')
+        return redirect('inventario:lista')
+
+    producto = get_object_or_404(ProductoBase, pk=pk)
+    nombre = producto.nombre
+    sku = producto.codigo_sku
+
+    tiene_movimientos = producto.movimientos.exists()
+    tiene_usos = producto.usos.exists()
+
+    try:
+        if tiene_movimientos or tiene_usos:
+            producto.activo = False
+            producto.save()
+            accion_audit = 'MODIFICAR'
+            mensaje = f'El producto "{nombre}" posee historial de movimientos/órdenes, por lo que fue desactivado del catálogo.'
+        else:
+            producto.delete()
+            accion_audit = 'ELIMINAR'
+            mensaje = f'El producto "{nombre}" fue eliminado exitosamente.'
+
+        from core.models import Auditoria
+        Auditoria.objects.create(
+            tabla='ProductoBase',
+            registro_id=pk,
+            accion=accion_audit,
+            usuario=request.user.username,
+            valores_anteriores={'nombre': nombre, 'codigo_sku': sku},
+        )
+        messages.success(request, mensaje)
+
+    except (RestrictedError, ProtectedError):
+        producto.activo = False
+        producto.save()
+        messages.warning(
+            request,
+            f'El producto "{nombre}" no pudo eliminarse por registros asociados, pero fue desactivado.'
+        )
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar la solicitud: {str(e)}')
+
+    return redirect('inventario:lista')

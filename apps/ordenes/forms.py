@@ -1,5 +1,5 @@
 from django import forms
-from .models import OrdenTrabajo, DetalleServicio, DetalleProducto
+from .models import OrdenTrabajo, DetalleServicio, DetalleProducto, RepuestoExterno
 from apps.inventario.models import ProductoBase
 
 W = {'class': 'form-input'}
@@ -42,3 +42,15 @@ class DetalleProductoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['producto'].queryset = ProductoBase.objects.filter(activo=True, stock_actual__gt=0).order_by('nombre')
+
+
+class RepuestoExternoForm(forms.ModelForm):
+    class Meta:
+        model = RepuestoExterno
+        fields = ['descripcion', 'proveedor', 'cantidad', 'precio_unitario']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={**W, 'placeholder': 'Ej. Bomba de agua alternativa, Correa gates...'}),
+            'proveedor': forms.TextInput(attrs={**W, 'placeholder': 'Ej. Repuestos Alvarez, Importadora Norte...'}),
+            'cantidad': forms.NumberInput(attrs={**W, 'min': '1', 'value': '1'}),
+            'precio_unitario': forms.NumberInput(attrs={**W, 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
+        }

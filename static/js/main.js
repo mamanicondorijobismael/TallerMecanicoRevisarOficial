@@ -63,14 +63,20 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ── Lightbox (Visor de Fotos) ──
+// ── Lightbox (Visor de Fotos Pro) ──
 function openLightbox(src, alt) {
   const overlay = document.getElementById('lightbox-overlay');
   const img = document.getElementById('lightbox-img');
+  const caption = document.getElementById('lightbox-caption');
   if (!overlay || !img) return;
   img.src = src;
   img.alt = alt || 'Imagen';
-  overlay.classList.add('open');
+  if (caption) {
+    caption.textContent = alt || '';
+    caption.style.display = alt ? 'block' : 'none';
+  }
+  overlay.style.display = 'flex';
+  overlay.classList.add('show', 'open');
   document.body.style.overflow = 'hidden';
 }
 
@@ -78,7 +84,8 @@ function closeLightbox(e) {
   if (e && e.target !== document.getElementById('lightbox-overlay') && e.target !== document.getElementById('lightbox-close') && !e.target.closest('#lightbox-close')) return;
   const overlay = document.getElementById('lightbox-overlay');
   if (overlay) {
-    overlay.classList.remove('open');
+    overlay.classList.remove('show', 'open');
+    overlay.style.display = 'none';
     document.body.style.overflow = '';
   }
 }

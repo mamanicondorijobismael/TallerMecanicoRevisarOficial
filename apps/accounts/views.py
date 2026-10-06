@@ -206,6 +206,7 @@ def usuario_editar(request, pk):
 
 
 @login_required
+
 def usuario_eliminar(request, pk):
     if not request.user.es_administrador:
         messages.error(request, 'Solo los administradores pueden eliminar o desactivar usuarios.')

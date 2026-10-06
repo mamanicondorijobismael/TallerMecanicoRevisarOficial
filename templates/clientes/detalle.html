@@ -25,6 +25,12 @@
     <span class="material-symbols-outlined fs-6">edit</span>
     <span>Editar Perfil</span>
   </a>
+  {% if request.user.es_administrador %}
+  <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalEliminarCliente">
+    <span class="material-symbols-outlined fs-6">delete</span>
+    <span>Eliminar</span>
+  </button>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -198,6 +204,52 @@
     </div>
   </div>
 </div>
+
+{% if request.user.es_administrador %}
+<!-- ── MODAL: Confirmar Eliminación de Cliente ── -->
+<div class="modal fade" id="modalEliminarCliente" tabindex="-1" aria-labelledby="modalEliminarClienteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">person_remove</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarClienteLabel">¿Eliminar cliente?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará al cliente del directorio activo.</p>
+
+        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Cliente</span>
+            <span class="badge bg-dark text-white font-monospace px-2 py-1">{{ cliente.documento|default:"Sin doc" }}</span>
+          </div>
+          <div class="text-dark fw-semibold small">{{ cliente.nombre_razon_social }}</div>
+        </div>
+
+        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
+          Si tiene vehículos, órdenes o cobros asociados, se desactivará para no alterar el historial financiero.
+        </div>
+
+        <form method="POST" action="{% url 'clientes:eliminar' cliente.pk %}">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

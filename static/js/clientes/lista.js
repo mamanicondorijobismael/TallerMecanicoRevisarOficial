@@ -75,3 +75,21 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.readAsDataURL(file);
   }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEliminar = document.getElementById('modalEliminarCliente');
+  if (modalEliminar) {
+    modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      if (!button) return;
+
+      const nombre = button.getAttribute('data-cliente-nombre');
+      const doc = button.getAttribute('data-cliente-doc');
+      const url = button.getAttribute('data-cliente-url');
+
+      document.getElementById('deleteClienteNombre').textContent = nombre || '';
+      document.getElementById('deleteClienteDoc').textContent = doc || '';
+      document.getElementById('formEliminarCliente').action = url || '';
+    });
+  }
+});

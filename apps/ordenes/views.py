@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.utils import timezone
-from .models import OrdenTrabajo, DetalleServicio, DetalleProducto
-from .forms import OrdenTrabajoForm, DetalleServicioForm, DetalleProductoForm
+from .models import OrdenTrabajo, DetalleServicio, DetalleProducto, RepuestoExterno
+from .forms import OrdenTrabajoForm, DetalleServicioForm, DetalleProductoForm, RepuestoExternoForm
 
 
 @login_required
@@ -16,12 +16,12 @@ def orden_list(request):
         qs = qs.filter(estado=estado_filter)
     if query:
         qs = qs.filter(
-            Q(numero_orden__icontains=query) | Q(vehiculo__patente__icontains=query) |
+            Q(numero_orden__icontains=query) | Q(vehiculo__placa__icontains=query) |
             Q(vehiculo__cliente__nombre_razon_social__icontains=query)
         )
     from apps.vehiculos.models import Vehiculo
     from apps.accounts.models import Usuario
-    vehiculos = Vehiculo.objects.filter(activo=True).select_related('cliente').order_by('patente')
+    vehiculos = Vehiculo.objects.filter(activo=True).select_related('cliente').order_by('placa')
     mecanicos = Usuario.objects.filter(is_active=True).order_by('nombre_completo', 'username')
     estados = OrdenTrabajo.Estado.choices
     return render(request, 'ordenes/lista.html', {
@@ -35,11 +35,13 @@ def orden_detalle(request, pk):
     orden = get_object_or_404(OrdenTrabajo.objects.select_related('vehiculo', 'vehiculo__cliente', 'mecanico'), pk=pk)
     servicios = orden.servicios.all()
     productos = orden.productos.select_related('producto').all()
+    repuestos_externos = orden.repuestos_externos.all()
     form_servicio = DetalleServicioForm()
     form_producto = DetalleProductoForm()
+    form_repuesto_externo = RepuestoExternoForm()
     return render(request, 'ordenes/detalle.html', {
-        'orden': orden, 'servicios': servicios, 'productos': productos,
-        'form_servicio': form_servicio, 'form_producto': form_producto,
+        'orden': orden, 'servicios': servicios, 'productos': productos, 'repuestos_externos': repuestos_externos,
+        'form_servicio': form_servicio, 'form_producto': form_producto, 'form_repuesto_externo': form_repuesto_externo,
     })
 
 
@@ -49,52 +51,53 @@ def orden_crear(request):
         messages.error(request, 'Sin permisos para crear órdenes.')
         return redirect('ordenes:lista')
     if request.method == 'POST':
-        # Procesar creación manual desde el modal (campos name="vehiculo", "mecanico", etc.)
-        from apps.vehiculos.models import Vehiculo
-        from apps.accounts.models import Usuario
-        vehiculo_id = request.POST.get('vehiculo')
-        mecanico_id = request.POST.get('mecanico') or None
-        kilometraje_val = request.POST.get('kilometraje') or 0
-        diagnostico_val = request.POST.get('diagnostico', '')
-        observaciones_val = request.POST.get('observaciones', '')
-        fecha_prometida_val = request.POST.get('fecha_prometida') or None
-
-        try:
-            vehiculo = Vehiculo.objects.get(pk=vehiculo_id)
-        except (Vehiculo.DoesNotExist, ValueError, TypeError):
-            messages.error(request, 'Debe seleccionar un vehículo válido.')
-            return redirect('ordenes:lista')
-
-        mecanico = None
-        if mecanico_id:
+        form = OrdenTrabajoForm(request.POST)
+        if form.is_valid():
+            orden = form.save(commit=False)
+            orden.creado_por = request.user
+            if not orden.kilometraje and orden.vehiculo:
+                orden.kilometraje = orden.vehiculo.kilometraje_actual
+            orden.save()
+            if orden.kilometraje and orden.vehiculo and orden.kilometraje > orden.vehiculo.kilometraje_actual:
+                orden.vehiculo.kilometraje_actual = orden.kilometraje
+                orden.vehiculo.save()
+            messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
+            return redirect('ordenes:detalle', pk=orden.pk)
+        else:
+            from apps.vehiculos.models import Vehiculo
+            from apps.accounts.models import Usuario
+            vehiculo_id = request.POST.get('vehiculo')
             try:
-                mecanico = Usuario.objects.get(pk=mecanico_id)
-            except (Usuario.DoesNotExist, ValueError):
-                pass
+                vehiculo = Vehiculo.objects.get(pk=vehiculo_id)
+                mecanico_id = request.POST.get('mecanico')
+                mecanico = Usuario.objects.filter(pk=mecanico_id).first() if mecanico_id else None
+                kilometraje_val = request.POST.get('kilometraje')
+                diagnostico_val = request.POST.get('diagnostico', '')
+                observaciones_val = request.POST.get('observaciones', '')
+                fecha_prometida_val = request.POST.get('fecha_prometida') or None
+                fecha_prometida = None
+                if fecha_prometida_val:
+                    from django.utils.dateparse import parse_datetime
+                    fecha_prometida = parse_datetime(fecha_prometida_val)
 
-        # Procesar fecha
-        fecha_prometida = None
-        if fecha_prometida_val:
-            from django.utils.dateparse import parse_datetime
-            fecha_prometida = parse_datetime(fecha_prometida_val)
-
-        orden = OrdenTrabajo.objects.create(
-            vehiculo=vehiculo,
-            mecanico=mecanico,
-            creado_por=request.user,
-            kilometraje=int(kilometraje_val) if kilometraje_val else vehiculo.kilometraje_actual,
-            diagnostico=diagnostico_val,
-            observaciones=observaciones_val,
-            fecha_prometida=fecha_prometida,
-        )
-
-        # Actualizar odómetro del vehículo
-        if orden.kilometraje and orden.kilometraje > vehiculo.kilometraje_actual:
-            vehiculo.kilometraje_actual = orden.kilometraje
-            vehiculo.save()
-
-        messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
-        return redirect('ordenes:detalle', pk=orden.pk)
+                orden = OrdenTrabajo.objects.create(
+                    vehiculo=vehiculo,
+                    mecanico=mecanico,
+                    creado_por=request.user,
+                    kilometraje=int(kilometraje_val) if kilometraje_val else vehiculo.kilometraje_actual,
+                    diagnostico=diagnostico_val,
+                    observaciones=observaciones_val,
+                    fecha_prometida=fecha_prometida,
+                )
+                if orden.kilometraje and orden.kilometraje > vehiculo.kilometraje_actual:
+                    vehiculo.kilometraje_actual = orden.kilometraje
+                    vehiculo.save()
+                messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
+                return redirect('ordenes:detalle', pk=orden.pk)
+            except Exception as e:
+                for field, errs in form.errors.items():
+                    messages.error(request, f'{field}: {errs[0]}')
+                return redirect('ordenes:lista')
 
     # GET: renderizar formulario standalone
     form = OrdenTrabajoForm()
@@ -206,3 +209,95 @@ def eliminar_producto(request, pk, ppk):
         DetalleProducto.objects.filter(pk=ppk, orden=orden).delete()
         messages.success(request, 'Producto eliminado.')
     return redirect('ordenes:detalle', pk=pk)
+
+
+@login_required
+def agregar_repuesto_externo(request, pk):
+    orden = get_object_or_404(OrdenTrabajo, pk=pk)
+    if orden.estado in ['FACTURADA', 'CANCELADA']:
+        messages.error(request, 'No se puede modificar una orden cerrada.')
+        return redirect('ordenes:detalle', pk=pk)
+    form = RepuestoExternoForm(request.POST)
+    if form.is_valid():
+        repuesto = form.save(commit=False)
+        repuesto.orden = orden
+        repuesto.save()
+        messages.success(request, 'Repuesto externo agregado.')
+    else:
+        messages.error(request, 'Error al agregar repuesto externo. Verifique los datos.')
+    return redirect('ordenes:detalle', pk=pk)
+
+
+@login_required
+def eliminar_repuesto_externo(request, pk, rpk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
+        return redirect('ordenes:detalle', pk=pk)
+    orden = get_object_or_404(OrdenTrabajo, pk=pk)
+    if orden.estado not in ['FACTURADA', 'CANCELADA']:
+        RepuestoExterno.objects.filter(pk=rpk, orden=orden).delete()
+        messages.success(request, 'Repuesto externo eliminado.')
+    return redirect('ordenes:detalle', pk=pk)
+
+
+from django.db.models import RestrictedError, ProtectedError
+
+@login_required
+def orden_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar órdenes de trabajo.')
+        return redirect('ordenes:lista')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido para esta acción.')
+        return redirect('ordenes:lista')
+
+    orden = get_object_or_404(OrdenTrabajo, pk=pk)
+    numero = orden.numero_orden
+    placa = orden.vehiculo.placa
+    cliente = orden.vehiculo.cliente.nombre_razon_social
+
+    try:
+        if orden.estado == 'FACTURADA':
+            messages.error(request, f'La orden #{numero} está facturada y no puede eliminarse. Debe anularse la factura primero.')
+            return redirect('ordenes:detalle', pk=pk)
+
+        tiene_factura = hasattr(orden, 'factura')
+
+        if tiene_factura:
+            orden.estado = 'CANCELADA'
+            orden.save()
+            accion_audit = 'MODIFICAR'
+            mensaje = f'La orden #{numero} posee factura asociada, por lo que fue cancelada en lugar de eliminada.'
+        elif orden.estado in ['PENDIENTE', 'CANCELADA']:
+            orden.delete()
+            accion_audit = 'ELIMINAR'
+            mensaje = f'La orden #{numero} fue eliminada exitosamente.'
+        else:
+            orden.estado = 'CANCELADA'
+            orden.save()
+            accion_audit = 'MODIFICAR'
+            mensaje = f'La orden #{numero} fue cancelada. Las órdenes en proceso no se eliminan para preservar el historial.'
+
+        from core.models import Auditoria
+        Auditoria.objects.create(
+            tabla='OrdenTrabajo',
+            registro_id=pk,
+            accion=accion_audit,
+            usuario=request.user.username,
+            valores_anteriores={'numero_orden': numero, 'vehiculo': placa, 'cliente': cliente},
+        )
+        messages.success(request, mensaje)
+
+    except (RestrictedError, ProtectedError):
+        orden.estado = 'CANCELADA'
+        orden.save()
+        messages.warning(
+            request,
+            f'La orden #{numero} no pudo eliminarse por registros asociados, pero fue cancelada.'
+        )
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar la solicitud: {str(e)}')
+
+    return redirect('ordenes:lista')
+

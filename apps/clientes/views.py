@@ -10,7 +10,9 @@ from core.models import Auditoria
 @login_required
 def cliente_list(request):
     query = request.GET.get('q', '')
-    qs = Cliente.objects.all()
+    # Auto-recuperar clientes sin vehículos que quedaron inactivos por el formulario anterior
+    Cliente.objects.filter(activo=False, vehiculos__isnull=True).update(activo=True)
+    qs = Cliente.objects.filter(activo=True)
     if query:
         qs = qs.filter(Q(nombre_razon_social__icontains=query) | Q(documento__icontains=query) | Q(email__icontains=query))
     return render(request, 'clientes/lista.html', {'clientes': qs, 'query': query})
@@ -42,7 +44,9 @@ def cliente_crear(request):
         return redirect('clientes:lista')
     form = ClienteForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
-        cliente = form.save()
+        cliente = form.save(commit=False)
+        cliente.activo = True
+        cliente.save()
         Auditoria.objects.create(tabla='cliente', registro_id=cliente.pk, accion='CREAR',
                                  usuario=request.user.username, valores_nuevos={'nombre': cliente.nombre_razon_social})
         messages.success(request, f'Cliente {cliente.nombre_razon_social} creado exitosamente.')
@@ -65,3 +69,56 @@ def cliente_editar(request, pk):
         messages.success(request, f'Cliente {cliente.nombre_razon_social} actualizado.')
         return redirect('clientes:detalle', pk=cliente.pk)
     return render(request, 'clientes/form.html', {'form': form, 'title': f'Editar: {cliente.nombre_razon_social}', 'cliente': cliente})
+
+
+from django.db.models import RestrictedError, ProtectedError
+
+@login_required
+def cliente_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar o desactivar clientes.')
+        return redirect('clientes:lista')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido para esta acción.')
+        return redirect('clientes:lista')
+
+    cliente = get_object_or_404(Cliente, pk=pk)
+    nombre = cliente.nombre_razon_social
+    documento = cliente.documento
+
+    tiene_vehiculos = cliente.vehiculos.exists()
+    tiene_facturas = hasattr(cliente, 'facturas') and cliente.facturas.exists()
+    tiene_reservas = hasattr(cliente, 'reservas') and cliente.reservas.exists()
+
+    try:
+        if tiene_vehiculos or tiene_facturas or tiene_reservas:
+            cliente.activo = False
+            cliente.save()
+            accion_audit = 'MODIFICAR'
+            mensaje = f'El cliente "{nombre}" posee historial (vehículos/facturas/reservas), por lo que fue desactivado del sistema.'
+        else:
+            cliente.delete()
+            accion_audit = 'ELIMINAR'
+            mensaje = f'El cliente "{nombre}" fue eliminado exitosamente.'
+
+        Auditoria.objects.create(
+            tabla='Cliente',
+            registro_id=pk,
+            accion=accion_audit,
+            usuario=request.user.username,
+            valores_anteriores={'nombre': nombre, 'documento': documento},
+        )
+        messages.success(request, mensaje)
+
+    except (RestrictedError, ProtectedError):
+        cliente.activo = False
+        cliente.save()
+        messages.warning(
+            request,
+            f'El cliente "{nombre}" no pudo eliminarse por registros asociados, pero fue desactivado.'
+        )
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar la solicitud: {str(e)}')
+
+    return redirect('clientes:lista')

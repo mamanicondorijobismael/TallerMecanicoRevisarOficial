@@ -55,3 +55,46 @@ def tipo_servicio_editar(request, pk):
         messages.success(request, f'Plan {tipo.nombre} actualizado.')
         return redirect('mantenimiento:tipos')
     return render(request, 'mantenimiento/form_tipo.html', {'form': form, 'title': f'Editar: {tipo.nombre}'})
+
+
+@login_required
+def alerta_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar alertas.')
+        return redirect('mantenimiento:alertas')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido.')
+        return redirect('mantenimiento:alertas')
+
+    alerta = get_object_or_404(AlertaMantenimiento, pk=pk)
+    vehiculo_placa = alerta.vehiculo.patente
+    servicio = alerta.tipo_servicio.nombre
+    alerta.delete()
+    messages.success(request, f'Alerta de "{servicio}" para {vehiculo_placa} eliminada.')
+    return redirect('mantenimiento:alertas')
+
+
+@login_required
+def tipo_servicio_eliminar(request, pk):
+    if not request.user.es_administrador:
+        messages.error(request, 'Solo los administradores pueden eliminar planes de servicio.')
+        return redirect('mantenimiento:tipos')
+
+    if request.method != 'POST':
+        messages.warning(request, 'Método no permitido.')
+        return redirect('mantenimiento:tipos')
+
+    tipo = get_object_or_404(TipoServicio, pk=pk)
+    nombre = tipo.nombre
+    tiene_alertas = tipo.alertas.exists()
+
+    if tiene_alertas:
+        tipo.activo = False
+        tipo.save()
+        messages.info(request, f'El plan "{nombre}" tiene alertas asociadas, por lo que fue desactivado.')
+    else:
+        tipo.delete()
+        messages.success(request, f'Plan de servicio "{nombre}" eliminado.')
+
+    return redirect('mantenimiento:tipos')

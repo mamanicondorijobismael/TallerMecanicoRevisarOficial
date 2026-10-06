@@ -74,3 +74,21 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.readAsDataURL(file);
   }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEliminar = document.getElementById('modalEliminarVehiculo');
+  if (modalEliminar) {
+    modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      if (!button) return;
+
+      const placa = button.getAttribute('data-vehiculo-placa');
+      const info = button.getAttribute('data-vehiculo-info');
+      const url = button.getAttribute('data-vehiculo-url');
+
+      document.getElementById('deleteVehiculoPlaca').textContent = placa || '';
+      document.getElementById('deleteVehiculoInfo').textContent = info || '';
+      document.getElementById('formEliminarVehiculo').action = url || '';
+    });
+  }
+});

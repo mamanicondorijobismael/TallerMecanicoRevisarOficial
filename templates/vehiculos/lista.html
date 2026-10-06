@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block page_title %}Vehículos{% endblock %}
-{% block subtitle %}Base de datos de unidades y parque automotor{% endblock %}
+{% block subtitle %}Unidades registradas, historial de servicios y especificaciones{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/vehiculos/lista.css' %}"/>
@@ -16,30 +16,25 @@
 {% endblock %}
 
 {% block topbar_actions %}
+<!-- ✅ Botón principal único con ícono de auto -->
 <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">
-  <span class="material-symbols-outlined fs-6">add</span>
+  <span class="material-symbols-outlined fs-6">directions_car</span>
   <span>Nuevo Vehículo</span>
 </button>
 {% endblock %}
 
 {% block content %}
 <div class="d-flex flex-column gap-4">
-  <!-- ── Header Card & Action ── -->
-  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
-    <div class="d-flex align-items-center gap-3 min-w-0">
-      <div class="sidebar-brand-icon bg-primary-subtle text-primary">
-        <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">directions_car</span>
-      </div>
-      <div>
-        <h2 class="h6 fw-bold text-primary mb-0">Parque Automotor</h2>
-        <p class="text-muted small mb-0">Unidades registradas, historial de servicios y especificaciones</p>
-      </div>
-    </div>
 
-    <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">
-      <span class="material-symbols-outlined fs-6">add_circle</span>
-      <span>Nuevo Vehículo</span>
-    </button>
+  <!-- ── Header Card ── -->
+  <div class="d-flex align-items-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
+    <div class="sidebar-brand-icon bg-primary-subtle text-primary">
+      <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+    </div>
+    <div>
+      <h2 class="h6 fw-bold text-primary mb-0">Parque Automotor</h2>
+      <p class="text-muted small mb-0">Unidades registradas, historial de servicios y especificaciones</p>
+    </div>
   </div>
 
   <!-- Filtro -->
@@ -50,7 +45,7 @@
           <span class="input-group-text bg-white text-muted">
             <span class="material-symbols-outlined fs-6">search</span>
           </span>
-          <input type="text" name="q" value="{{ query }}" placeholder="Patente, marca, modelo o cliente..." class="form-control form-control-sm">
+          <input type="text" name="q" value="{{ query }}" placeholder="Placa, marca, modelo o cliente..." class="form-control form-control-sm">
         </div>
       </div>
       <div class="col-auto">
@@ -67,7 +62,7 @@
     </form>
   </div>
 
-  <!-- Grid de tarjetas -->
+  {# Grid de tarjetas #}
   <div class="row g-4">
     {% for vehiculo in vehiculos %}
     <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
@@ -76,24 +71,27 @@
         <div class="vehicle-img-wrap">
           {% if vehiculo.foto %}
             <img src="{{ vehiculo.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in"
-                 data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.patente }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
+                 data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.placa }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
           {% else %}
             <div class="d-flex flex-column align-items-center justify-content-center text-muted">
               <span class="material-symbols-outlined fs-1 text-black-50">directions_car</span>
               <span class="small fw-bold text-uppercase mt-1" style="font-size: 0.65rem;">Sin foto</span>
             </div>
           {% endif %}
+
           <!-- Placa badge -->
           <div class="vehicle-plate-badge">
-            {{ vehiculo.patente|upper }}
+            {{ vehiculo.placa|upper }}
           </div>
-          <!-- Marca overlay -->
+
           <div class="vehicle-brand-overlay">
             <h4 class="h6 fw-bold mb-0 text-truncate text-white">{{ vehiculo.marca }} {{ vehiculo.modelo }}</h4>
           </div>
         </div>
-        <!-- Info -->
+
+        <!-- Cuerpo e Información de la tarjeta -->
         <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+          <!-- Propietario y Kilometraje -->
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div class="min-w-0 pe-2">
               <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Propietario</div>
@@ -104,19 +102,38 @@
               <div class="fw-bold text-dark small">{{ vehiculo.kilometraje_actual|default:"—" }}</div>
             </div>
           </div>
-          <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-            <div class="d-flex gap-1">
+
+          <!-- Fila intermedia: Badges de Año/Color y Ver ficha -->
+          <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto mb-3">
+            <div class="d-flex gap-1 align-items-center">
               <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.anio|default:"S/A" }}</span>
               <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.get_color_display }}</span>
             </div>
+
             <a href="{% url 'vehiculos:detalle' vehiculo.pk %}" class="btn btn-sm btn-link text-secondary text-decoration-none p-0 d-flex align-items-center gap-1 small fw-semibold" style="font-size: 0.75rem;">
               <span>Ver ficha</span>
               <span class="material-symbols-outlined fs-6">arrow_forward</span>
             </a>
           </div>
+
+          <!-- 🔴 Botón de Eliminar para Administradores -->
+          {% if request.user.es_administrador %}
+          <button type="button"
+                  class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-1 fw-semibold py-1.5 rounded-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalEliminarVehiculo"
+                  data-vehiculo-placa="{{ vehiculo.placa|upper }}"
+                  data-vehiculo-info="{{ vehiculo.marca }} {{ vehiculo.modelo }}"
+                  data-vehiculo-url="{% url 'vehiculos:eliminar' vehiculo.pk %}"
+                  title="Eliminar vehículo del sistema">
+            <span class="material-symbols-outlined fs-6">delete</span>
+            <span>Eliminar Vehículo</span>
+          </button>
+          {% endif %}
         </div>
       </div>
     </div>
+
     {% empty %}
     <div class="col-12">
       <div class="card-workshop p-5 text-center text-muted">
@@ -182,7 +199,7 @@
                   <div class="input-icon-lead">
                     <span class="material-symbols-outlined">tag</span>
                   </div>
-                  <input type="text" name="patente" required class="form-control-pro text-uppercase fw-bold font-monospace" placeholder="Ej: ABC-123">
+                  <input type="text" name="placa" required class="form-control-pro text-uppercase fw-bold font-monospace" placeholder="Ej: ABC-123">
                 </div>
               </div>
             </div>
@@ -289,6 +306,54 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Confirmar Eliminación de Vehículo (Sencillo y Elegante) ── -->
+<div class="modal fade" id="modalEliminarVehiculo" tabindex="-1" aria-labelledby="modalEliminarVehiculoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <!-- Close Button -->
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <!-- Icon Badge -->
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">delete_outline</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarVehiculoLabel">¿Eliminar vehículo?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará el vehículo del listado activo.</p>
+
+        <!-- Vehicle Details Pill -->
+        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Unidad</span>
+            <span id="deleteVehiculoPlaca" class="badge bg-dark text-white font-monospace px-2 py-1"></span>
+          </div>
+          <div class="text-dark fw-semibold small" id="deleteVehiculoInfo"></div>
+        </div>
+
+        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
+          Si tiene órdenes de trabajo vinculadas, se desactivará automáticamente para preservar el historial.
+        </div>
+
+        <!-- Form & Buttons -->
+        <form id="formEliminarVehiculo" method="POST" action="">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
