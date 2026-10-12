@@ -18,15 +18,15 @@
 
 {% block topbar_actions %}
 <div class="d-flex align-items-center gap-2">
-  {% if user.es_administrador %}
-  <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">
+  {% if user.es_administrador or user.tiene_permiso.puede_crear_inventario %}
+  <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
     <span class="material-symbols-outlined fs-6">add</span>
     <span>Nuevo Repuesto</span>
-  </button>
-  <button type="button" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-neumatico">
+  </a>
+  <a href="{% url 'inventario:neumatico_crear' %}" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1">
     <span class="material-symbols-outlined fs-6">add</span>
     <span>Nuevo Neumático</span>
-  </button>
+  </a>
   {% endif %}
 </div>
 {% endblock %}
@@ -90,19 +90,19 @@
       </div>
       <div class="min-w-0">
         <h2 class="h6 fw-bold text-primary mb-0">Gestión de Inventario & Stock</h2>
-        <p class="text-muted small mb-0 text-truncate">Catálogo maestro, precios de venta, reposiciones y compatibilidad</p>
+        <p class="text-muted small mb-0 text-truncate">Catálogo maestro, prefijos de categoría (FIL, FRE, LUB, MOT, NEU), reposiciones y márgenes</p>
       </div>
     </div>
 
     <div class="d-flex align-items-center gap-2 flex-wrap w-100 w-md-auto justify-content-start justify-content-md-end">
       <!-- Switcher Grid / Table -->
       <div class="btn-group btn-group-sm" role="group">
-        <a href="?view=grid{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
+        <a href="?view=grid{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if categoria_filter %}&categoria={{ categoria_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
            class="btn {% if view_mode == 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %} d-flex align-items-center gap-1" title="Vista en tarjetas">
           <span class="material-symbols-outlined fs-6">grid_view</span>
           <span class="d-none d-sm-inline">Tarjetas</span>
         </a>
-        <a href="?view=table{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
+        <a href="?view=table{% if query %}&q={{ query }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if categoria_filter %}&categoria={{ categoria_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" 
            class="btn {% if view_mode == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %} d-flex align-items-center gap-1" title="Vista en tabla">
           <span class="material-symbols-outlined fs-6">list</span>
           <span class="d-none d-sm-inline">Tabla</span>
@@ -114,99 +114,76 @@
         <span>Movimientos</span>
       </a>
 
-      {% if user.es_administrador %}
+      {% if user.es_administrador or user.tiene_permiso.puede_crear_inventario %}
       <a href="{% url 'inventario:categoria_lista' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
         <span class="material-symbols-outlined fs-6">category</span>
         <span>Categorías</span>
       </a>
-      {% endif %}
 
-      {% if user.es_administrador %}
-      <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">
+      <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
         <span class="material-symbols-outlined fs-6">add</span>
         <span>+ Repuesto</span>
-      </button>
-      <button type="button" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-neumatico">
+      </a>
+      <a href="{% url 'inventario:neumatico_crear' %}" class="btn btn-tm-navy btn-sm d-flex align-items-center gap-1">
         <span class="material-symbols-outlined fs-6">add</span>
         <span>+ Neumático</span>
-      </button>
+      </a>
       {% endif %}
     </div>
   </div>
 
-  <!-- ── 3. Filter Navigation Pills ── -->
-  <div class="d-flex flex-wrap align-items-center gap-2">
-    <a href="{% url 'inventario:lista' %}{% if view_mode != 'grid' %}?view={{ view_mode }}{% endif %}" 
-       class="filter-pill {% if not tipo_filter and not criticos_only %}active{% endif %}">
-      <span>Todos los Productos</span>
-      <span class="badge-count">{{ total_count }}</span>
-    </a>
-
-    <a href="?tipo=REPUESTO{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="filter-pill {% if tipo_filter == 'REPUESTO' %}active{% endif %}">
-      <span>Repuestos</span>
-      <span class="badge-count">{{ repuestos_count }}</span>
-    </a>
-
-    <a href="?tipo=NEUMATICO{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="filter-pill {% if tipo_filter == 'NEUMATICO' %}active{% endif %}">
-      <span>Neumáticos</span>
-      <span class="badge-count">{{ neumaticos_count }}</span>
-    </a>
-
-    <a href="?criticos=1{% if view_mode != 'grid' %}&view={{ view_mode }}{% endif %}" 
-       class="filter-pill ms-sm-auto d-flex align-items-center gap-1 {% if criticos_only %}bg-danger text-white border-danger{% else %}text-danger border-danger-subtle bg-danger-subtle{% endif %}">
-      <span class="material-symbols-outlined fs-6">warning</span>
-      <span>Stock Crítico</span>
-      <span class="badge-count bg-danger text-white">{{ criticos_count }}</span>
-    </a>
-  </div>
-
-  <!-- ── 4. Search & Filter Bar ── -->
-  <div class="card-workshop p-3">
+  <!-- ── 3. Filters & Search Form ── -->
+  <div class="card-workshop p-3 bg-white">
     <form method="GET" class="row g-2 align-items-center">
       <input type="hidden" name="view" value="{{ view_mode }}">
-      {% if tipo_filter %}<input type="hidden" name="tipo" value="{{ tipo_filter }}">{% endif %}
-      {% if criticos_only %}<input type="hidden" name="criticos" value="1">{% endif %}
-
-      <div class="col-12 col-md-6 col-lg-5">
+      <div class="col-12 col-md-4">
         <div class="input-group input-group-sm">
-          <span class="input-group-text bg-white text-muted">
+          <span class="input-group-text bg-light text-muted border-end-0">
             <span class="material-symbols-outlined fs-6">search</span>
           </span>
-          <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, SKU, código o marca..." class="form-control form-control-sm">
+          <input type="text" name="q" value="{{ query }}" placeholder="Buscar por SKU, nombre, descripción..." class="form-control form-control-sm border-start-0">
         </div>
       </div>
 
-      {% if categorias %}
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <select id="categoriaFilterSelect" name="categoria" class="form-select form-select-sm">
+      <div class="col-6 col-md-2">
+        <select name="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="">Todos los tipos</option>
+          <option value="REPUESTO" {% if tipo_filter == 'REPUESTO' %}selected{% endif %}>Repuestos</option>
+          <option value="NEUMATICO" {% if tipo_filter == 'NEUMATICO' %}selected{% endif %}>Neumáticos</option>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <select name="categoria" class="form-select form-select-sm" onchange="this.form.submit()">
           <option value="">Todas las categorías</option>
           {% for cat in categorias %}
-          <option value="{{ cat.id }}" {% if categoria_filter == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nombre }}</option>
+          <option value="{{ cat.id }}" {% if categoria_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+            [{{ cat.codigo_prefijo }}] {{ cat.nombre }}
+          </option>
           {% endfor %}
         </select>
       </div>
-      {% endif %}
 
-      <div class="col-12 col-sm-6 col-md-2">
-        <button type="submit" class="btn btn-sm btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-1">
-          <span class="material-symbols-outlined fs-6">search</span>
-          <span>Buscar</span>
-        </button>
-      </div>
-
-      {% if query or categoria_filter %}
       <div class="col-auto">
-        <a href="?view={{ view_mode }}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if criticos_only %}&criticos=1{% endif %}" class="btn btn-sm btn-link text-muted text-decoration-none">
-          Limpiar
-        </a>
+        <div class="form-check form-check-inline small pt-1">
+          <input class="form-check-input" type="checkbox" name="criticos" id="checkCriticos" value="1" {% if criticos_only %}checked{% endif %} onchange="this.form.submit()">
+          <label class="form-check-label fw-semibold text-danger" for="checkCriticos">Solo stock crítico</label>
+        </div>
       </div>
-      {% endif %}
+
+      <div class="col-auto ms-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+          <span class="material-symbols-outlined fs-6">filter_alt</span>
+          <span>Filtrar</span>
+        </button>
+        {% if query or tipo_filter or categoria_filter or criticos_only %}
+        <a href="{% url 'inventario:lista' %}?view={{ view_mode }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+        {% endif %}
+      </div>
     </form>
   </div>
 
-  <!-- ── 5. Main Inventory View ── -->
+  <!-- ── 4. Main Inventory Content (Grid vs Table) ── -->
   {% if view_mode == 'table' %}
     <!-- ── TABLE VIEW ── -->
     <div class="card-workshop overflow-hidden">
@@ -214,12 +191,13 @@
         <table class="table table-workshop mb-0">
           <thead>
             <tr>
-              <th style="width:50px">Foto</th>
+              <th style="width: 50px;">Foto</th>
               <th>Código SKU</th>
-              <th>Producto / Descripción</th>
+              <th>Producto / Detalle</th>
               <th>Categoría</th>
-              <th class="text-center">Stock Actual</th>
-              <th class="text-end">Precio Venta</th>
+              <th class="text-center">Stock</th>
+              <th class="text-end">Costo</th>
+              <th class="text-end">Venta</th>
               <th class="text-end">Acciones</th>
             </tr>
           </thead>
@@ -229,29 +207,32 @@
               <td>
                 <div class="product-thumb">
                   {% if p.imagen %}
-                    <img src="{{ p.imagen.url }}" class="w-100 h-100 object-fit-cover cursor-zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+                    <img src="{{ p.imagen.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
                   {% else %}
-                    <span class="material-symbols-outlined text-muted fs-5">
-                      {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}
-                    </span>
+                    <span class="material-symbols-outlined text-muted fs-5">{% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}</span>
                   {% endif %}
                 </div>
               </td>
-              <td class="font-monospace fw-bold text-primary small">{{ p.codigo_sku }}</td>
+              <td>
+                <span class="badge bg-light text-primary border font-monospace fw-bold">{{ p.codigo_sku }}</span>
+              </td>
               <td>
                 <div class="fw-bold text-dark small">{{ p.nombre }}</div>
-                <div class="text-muted small d-flex align-items-center gap-1 mt-0.5" style="font-size: 0.72rem;">
-                  <span class="badge {% if p.tipo_producto == 'NEUMATICO' %}bg-info-subtle text-info border border-info-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
-                    {{ p.get_tipo_producto_display }}
-                  </span>
-                  {% if p.repuesto and p.repuesto.marca_repuesto %}
-                    <span>· Marca: {{ p.repuesto.marca_repuesto }}</span>
-                  {% elif p.neumatico %}
-                    <span class="font-monospace">· Medida: {{ p.neumatico.medida }}</span>
+                <div class="text-muted small" style="font-size: 0.72rem;">
+                  {% if p.tipo_producto == 'REPUESTO' and p.repuesto %}
+                    {{ p.repuesto.marca_repuesto|default:"Genérico" }} · N°: {{ p.repuesto.numero_parte|default:"—" }}
+                  {% elif p.tipo_producto == 'NEUMATICO' and p.neumatico %}
+                    {{ p.neumatico.marca_neumatico }} {{ p.neumatico.modelo_neumatico }} ({{ p.neumatico.ancho }}/{{ p.neumatico.perfil }} R{{ p.neumatico.diametro }})
+                  {% else %}
+                    {{ p.descripcion|truncatechars:45|default:"Sin descripción" }}
                   {% endif %}
                 </div>
               </td>
-              <td class="text-muted small">{{ p.categoria.nombre|default:"General" }}</td>
+              <td>
+                <span class="badge bg-secondary-subtle text-secondary fw-semibold">
+                  [{{ p.categoria.codigo_prefijo }}] {{ p.categoria.nombre }}
+                </span>
+              </td>
               <td class="text-center">
                 {% if p.stock_critico %}
                   <span class="badge-status status-cancelada">{{ p.stock_actual }} u. (Bajo)</span>
@@ -259,50 +240,42 @@
                   <span class="badge-status status-completada">{{ p.stock_actual }} u.</span>
                 {% endif %}
               </td>
-              <td class="text-end fw-bold text-dark small">${{ p.precio_venta|floatformat:2 }}</td>
+              <td class="text-end text-muted small">Bs {{ p.precio_costo|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark small">Bs {{ p.precio_venta|floatformat:2 }}</td>
               <td class="text-end">
                 <div class="d-flex gap-1 justify-content-end align-items-center">
-                  {% if user.es_administrador %}
+                  {% if user.es_administrador or user.tiene_permiso.puede_ajustar_stock %}
                   <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Ajustar Stock">
                     <span class="material-symbols-outlined fs-6">sync_alt</span>
                     <span>+ Stock</span>
                   </a>
                   {% endif %}
-                  <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Venta rápida de mostrador">
-                    <span class="material-symbols-outlined fs-6">point_of_sale</span>
-                    <span>Vender</span>
-                  </a>
-                  {% if p.tipo_producto == 'REPUESTO' %}
-                  <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+
+                  {% if p.tipo_producto == 'REPUESTO' and p.repuesto %}
+                  <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
                     <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
                   </a>
-                  {% else %}
-                  <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+                  {% elif p.tipo_producto == 'NEUMATICO' and p.neumatico %}
+                  <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
                     <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
                   </a>
                   {% endif %}
-                  {% if user.es_administrador %}
-                  <button type="button"
-                          class="btn btn-sm btn-outline-danger py-1 px-2"
-                          style="font-size: 0.72rem;"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarProducto"
-                          data-producto-nombre="{{ p.nombre }}"
-                          data-producto-sku="{{ p.codigo_sku }}"
-                          data-producto-url="{% url 'inventario:producto_eliminar' p.pk %}"
-                          title="Eliminar producto">
+
+                  {% if user.es_administrador or user.tiene_permiso.puede_eliminar_inventario %}
+                  <a href="{% url 'inventario:producto_eliminar' p.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" onclick="return confirm('¿Está seguro de eliminar este producto del inventario?')" title="Eliminar producto">
                     <span class="material-symbols-outlined fs-6">delete</span>
-                  </button>
+                    <span>Eliminar</span>
+                  </a>
                   {% endif %}
                 </div>
               </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7" class="text-center py-5 text-muted">
+              <td colspan="8" class="text-center py-5 text-muted">
                 <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">inventory_2</span>
-                <div class="fw-bold mb-1">No se encontraron productos</div>
-                <p class="small text-muted mb-0">Probá cambiando los filtros o registrá un nuevo producto arriba.</p>
+                <div class="fw-bold mb-1">No se encontraron productos en el catálogo</div>
+                <p class="small text-muted mb-0">Probá modificando los filtros de búsqueda o creá uno nuevo.</p>
               </td>
             </tr>
             {% endfor %}
@@ -310,430 +283,112 @@
         </table>
       </div>
     </div>
-
   {% else %}
-    <!-- ── BENTO GRID VIEW (Tamgo Industrial Cards) ── -->
-    <div class="row g-4">
+    <!-- ── GRID VIEW (CARDS) ── -->
+    <div class="row g-3">
       {% for p in productos %}
       <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="inventory-grid-card h-100 {% if p.stock_critico %}critical{% endif %}">
-          <div>
-            <!-- Thumbnail & Badges Top -->
-            <div class="card-img-wrap">
-              {% if p.imagen %}
-                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" 
-                     class="w-100 h-100 object-fit-cover cursor-zoom-in" 
-                     data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+        <div class="card-workshop h-100 d-flex flex-column p-3 position-relative">
+          <!-- Thumbnail & Badges -->
+          <div class="position-relative mb-3 rounded-2 overflow-hidden bg-light d-flex align-items-center justify-content-center" style="height: 140px;">
+            {% if p.imagen %}
+              <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ p.imagen.url }}" data-alt="{{ p.nombre }}">
+            {% else %}
+              <span class="material-symbols-outlined text-black-50 display-4">{% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}</span>
+            {% endif %}
+
+            <!-- Top Left: Category Badge with Prefix -->
+            <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 text-white fw-semibold" style="font-size: 0.7rem;">
+              [{{ p.categoria.codigo_prefijo }}] {{ p.categoria.nombre }}
+            </span>
+
+            <!-- Top Right: Stock Status -->
+            <span class="position-absolute top-0 end-0 m-2">
+              {% if p.stock_critico %}
+                <span class="badge bg-danger shadow-sm">{{ p.stock_actual }} u. (Crítico)</span>
               {% else %}
-                <div class="d-flex flex-column align-items-center justify-content-center text-muted">
-                  <span class="material-symbols-outlined fs-1 text-black-50">
-                    {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}settings{% endif %}
-                  </span>
-                  <span class="small fw-bold text-uppercase mt-1" style="font-size: 0.65rem;">Sin Foto</span>
-                </div>
+                <span class="badge bg-success shadow-sm">{{ p.stock_actual }} u.</span>
               {% endif %}
+            </span>
+          </div>
 
-              <!-- Category / Type Chip -->
-              <div class="card-type-chip">
-                <span class="material-symbols-outlined fs-6 text-warning" style="vertical-align: -2px;">
-                  {% if p.tipo_producto == 'NEUMATICO' %}tire_repair{% else %}build{% endif %}
-                </span>
-                <span>{{ p.get_tipo_producto_display }}</span>
-              </div>
+          <!-- Product Details -->
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="font-monospace fw-bold text-primary small">{{ p.codigo_sku }}</span>
+            <span class="badge bg-light text-secondary border small">{{ p.get_tipo_producto_display }}</span>
+          </div>
 
-              <!-- SKU Chip -->
-              <div class="card-sku-chip">
-                {{ p.codigo_sku }}
-              </div>
+          <h3 class="fs-6 fw-bold text-dark mb-1 text-truncate" title="{{ p.nombre }}">{{ p.nombre }}</h3>
+          
+          <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.75rem;">
+            {% if p.tipo_producto == 'REPUESTO' and p.repuesto %}
+              {{ p.repuesto.marca_repuesto|default:"Genérico" }} · N° Pieza: {{ p.repuesto.numero_parte|default:"—" }}
+            {% elif p.tipo_producto == 'NEUMATICO' and p.neumatico %}
+              {{ p.neumatico.marca_neumatico }} · Medida: {{ p.neumatico.ancho }}/{{ p.neumatico.perfil }} R{{ p.neumatico.diametro }}
+            {% else %}
+              {{ p.descripcion|truncatechars:50|default:"Sin descripción técnica adicional" }}
+            {% endif %}
+          </p>
+
+          <!-- Price & Financial Info -->
+          <div class="d-flex justify-content-between align-items-baseline pt-2 mb-3 border-top">
+            <div>
+              <span class="text-muted" style="font-size: 0.68rem; display: block;">PRECIO VENTA</span>
+              <span class="fs-5 fw-black text-primary">Bs {{ p.precio_venta|floatformat:2 }}</span>
             </div>
-
-            <!-- Body Info -->
-            <div class="p-3">
-              <div class="text-muted fw-bold text-uppercase small mb-1" style="font-size: 0.68rem;">
-                {{ p.categoria.nombre|default:"General" }}
-              </div>
-              <h3 class="fw-bold text-dark fs-6 text-truncate mb-1" title="{{ p.nombre }}">
-                {{ p.nombre }}
-              </h3>
-
-              {% if p.repuesto and p.repuesto.marca_repuesto %}
-                <p class="text-muted small mb-0 text-truncate">Marca: {{ p.repuesto.marca_repuesto }}</p>
-              {% elif p.neumatico %}
-                <p class="text-muted small mb-0 font-monospace text-truncate">Medida: {{ p.neumatico.medida }}</p>
-              {% endif %}
-
-              <!-- Stock & Price section -->
-              <div class="d-flex justify-content-between align-items-end mt-3 pt-3 border-top">
-                <div>
-                  <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Existencias</div>
-                  <div class="d-flex align-items-center gap-1 mt-0.5">
-                    <span class="fs-5 fw-black {% if p.stock_critico %}text-danger{% else %}text-dark{% endif %}">
-                      {{ p.stock_actual }}
-                    </span>
-                    <span class="text-muted small" style="font-size: 0.72rem;">u.</span>
-                    {% if p.stock_critico %}
-                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size: 0.65rem;">
-                        Crítico
-                      </span>
-                    {% else %}
-                      <span class="badge bg-success-subtle text-success ms-1" style="font-size: 0.65rem;">
-                        OK
-                      </span>
-                    {% endif %}
-                  </div>
-                </div>
-
-                <div class="text-end">
-                  <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Precio Venta</div>
-                  <div class="fs-5 fw-black text-primary mt-0.5">${{ p.precio_venta|floatformat:2 }}</div>
-                </div>
-              </div>
+            <div class="text-end">
+              <span class="text-muted" style="font-size: 0.68rem; display: block;">COSTO</span>
+              <span class="text-secondary small fw-semibold">Bs {{ p.precio_costo|floatformat:2 }}</span>
             </div>
           </div>
 
-          <!-- Card Footer Actions -->
-          <div class="p-2 bg-light border-top d-flex align-items-center justify-content-between">
+          <!-- Action Buttons -->
+          <div class="d-flex gap-1 justify-content-between align-items-center pt-2 border-top">
             <div class="d-flex gap-1">
-              {% if user.es_administrador %}
+              {% if user.es_administrador or user.tiene_permiso.puede_ajustar_stock %}
               <a href="{% url 'inventario:ajuste_stock' p.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Ajustar Stock">
                 <span class="material-symbols-outlined fs-6">sync_alt</span>
                 <span>+ Stock</span>
               </a>
               {% endif %}
-              <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Venta rápida de mostrador">
-                <span class="material-symbols-outlined fs-6">point_of_sale</span>
-                <span>Vender</span>
-              </a>
             </div>
 
-            <div class="d-flex gap-1 align-items-center">
-              {% if p.tipo_producto == 'REPUESTO' %}
-              <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+            <div class="d-flex gap-1">
+              {% if p.tipo_producto == 'REPUESTO' and p.repuesto %}
+              <a href="{% url 'inventario:repuesto_editar' p.repuesto.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
                 <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
               </a>
-              {% else %}
-              <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar detalles">
+              {% elif p.tipo_producto == 'NEUMATICO' and p.neumatico %}
+              <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
                 <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
               </a>
               {% endif %}
-              {% if user.es_administrador %}
-              <button type="button"
-                      class="btn btn-sm btn-outline-danger py-1 px-2"
-                      style="font-size: 0.72rem;"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalEliminarProducto"
-                      data-producto-nombre="{{ p.nombre }}"
-                      data-producto-sku="{{ p.codigo_sku }}"
-                      data-producto-url="{% url 'inventario:producto_eliminar' p.pk %}"
-                      title="Eliminar producto">
+
+              {% if user.es_administrador or user.tiene_permiso.puede_eliminar_inventario %}
+              <a href="{% url 'inventario:producto_eliminar' p.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" onclick="return confirm('¿Está seguro de eliminar este producto del inventario?')" title="Eliminar producto">
                 <span class="material-symbols-outlined fs-6">delete</span>
-              </button>
+                <span>Eliminar</span>
+              </a>
               {% endif %}
             </div>
           </div>
         </div>
       </div>
       {% empty %}
-      <div class="col-12">
-        <div class="card-workshop p-5 text-center text-muted">
-          <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">inventory_2</span>
-          <h3 class="fs-6 fw-bold text-dark">No se encontraron productos</h3>
-          <p class="small text-muted mb-3">No hay productos que coincidan con los filtros aplicados.</p>
-          <div class="d-flex gap-2 justify-content-center">
-            <a href="{% url 'inventario:lista' %}" class="btn btn-outline-secondary btn-sm">Ver todos</a>
-            {% if user.es_administrador %}
-            <button type="button" class="btn btn-tm-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modal-nuevo-repuesto">+ Nuevo Repuesto</button>
-            {% endif %}
-          </div>
+      <div class="col-12 text-center py-5 bg-white rounded-3 border">
+        <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">inventory_2</span>
+        <h3 class="h6 fw-bold text-dark mb-1">No se encontraron productos registrados</h3>
+        <p class="small text-muted mb-3">Probá modificando los filtros de búsqueda o agregá un nuevo repuesto.</p>
+        {% if user.es_administrador or user.tiene_permiso.puede_crear_inventario %}
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{% url 'inventario:repuesto_crear' %}" class="btn btn-tm-gold btn-sm">+ Nuevo Repuesto</a>
+          <a href="{% url 'inventario:neumatico_crear' %}" class="btn btn-tm-navy btn-sm">+ Nuevo Neumático</a>
         </div>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
   {% endif %}
+
 </div>
-
-<!-- ── MODAL BOOTSTRAP: Nuevo Repuesto (PRO UX) ── -->
-{% if user.es_administrador %}
-<div class="modal fade" id="modal-nuevo-repuesto" tabindex="-1" aria-labelledby="modalNuevoRepuestoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header-tm">
-        <div class="d-flex align-items-center gap-3">
-          <div class="modal-icon-badge">
-            <span class="material-symbols-outlined">settings</span>
-          </div>
-          <div>
-            <h5 class="modal-title-tm" id="modalNuevoRepuestoLabel">Nuevo Repuesto Mecánico</h5>
-            <p class="modal-subtitle-tm">Carga rápida al catálogo con precios y control de stock</p>
-          </div>
-        </div>
-        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
-          <span class="material-symbols-outlined fs-5">close</span>
-        </button>
-      </div>
-
-      <form method="POST" action="{% url 'inventario:repuesto_crear' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="modal-body-tm">
-          
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">inventory_2</span>
-              <span>1. Identificación Principal</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12 col-md-8">
-                <label class="form-label-pro">Nombre del Repuesto <span class="req">*</span></label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">settings</span>
-                  </div>
-                  <input type="text" name="nombre" required class="form-control-pro" placeholder="Ej: Pastillas de Freno Delanteras">
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Código SKU</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">qr_code</span>
-                  </div>
-                  <input type="text" name="codigo_sku" class="form-control-pro font-monospace" placeholder="REP-001">
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Categoría</label>
-                <select name="categoria" class="form-select-pro">
-                  <option value="">-- Sin categoría --</option>
-                  {% for c in categorias %}
-                    <option value="{{ c.pk }}">{{ c.nombre }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Fabricante / Marca</label>
-                <input type="text" name="marca_repuesto" class="form-control-pro" placeholder="Ej: Bosch, Brembo">
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Número de Pieza</label>
-                <input type="text" name="numero_parte" class="form-control-pro font-monospace" placeholder="0986AB1234">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">payments</span>
-              <span>2. Precios & Existencias</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Precio Costo ($)</label>
-                <input type="number" step="0.01" name="precio_costo" value="0.00" class="form-control-pro">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Precio Venta ($) <span class="req">*</span></label>
-                <input type="number" step="0.01" name="precio_venta" required value="0.00" class="form-control-pro fw-bold text-primary">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Stock Inicial</label>
-                <input type="number" name="stock_actual" value="0" min="0" class="form-control-pro">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Stock Mínimo</label>
-                <input type="number" name="stock_minimo" value="2" min="0" class="form-control-pro">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">photo_camera</span>
-              <span>3. Fotografía & Compatibilidad</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label-pro">Modelos / Vehículos Compatibles</label>
-                <input type="text" name="compatible_con" class="form-control-pro" placeholder="Ej: Toyota Hilux 2016-2023, Ford Ranger 3.2">
-              </div>
-              <div class="col-12">
-                <label class="form-label-pro">Foto del Repuesto</label>
-                <input type="file" name="imagen" accept="image/*" class="form-control-pro">
-              </div>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-footer-tm">
-          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
-            <span class="material-symbols-outlined fs-6">check</span>
-            <span>Guardar Repuesto</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL BOOTSTRAP: Nuevo Neumático (PRO UX) ── -->
-<div class="modal fade" id="modal-nuevo-neumatico" tabindex="-1" aria-labelledby="modalNuevoNeumaticoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header-tm">
-        <div class="d-flex align-items-center gap-3">
-          <div class="modal-icon-badge">
-            <span class="material-symbols-outlined">tire_repair</span>
-          </div>
-          <div>
-            <h5 class="modal-title-tm" id="modalNuevoNeumaticoLabel">Nuevo Neumático</h5>
-            <p class="modal-subtitle-tm">Especificaciones de medida, rodado, precios y existencias</p>
-          </div>
-        </div>
-        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
-          <span class="material-symbols-outlined fs-5">close</span>
-        </button>
-      </div>
-
-      <form method="POST" action="{% url 'inventario:neumatico_crear' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="modal-body-tm">
-
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">straighten</span>
-              <span>1. Medidas & Especificaciones</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12 col-md-8">
-                <label class="form-label-pro">Nombre / Denominación Comercial <span class="req">*</span></label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">tire_repair</span>
-                  </div>
-                  <input type="text" name="nombre" required class="form-control-pro" placeholder="Ej: Michelin Primacy 4 205/55 R16">
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Código SKU</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">qr_code</span>
-                  </div>
-                  <input type="text" name="codigo_sku" class="form-control-pro font-monospace" placeholder="NEU-001">
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Marca</label>
-                <input type="text" name="marca_neumatico" class="form-control-pro" placeholder="Ej: Pirelli, Michelin, Bridgestone">
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Modelo</label>
-                <input type="text" name="modelo_neumatico" class="form-control-pro" placeholder="Ej: Cinturato P7">
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label-pro">Medida (ej: 205/55 R16) <span class="req">*</span></label>
-                <input type="text" name="medida" required class="form-control-pro font-monospace" placeholder="205/55 R16">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">payments</span>
-              <span>2. Precios & Existencias</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Precio Costo ($)</label>
-                <input type="number" step="0.01" name="precio_costo" value="0.00" class="form-control-pro">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Precio Venta ($) <span class="req">*</span></label>
-                <input type="number" step="0.01" name="precio_venta" required value="0.00" class="form-control-pro fw-bold text-primary">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Stock Inicial</label>
-                <input type="number" name="stock_actual" value="0" min="0" class="form-control-pro">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Stock Mínimo</label>
-                <input type="number" name="stock_minimo" value="4" min="0" class="form-control-pro">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">photo_camera</span>
-              <span>3. Fotografía del Neumático</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label-pro">Imagen del Producto</label>
-                <input type="file" name="imagen" accept="image/*" class="form-control-pro">
-              </div>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-footer-tm">
-          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
-            <span class="material-symbols-outlined fs-6">check</span>
-            <span>Guardar Neumático</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% if user.es_administrador %}
-<!-- ── MODAL: Confirmar Eliminación de Producto ── -->
-<div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-labelledby="modalEliminarProductoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="modal-body p-4 text-center">
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-
-        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
-          <span class="material-symbols-outlined fs-2">delete_forever</span>
-        </div>
-
-        <h5 class="fw-bold text-dark mb-1" id="modalEliminarProductoLabel">¿Eliminar producto?</h5>
-        <p class="text-muted small mb-3">Esta acción eliminará el artículo del catálogo activo.</p>
-
-        <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
-          <div class="d-flex align-items-center justify-content-between mb-1">
-            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Código SKU</span>
-            <span id="deleteProductoSku" class="badge bg-dark text-white font-monospace px-2 py-1"></span>
-          </div>
-          <div class="text-dark fw-semibold small" id="deleteProductoNombre"></div>
-        </div>
-
-        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
-          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
-          Si posee movimientos de stock o fue usado en órdenes previas, se desactivará del catálogo para resguardar la trazabilidad contable.
-        </div>
-
-        <form id="formEliminarProducto" method="POST" action="">
-          {% csrf_token %}
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
-              <span class="material-symbols-outlined fs-6">delete</span>
-              <span>Eliminar</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-
-{% block extra_js %}
-<script src="{% static 'js/inventario/lista.js' %}"></script>
 {% endblock %}

@@ -1,16 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, RestrictedError, ProtectedError
 from .models import Cliente
 from .forms import ClienteForm
 from core.models import Auditoria
+from apps.accounts.decorador import requiere_permiso
 
 
 @login_required
+@requiere_permiso('puede_ver_clientes')
 def cliente_list(request):
-    query = request.GET.get('q', '')
-    # Auto-recuperar clientes sin vehículos que quedaron inactivos por el formulario anterior
+    query = request.GET.get('q', '').strip()
     Cliente.objects.filter(activo=False, vehiculos__isnull=True).update(activo=True)
     qs = Cliente.objects.filter(activo=True)
     if query:
@@ -19,6 +20,7 @@ def cliente_list(request):
 
 
 @login_required
+@requiere_permiso('puede_ver_clientes')
 def cliente_detalle(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     vehiculos = cliente.vehiculos.all().order_by('-fecha_creacion')
@@ -38,10 +40,8 @@ def cliente_detalle(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_crear_clientes', login_url='clientes:lista')
 def cliente_crear(request):
-    if not request.user.es_administrador:
-        messages.error(request, 'Sin permisos para crear clientes.')
-        return redirect('clientes:lista')
     form = ClienteForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         cliente = form.save(commit=False)
@@ -55,10 +55,8 @@ def cliente_crear(request):
 
 
 @login_required
+@requiere_permiso('puede_editar_clientes', login_url='clientes:lista')
 def cliente_editar(request, pk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Sin permisos para editar clientes.')
-        return redirect('clientes:lista')
     cliente = get_object_or_404(Cliente, pk=pk)
     valores_anteriores = {'nombre': cliente.nombre_razon_social, 'documento': cliente.documento}
     form = ClienteForm(request.POST or None, request.FILES or None, instance=cliente)
@@ -71,14 +69,9 @@ def cliente_editar(request, pk):
     return render(request, 'clientes/form.html', {'form': form, 'title': f'Editar: {cliente.nombre_razon_social}', 'cliente': cliente})
 
 
-from django.db.models import RestrictedError, ProtectedError
-
 @login_required
+@requiere_permiso('puede_eliminar_clientes', login_url='clientes:lista')
 def cliente_eliminar(request, pk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Solo los administradores pueden eliminar o desactivar clientes.')
-        return redirect('clientes:lista')
-
     if request.method != 'POST':
         messages.warning(request, 'Método no permitido para esta acción.')
         return redirect('clientes:lista')
@@ -89,14 +82,13 @@ def cliente_eliminar(request, pk):
 
     tiene_vehiculos = cliente.vehiculos.exists()
     tiene_facturas = hasattr(cliente, 'facturas') and cliente.facturas.exists()
-    tiene_reservas = hasattr(cliente, 'reservas') and cliente.reservas.exists()
 
     try:
-        if tiene_vehiculos or tiene_facturas or tiene_reservas:
+        if tiene_vehiculos or tiene_facturas:
             cliente.activo = False
             cliente.save()
             accion_audit = 'MODIFICAR'
-            mensaje = f'El cliente "{nombre}" posee historial (vehículos/facturas/reservas), por lo que fue desactivado del sistema.'
+            mensaje = f'El cliente "{nombre}" posee historial (vehículos/comprobantes), por lo que fue desactivado del sistema.'
         else:
             cliente.delete()
             accion_audit = 'ELIMINAR'

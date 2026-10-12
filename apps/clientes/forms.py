@@ -14,3 +14,12 @@ class ClienteForm(forms.ModelForm):
             'direccion': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
             'foto': forms.FileInput(attrs={'class': 'form-input'}),
         }
+        
+    def clean_nombre_razon_social(self):
+        nombre =self.cleaned_data.get('nombre_razon_social', '')
+        return nombre.strip() if nombre else nombre
+    
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento', '')
+        return documento.strip() if documento else documento
+        

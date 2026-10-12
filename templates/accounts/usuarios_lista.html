@@ -118,21 +118,23 @@
               {% endif %}
             </td>
             <td>
-              {% if u.rol == 'DUENO' %}
+              {% if u.rol.codigo == 'DUENO' %}
                 <span class="badge-status status-pendiente">
                   <span class="material-symbols-outlined fs-6">military_tech</span>
-                  <span>Dueño / Gerente</span>
+                  <span>{{ u.rol.nombre }}</span>
                 </span>
-              {% elif u.rol == 'ADMINISTRADOR' %}
+              {% elif u.rol.codigo == 'ADMINISTRADOR' %}
                 <span class="badge-status status-en_proceso">
                   <span class="material-symbols-outlined fs-6">shield_person</span>
-                  <span>Administrador</span>
+                  <span>{{ u.rol.nombre }}</span>
+                </span>
+              {% elif u.rol %}
+                <span class="badge-status status-completada">
+                  <span class="material-symbols-outlined fs-6">badge</span>
+                  <span>{{ u.rol.nombre }}</span>
                 </span>
               {% else %}
-                <span class="badge-status status-completada">
-                  <span class="material-symbols-outlined fs-6">build</span>
-                  <span>Técnico Mecánico</span>
-                </span>
+                <span class="badge bg-light text-muted border">Sin Rol</span>
               {% endif %}
             </td>
             <td>

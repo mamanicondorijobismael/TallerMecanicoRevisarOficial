@@ -32,6 +32,11 @@ class Vehiculo(ModeloBase):
             models.Index(fields=['cliente']),
         ]
 
+    def __str__(self):
+        anio_str = f" ({self.anio})" if self.anio else ""
+        cliente_str = f" - {self.cliente.nombre_razon_social}" if self.cliente_id else ""
+        return f"{self.marca} {self.modelo}{anio_str} [{self.placa}]{cliente_str}"
+
     @property
     def patente(self):
         return self.placa
@@ -43,4 +48,5 @@ class Vehiculo(ModeloBase):
     @property
     def ultimo_servicio(self):
         return self.ordenes.filter(estado__in=['COMPLETADA', 'ENTREGADA', 'FACTURADA']).order_by('-fecha_creacion').first()
+
 

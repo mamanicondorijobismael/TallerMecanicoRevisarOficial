@@ -119,7 +119,7 @@
                 <span class="badge-status status-completada">{{ p.stock_actual }} u.</span>
               {% endif %}
             </td>
-            <td class="text-end fw-bold text-dark small">${{ p.precio_venta|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-dark small">Bs {{ p.precio_venta|floatformat:2 }}</td>
             <td class="text-end">
               <div class="d-flex gap-1 justify-content-end align-items-center">
                 {% if user.es_administrador %}
@@ -128,13 +128,15 @@
                   <span>+ Stock</span>
                 </a>
                 {% endif %}
-                <a href="{% url 'inventario:venta_directa' p.pk %}" class="btn btn-sm btn-tm-gold py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
-                  <span class="material-symbols-outlined fs-6">point_of_sale</span>
-                  <span>Vender</span>
-                </a>
                 <a href="{% url 'inventario:neumatico_editar' p.neumatico.pk %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.72rem;" title="Editar">
                   <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
                 </a>
+                {% if user.es_administrador %}
+                <a href="{% url 'inventario:producto_eliminar' p.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" onclick="return confirm('¿Eliminar este neumático del inventario?')" title="Eliminar">
+                  <span class="material-symbols-outlined fs-6">delete</span>
+                  <span>Eliminar</span>
+                </a>
+                {% endif %}
               </div>
             </td>
           </tr>

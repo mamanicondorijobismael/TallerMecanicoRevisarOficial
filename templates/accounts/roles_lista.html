@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Roles &amp; Privilegios{% endblock %}
+{% block subtitle %}Configuración estricta de roles y accesos del sistema{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'usuario_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Usuarios</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if request.user.es_administrador %}
+<a href="{% url 'rol_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">add_circle</span>
+  <span>Nuevo Rol</span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column gap-4">
+
+  <!-- Aviso de seguridad -->
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 py-2 px-3 small border rounded" role="alert">
+    <span class="material-symbols-outlined fs-5 text-warning">shield</span>
+    <div>
+      <strong>Control de Accesos Estricto:</strong> Cada rol define exactamente qué acciones puede realizar un usuario en el sistema. Modifique los privilegios con cuidado.
+    </div>
+  </div>
+
+  <!-- Tabla de Roles -->
+  <div class="card-workshop overflow-hidden">
+    <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined text-primary fs-5">admin_panel_settings</span>
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Roles del Sistema</h3>
+      </div>
+      <span class="badge bg-primary-subtle text-primary fw-bold">{{ roles.count }} roles configurados</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Código</th>
+            <th class="text-center">Usuarios</th>
+            <th class="text-center">Privilegios Clave</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rol in roles %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ rol.nombre }}</div>
+              <div class="text-muted small mt-0.5" style="font-size:0.75rem;">{{ rol.descripcion|truncatechars:55 }}</div>
+            </td>
+            <td>
+              <span class="badge bg-secondary-subtle text-secondary font-monospace fw-bold" style="font-size:0.72rem;">{{ rol.codigo }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge {% if rol.total_usuarios > 0 %}bg-primary text-white{% else %}bg-light text-muted border{% endif %} fw-bold">
+                {{ rol.total_usuarios }} usuario{{ rol.total_usuarios|pluralize }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="d-flex flex-wrap gap-1 justify-content-center">
+                {% if rol.puede_gestionar_usuarios %}<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">Gestión Usuarios</span>{% endif %}
+                {% if rol.puede_gestionar_roles %}<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">Roles</span>{% endif %}
+                {% if rol.puede_ver_reportes %}<span class="badge bg-warning-subtle text-warning" style="font-size:0.65rem;">Reportes</span>{% endif %}
+                {% if rol.puede_ver_cierre_diario %}<span class="badge bg-warning-subtle text-warning" style="font-size:0.65rem;">Cierre Diario</span>{% endif %}
+                {% if rol.puede_anular_comprobantes %}<span class="badge bg-orange-subtle text-orange" style="font-size:0.65rem; background:#fff3cd; color:#856404;">Anular Cob.</span>{% endif %}
+                {% if rol.puede_ajustar_stock %}<span class="badge bg-info-subtle text-info" style="font-size:0.65rem;">Stock</span>{% endif %}
+                {% if rol.puede_ver_dashboard %}<span class="badge bg-success-subtle text-success" style="font-size:0.65rem;">Panel de Control</span>{% endif %}
+              </div>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <a href="{% url 'rol_editar' rol.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size:0.72rem;">
+                  <span class="material-symbols-outlined fs-6">edit</span>
+                  <span>Editar</span>
+                </a>
+                {% if rol.codigo not in 'DUENO,ADMINISTRADOR' and not rol.usuarios.exists %}
+                <form method="POST" action="{% url 'rol_eliminar' rol.pk %}" onsubmit="return confirm('¿Eliminar el rol «{{ rol.nombre }}»? Esta acción no puede deshacerse.');" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size:0.72rem;">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                    <span>Eliminar</span>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">admin_panel_settings</span>
+              <div class="fw-bold mb-1">No hay roles configurados</div>
+              <p class="small mb-0">Crea el primer rol con sus privilegios específicos.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Leyenda de Privilegios -->
+  <div class="card-workshop p-4">
+    <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider d-flex align-items-center gap-2">
+      <span class="material-symbols-outlined fs-5">info</span>
+      Leyenda: Módulos y Privilegios Disponibles
+    </h3>
+    <div class="row g-3 small">
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">🏠 Panel de Control</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver Panel de Control</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">👤 Clientes</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver / Crear / Editar / Eliminar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">🚗 Vehículos</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver / Crear / Editar / Eliminar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">🔧 Órdenes de Trabajo</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver / Crear / Editar</li>
+            <li>Cambiar Estado</li>
+            <li>Eliminar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">📦 Inventario</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver / Crear / Editar / Eliminar</li>
+            <li>Ajustar Stock</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">💰 Ventas &amp; Comprobantes</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver / Emitir Comprobantes</li>
+            <li>Registrar Cobros</li>
+            <li>Anular Comprobantes</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2">📊 Reportes</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Ver Reportes &amp; Analítica</li>
+            <li>Ver Cierre Diario</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3 bg-light rounded border">
+          <div class="fw-bold text-dark mb-2 text-danger">🔐 Gestión y Seguridad</div>
+          <ul class="mb-0 ps-3 text-muted">
+            <li>Gestionar Usuarios</li>
+            <li>Gestionar Roles y Privilegios</li>
+            <li>Ver Auditoría</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

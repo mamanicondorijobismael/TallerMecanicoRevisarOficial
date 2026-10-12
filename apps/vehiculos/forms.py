@@ -1,6 +1,5 @@
 import datetime
 from django import forms
-from django.core.validators import RegexValidator
 from .models import Vehiculo
 from apps.clientes.models import Cliente
 

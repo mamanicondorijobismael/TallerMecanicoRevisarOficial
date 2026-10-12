@@ -33,7 +33,7 @@ class OrdenTrabajoAdmin(admin.ModelAdmin):
 
     @admin.display(description='Total')
     def get_total(self, obj):
-        return f"${obj.total:,.2f}"
+        return f"Bs {obj.total:,.2f}"
 
 
 @admin.register(DetalleServicio)

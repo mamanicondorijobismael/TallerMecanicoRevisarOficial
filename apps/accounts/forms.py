@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Usuario
+from .models import Usuario, Rol
 
 
 class UsuarioCreationForm(UserCreationForm):
@@ -38,4 +38,25 @@ class UsuarioChangeForm(forms.ModelForm):
             'rol': forms.Select(attrs={'class': 'form-input'}),
             'telefono': forms.TextInput(attrs={'class': 'form-input'}),
             'foto': forms.FileInput(attrs={'class': 'form-input'}),
+        }
+
+
+class RolForm(forms.ModelForm):
+    class Meta:
+        model = Rol
+        fields = [
+            'nombre', 'codigo', 'descripcion',
+            'puede_ver_dashboard',
+            'puede_ver_clientes', 'puede_crear_clientes', 'puede_editar_clientes', 'puede_eliminar_clientes',
+            'puede_ver_vehiculos', 'puede_crear_vehiculos', 'puede_editar_vehiculos', 'puede_eliminar_vehiculos',
+            'puede_ver_ordenes', 'puede_crear_ordenes', 'puede_editar_ordenes', 'puede_cambiar_estado_ordenes', 'puede_eliminar_ordenes',
+            'puede_ver_inventario', 'puede_crear_inventario', 'puede_editar_inventario', 'puede_eliminar_inventario', 'puede_ajustar_stock',
+            'puede_ver_comprobantes', 'puede_crear_comprobantes', 'puede_cobrar_comprobantes', 'puede_anular_comprobantes',
+            'puede_ver_reportes', 'puede_ver_cierre_diario',
+            'puede_gestionar_usuarios', 'puede_gestionar_roles', 'puede_ver_auditoria',
+        ]
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Jefe de Taller'}),
+            'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: JEFE_TALLER'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Descripción de funciones...'}),
         }

@@ -152,7 +152,7 @@
               <td>
                 <span class="badge-status status-{{ o.estado|lower }}">{{ o.get_estado_display }}</span>
               </td>
-              <td class="text-end fw-bold text-dark small">${{ o.total|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark small">Bs {{ o.total|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" class="py-4 text-center text-muted small fst-italic">No hay órdenes registradas.</td></tr>
@@ -193,7 +193,7 @@
                   <span class="badge-status status-pendiente">PENDIENTE</span>
                 {% endif %}
               </td>
-              <td class="text-end fw-bold text-dark small">${{ f.total|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark small">Bs {{ f.total|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="4" class="py-4 text-center text-muted small fst-italic">No hay comprobantes de cobro emitidos.</td></tr>

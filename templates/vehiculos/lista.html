@@ -15,29 +15,18 @@
 </a>
 {% endblock %}
 
+
 {% block topbar_actions %}
-<!-- ✅ Botón principal único con ícono de auto -->
-<button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">
+<a href="{% url 'vehiculos:crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
   <span class="material-symbols-outlined fs-6">directions_car</span>
   <span>Nuevo Vehículo</span>
-</button>
+</a>
 {% endblock %}
+
 
 {% block content %}
 <div class="d-flex flex-column gap-4">
 
-  <!-- ── Header Card ── -->
-  <div class="d-flex align-items-center gap-3 bg-white p-3 p-md-4 rounded-3 border shadow-sm">
-    <div class="sidebar-brand-icon bg-primary-subtle text-primary">
-      <span class="material-symbols-outlined fs-3" style="font-variation-settings: 'FILL' 1;">directions_car</span>
-    </div>
-    <div>
-      <h2 class="h6 fw-bold text-primary mb-0">Parque Automotor</h2>
-      <p class="text-muted small mb-0">Unidades registradas, historial de servicios y especificaciones</p>
-    </div>
-  </div>
-
-  <!-- Filtro -->
   <div class="card-workshop p-3">
     <form method="GET" class="row g-2 align-items-center">
       <div class="col-12 col-md-6 col-lg-5">
@@ -62,7 +51,6 @@
     </form>
   </div>
 
-  {# Grid de tarjetas #}
   <div class="row g-4">
     {% for vehiculo in vehiculos %}
     <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
@@ -79,7 +67,6 @@
             </div>
           {% endif %}
 
-          <!-- Placa badge -->
           <div class="vehicle-plate-badge">
             {{ vehiculo.placa|upper }}
           </div>
@@ -89,7 +76,6 @@
           </div>
         </div>
 
-        <!-- Cuerpo e Información de la tarjeta -->
         <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
           <!-- Propietario y Kilometraje -->
           <div class="d-flex justify-content-between align-items-start mb-2">
@@ -103,7 +89,7 @@
             </div>
           </div>
 
-          <!-- Fila intermedia: Badges de Año/Color y Ver ficha -->
+
           <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto mb-3">
             <div class="d-flex gap-1 align-items-center">
               <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.anio|default:"S/A" }}</span>
@@ -116,14 +102,14 @@
             </a>
           </div>
 
-          <!-- 🔴 Botón de Eliminar para Administradores -->
           {% if request.user.es_administrador %}
           <button type="button"
                   class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-1 fw-semibold py-1.5 rounded-2"
                   data-bs-toggle="modal"
                   data-bs-target="#modalEliminarVehiculo"
                   data-vehiculo-placa="{{ vehiculo.placa|upper }}"
-                  data-vehiculo-info="{{ vehiculo.marca }} {{ vehiculo.modelo }}"
+                  data-vehiculo-marca="{{ vehiculo.marca }}"
+                  data-vehiculo-modelo="{{ vehiculo.modelo }}"
                   data-vehiculo-url="{% url 'vehiculos:eliminar' vehiculo.pk %}"
                   title="Eliminar vehículo del sistema">
             <span class="material-symbols-outlined fs-6">delete</span>
@@ -140,185 +126,20 @@
         <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">directions_car</span>
         <h3 class="fs-6 fw-bold text-dark">No se encontraron vehículos</h3>
         <p class="small text-muted mb-3">Probá con otros términos o registrá un nuevo vehículo.</p>
-        <button type="button" class="btn btn-tm-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modal-nuevo-vehiculo">Nuevo Vehículo</button>
+        <a href="{% url 'vehiculos:crear' %}" class="btn btn-tm-gold btn-sm">Nuevo Vehículo</a>
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
 
-<!-- ── MODAL BOOTSTRAP: Nuevo Vehículo (PRO UX) ── -->
-<div class="modal fade" id="modal-nuevo-vehiculo" tabindex="-1" aria-labelledby="modalNuevoVehiculoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <!-- Header -->
-      <div class="modal-header-tm">
-        <div class="d-flex align-items-center gap-3">
-          <div class="modal-icon-badge">
-            <span class="material-symbols-outlined">directions_car</span>
-          </div>
-          <div>
-            <h5 class="modal-title-tm" id="modalNuevoVehiculoLabel">Nuevo Vehículo</h5>
-            <p class="modal-subtitle-tm">Registrá las especificaciones técnicas y asigná el propietario</p>
-          </div>
-        </div>
-        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
-          <span class="material-symbols-outlined fs-5">close</span>
-        </button>
-      </div>
-
-      <!-- Form -->
-      <form method="POST" action="{% url 'vehiculos:crear' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="modal-body-tm">
-
-          <!-- Sección 1: Propietario e Identificación -->
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">assignment_ind</span>
-              <span>1. Propietario & Placa</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12 col-md-7">
-                <label class="form-label-pro">Cliente / Propietario <span class="req">*</span></label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">person</span>
-                  </div>
-                  <select name="cliente" required class="form-select-pro">
-                    <option value="">-- Seleccionar Cliente --</option>
-                    {% for c in clientes %}
-                      <option value="{{ c.pk }}">{{ c.nombre_razon_social }} {% if c.documento %}({{ c.documento }}){% endif %}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="col-12 col-md-5">
-                <label class="form-label-pro">Placa / Patente <span class="req">*</span></label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">tag</span>
-                  </div>
-                  <input type="text" name="placa" required class="form-control-pro text-uppercase fw-bold font-monospace" placeholder="Ej: ABC-123">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección 2: Especificaciones Técnicas -->
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">tune</span>
-              <span>2. Especificaciones Técnicas</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-12 col-md-6">
-                <label class="form-label-pro">Marca</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">minor_crash</span>
-                  </div>
-                  <input type="text" name="marca" class="form-control-pro" placeholder="Ej: Toyota, Ford, Chevrolet">
-                </div>
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label-pro">Modelo</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">commute</span>
-                  </div>
-                  <input type="text" name="modelo" class="form-control-pro" placeholder="Ej: Corolla, Ranger, Cruze">
-                </div>
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Año</label>
-                <input type="number" name="anio" min="1900" max="2030" class="form-control-pro" placeholder="2022">
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label-pro">Color</label>
-                <select name="color" class="form-select-pro">
-                  <option value="BLANCO">Blanco</option>
-                  <option value="NEGRO">Negro</option>
-                  <option value="GRIS">Gris / Plata</option>
-                  <option value="AZUL">Azul</option>
-                  <option value="ROJO">Rojo</option>
-                  <option value="VERDE">Verde</option>
-                  <option value="OTRO">Otro</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label-pro">Kilometraje Actual (km)</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">speed</span>
-                  </div>
-                  <input type="number" name="kilometraje_actual" min="0" class="form-control-pro" placeholder="Ej: 45000">
-                </div>
-              </div>
-              <div class="col-12">
-                <label class="form-label-pro">VIN / Número de Chasis</label>
-                <div class="input-icon-group">
-                  <div class="input-icon-lead">
-                    <span class="material-symbols-outlined">vpn_key</span>
-                  </div>
-                  <input type="text" name="vin" class="form-control-pro font-monospace" placeholder="17 caracteres alfanuméricos">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección 3: Fotografía del Vehículo -->
-          <div class="form-section-card">
-            <div class="form-section-header">
-              <span class="material-symbols-outlined">photo_camera</span>
-              <span>3. Fotografía de la Unidad</span>
-            </div>
-            <div class="photo-dropzone-wrap" id="vehiculo-dropzone">
-              <div class="photo-preview-avatar">
-                <span class="material-symbols-outlined fs-2" id="vehiculo-foto-placeholder">directions_car</span>
-                <img src="" id="vehiculo-foto-preview" class="d-none" alt="Vista previa">
-              </div>
-              <div class="flex-grow-1">
-                <input type="file" name="foto" id="vehiculo-foto-input" accept="image/*" class="d-none">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <button type="button" onclick="document.getElementById('vehiculo-foto-input').click()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
-                    <span class="material-symbols-outlined fs-6">upload</span>
-                    <span>Seleccionar foto</span>
-                  </button>
-                  <button type="button" id="vehiculo-foto-remove" class="btn btn-sm btn-outline-danger d-none d-flex align-items-center gap-1">
-                    <span class="material-symbols-outlined fs-6">delete</span>
-                    <span>Eliminar</span>
-                  </button>
-                </div>
-                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Arrastrá una foto aquí o hacé clic en seleccionar. Formatos: PNG, JPG, WEBP</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="modal-footer-tm">
-          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
-            <span class="material-symbols-outlined fs-6">check</span>
-            <span>Registrar Vehículo</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Confirmar Eliminación de Vehículo (Sencillo y Elegante) ── -->
+<!-- MODAL para  Confirmar Eliminación de Vehículo ── -->
 <div class="modal fade" id="modalEliminarVehiculo" tabindex="-1" aria-labelledby="modalEliminarVehiculoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
       <div class="modal-body p-4 text-center">
-        <!-- Close Button -->
         <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 
-        <!-- Icon Badge -->
         <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
           <span class="material-symbols-outlined fs-2">delete_outline</span>
         </div>
@@ -326,7 +147,6 @@
         <h5 class="fw-bold text-dark mb-1" id="modalEliminarVehiculoLabel">¿Eliminar vehículo?</h5>
         <p class="text-muted small mb-3">Esta acción eliminará el vehículo del listado activo.</p>
 
-        <!-- Vehicle Details Pill -->
         <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
           <div class="d-flex align-items-center justify-content-between mb-1">
             <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Unidad</span>
@@ -340,7 +160,6 @@
           Si tiene órdenes de trabajo vinculadas, se desactivará automáticamente para preservar el historial.
         </div>
 
-        <!-- Form & Buttons -->
         <form id="formEliminarVehiculo" method="POST" action="">
           {% csrf_token %}
           <div class="d-flex gap-2">

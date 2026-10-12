@@ -1,6 +1,3 @@
-/* ==========================================================================
-   Vehículos Module - Lista JS
-   ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', function() {
   const fotoInput = document.getElementById('vehiculo-foto-input');

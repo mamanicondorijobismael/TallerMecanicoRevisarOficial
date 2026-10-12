@@ -11,8 +11,6 @@ urlpatterns = [
     path('neumaticos/', views.neumatico_list, name='neumaticos'),
     path('neumaticos/nuevo/', views.neumatico_crear, name='neumatico_crear'),
     path('neumaticos/<int:pk>/editar/', views.neumatico_editar, name='neumatico_editar'),
-    path('<int:pk>/venta/', views.venta_directa, name='venta_directa'),
-    path('recibo/<int:pk>/', views.venta_recibo, name='venta_recibo'),
     path('<int:pk>/ajuste/', views.ajuste_stock, name='ajuste_stock'),
     path('movimientos/', views.movimientos_list, name='movimientos'),
     # Categorias

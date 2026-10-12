@@ -15,9 +15,8 @@ urlpatterns = [
     path('vehiculos/', include('apps.vehiculos.urls')),
     path('inventario/', include('apps.inventario.urls')),
     path('ordenes/', include('apps.ordenes.urls')),
-    path('facturas/', include('apps.facturas.urls')),
-    path('reservas/', include('apps.reservas.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.urls')),
+    path('comprobantes/', include('apps.facturas.urls')),
+    path('facturas/', lambda request: redirect('facturas:lista')),
     path('reportes/', include('apps.reportes.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
   + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

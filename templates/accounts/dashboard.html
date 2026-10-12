@@ -37,7 +37,7 @@
         </div>
         <div class="min-w-0">
           <div class="kpi-title">Ingresos del Período</div>
-          <div class="kpi-value">${{ ingresos_total|floatformat:0 }}</div>
+          <div class="kpi-value">Bs {{ ingresos_total|floatformat:0 }}</div>
           <span class="kpi-badge bg-success-subtle text-success">Últimos {{ periodo|default:"30" }}d</span>
         </div>
       </div>
@@ -92,21 +92,21 @@
     <div class="col-12 col-md-4">
       <div class="dueño-card border-start border-4 border-warning">
         <div class="kpi-title text-primary">Ganancia Neta Estimada</div>
-        <div class="kpi-value">${{ ganancia_neta|floatformat:0 }}</div>
+        <div class="kpi-value">Bs {{ ganancia_neta|floatformat:0 }}</div>
         <div class="text-muted small mt-1">Margen sobre órdenes finalizadas</div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="dueño-card border-start border-4 border-secondary">
         <div class="kpi-title">Costos Materiales / Insumos</div>
-        <div class="kpi-value">${{ costos_total|floatformat:0 }}</div>
+        <div class="kpi-value">Bs {{ costos_total|floatformat:0 }}</div>
         <div class="text-muted small mt-1">Valoración de repuestos utilizados</div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="dueño-card border-start border-4 border-info">
         <div class="kpi-title">Ticket Promedio</div>
-        <div class="kpi-value">${{ ticket_promedio|floatformat:0 }}</div>
+        <div class="kpi-value">Bs {{ ticket_promedio|floatformat:0 }}</div>
         <div class="text-muted small mt-1">Sobre {{ ordenes_completadas_mes }} servicios concluidos</div>
       </div>
     </div>
@@ -218,33 +218,7 @@
       </div>
       {% endif %}
 
-      <!-- Próximas Citas Widget -->
-      {% if reservas_proximas %}
-      <div class="card-workshop p-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <h4 class="fs-6 fw-bold text-primary text-uppercase tracking-wider mb-0 d-flex align-items-center gap-1">
-            <span class="material-symbols-outlined fs-5">calendar_today</span>
-            <span>Citas Agendadas</span>
-          </h4>
-          <a href="{% url 'reservas:lista' %}" class="small text-decoration-none text-secondary fw-semibold">Agenda</a>
-        </div>
-        <div class="d-flex flex-column gap-2">
-          {% for r in reservas_proximas %}
-          <div class="d-flex align-items-start gap-2 p-2 rounded bg-light border small">
-            <div class="rounded bg-primary text-warning fw-bold px-2 py-1 text-center flex-shrink-0" style="min-width: 38px;">
-              <div style="font-size: 0.8rem; line-height: 1;">{{ r.fecha_hora|date:"d" }}</div>
-              <div class="text-uppercase" style="font-size: 0.62rem; line-height: 1;">{{ r.fecha_hora|date:"M" }}</div>
-            </div>
-            <div class="min-w-0 flex-grow-1">
-              <div class="fw-semibold text-dark text-truncate">{{ r.cliente.nombre_razon_social }}</div>
-              <div class="text-muted text-truncate" style="font-size: 0.75rem;">{{ r.servicio_solicitado }}</div>
-              <div class="text-primary fw-semibold" style="font-size: 0.72rem;">{{ r.fecha_hora|date:"H:i" }} hs</div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
+
     </div>
   </div>
 </div>

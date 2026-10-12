@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Configuración de privilegios y accesos del rol{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'roles_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Roles</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="POST" class="d-flex flex-column gap-4">
+  {% csrf_token %}
+
+  <!-- Datos Básicos del Rol -->
+  <div class="card-workshop p-4">
+    <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider d-flex align-items-center gap-2">
+      <span class="material-symbols-outlined fs-5">badge</span>
+      Información del Rol
+    </h3>
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label form-label-tm">Nombre del Rol <span class="text-danger">*</span></label>
+        <input type="text" name="nombre" value="{{ form.nombre.value|default:'' }}" class="form-control form-control-tm" placeholder="Ej: Jefe de Taller" required>
+        {% if form.nombre.errors %}<div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label form-label-tm">Código Identificador <span class="text-danger">*</span></label>
+        <input type="text" name="codigo" value="{{ form.codigo.value|default:'' }}" class="form-control form-control-tm font-monospace text-uppercase" placeholder="Ej: JEFE_TALLER" required>
+        {% if form.codigo.errors %}<div class="text-danger small mt-1">{{ form.codigo.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label form-label-tm">Descripción</label>
+        <input type="text" name="descripcion" value="{{ form.descripcion.value|default:'' }}" class="form-control form-control-tm" placeholder="Breve descripción...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Privilegios por Módulo -->
+  <div class="card-workshop p-4">
+    <h3 class="fs-6 fw-bold text-primary mb-1 text-uppercase tracking-wider d-flex align-items-center gap-2">
+      <span class="material-symbols-outlined fs-5">shield</span>
+      Privilegios por Módulo
+    </h3>
+    <p class="text-muted small mb-4">Marque cuidadosamente cada acción que este rol puede ejecutar. Acciones no marcadas serán denegadas.</p>
+
+    <!-- Panel de Control -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">dashboard</span>
+        Panel de Control
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="puede_ver_dashboard" id="id_puede_ver_dashboard" {% if form.puede_ver_dashboard.value %}checked{% endif %}>
+        <label class="form-check-label small" for="id_puede_ver_dashboard">Ver Panel de Control (estadísticas generales)</label>
+      </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">person</span>
+        Clientes
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="puede_ver_clientes" id="id_puede_ver_clientes" {% if form.puede_ver_clientes.value %}checked{% endif %}>
+            <label class="form-check-label small" for="id_puede_ver_clientes">Ver listado</label>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="puede_crear_clientes" id="id_puede_crear_clientes" {% if form.puede_crear_clientes.value %}checked{% endif %}>
+            <label class="form-check-label small" for="id_puede_crear_clientes">Crear nuevos</label>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="puede_editar_clientes" id="id_puede_editar_clientes" {% if form.puede_editar_clientes.value %}checked{% endif %}>
+            <label class="form-check-label small" for="id_puede_editar_clientes">Editar datos</label>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="puede_eliminar_clientes" id="id_puede_eliminar_clientes" {% if form.puede_eliminar_clientes.value %}checked{% endif %}>
+            <label class="form-check-label small fw-semibold text-danger" for="id_puede_eliminar_clientes">Eliminar registros</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehículos -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">directions_car</span>
+        Vehículos
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_vehiculos" id="id_puede_ver_vehiculos" {% if form.puede_ver_vehiculos.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_vehiculos">Ver listado</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_crear_vehiculos" id="id_puede_crear_vehiculos" {% if form.puede_crear_vehiculos.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_crear_vehiculos">Registrar vehículos</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_editar_vehiculos" id="id_puede_editar_vehiculos" {% if form.puede_editar_vehiculos.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_editar_vehiculos">Editar datos</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_eliminar_vehiculos" id="id_puede_eliminar_vehiculos" {% if form.puede_eliminar_vehiculos.value %}checked{% endif %}><label class="form-check-label small fw-semibold text-danger" for="id_puede_eliminar_vehiculos">Eliminar</label></div></div>
+      </div>
+    </div>
+
+    <!-- Órdenes de Trabajo -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">build</span>
+        Órdenes de Trabajo
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_ordenes" id="id_puede_ver_ordenes" {% if form.puede_ver_ordenes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_ordenes">Ver órdenes</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_crear_ordenes" id="id_puede_crear_ordenes" {% if form.puede_crear_ordenes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_crear_ordenes">Crear nuevas órdenes</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_editar_ordenes" id="id_puede_editar_ordenes" {% if form.puede_editar_ordenes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_editar_ordenes">Editar órdenes</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_cambiar_estado_ordenes" id="id_puede_cambiar_estado_ordenes" {% if form.puede_cambiar_estado_ordenes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_cambiar_estado_ordenes">Cambiar estado (proceso/completado)</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_eliminar_ordenes" id="id_puede_eliminar_ordenes" {% if form.puede_eliminar_ordenes.value %}checked{% endif %}><label class="form-check-label small fw-semibold text-danger" for="id_puede_eliminar_ordenes">Cancelar / Eliminar</label></div></div>
+      </div>
+    </div>
+
+    <!-- Inventario -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">inventory_2</span>
+        Inventario &amp; Repuestos
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_inventario" id="id_puede_ver_inventario" {% if form.puede_ver_inventario.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_inventario">Ver inventario y stock</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_crear_inventario" id="id_puede_crear_inventario" {% if form.puede_crear_inventario.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_crear_inventario">Agregar productos/repuestos</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_editar_inventario" id="id_puede_editar_inventario" {% if form.puede_editar_inventario.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_editar_inventario">Editar precios/datos</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_eliminar_inventario" id="id_puede_eliminar_inventario" {% if form.puede_eliminar_inventario.value %}checked{% endif %}><label class="form-check-label small fw-semibold text-danger" for="id_puede_eliminar_inventario">Eliminar del catálogo</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ajustar_stock" id="id_puede_ajustar_stock" {% if form.puede_ajustar_stock.value %}checked{% endif %}><label class="form-check-label small fw-semibold text-warning" for="id_puede_ajustar_stock">Ajustar / Registrar entradas de stock</label></div></div>
+      </div>
+    </div>
+
+    <!-- Ventas & Comprobantes -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">payments</span>
+        Ventas &amp; Comprobantes
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_comprobantes" id="id_puede_ver_comprobantes" {% if form.puede_ver_comprobantes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_comprobantes">Ver comprobantes</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_crear_comprobantes" id="id_puede_crear_comprobantes" {% if form.puede_crear_comprobantes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_crear_comprobantes">Emitir comprobantes</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_cobrar_comprobantes" id="id_puede_cobrar_comprobantes" {% if form.puede_cobrar_comprobantes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_cobrar_comprobantes">Registrar cobros/pagos</label></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_anular_comprobantes" id="id_puede_anular_comprobantes" {% if form.puede_anular_comprobantes.value %}checked{% endif %}><label class="form-check-label small fw-semibold text-danger" for="id_puede_anular_comprobantes">Anular comprobantes</label></div></div>
+      </div>
+    </div>
+
+    <!-- Reportes -->
+    <div class="p-3 bg-light rounded border mb-3">
+      <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-primary">analytics</span>
+        Reportes &amp; Analítica
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_reportes" id="id_puede_ver_reportes" {% if form.puede_ver_reportes.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_reportes">Ver reportes y métricas</label></div></div>
+        <div class="col-12 col-sm-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="puede_ver_cierre_diario" id="id_puede_ver_cierre_diario" {% if form.puede_ver_cierre_diario.value %}checked{% endif %}><label class="form-check-label small" for="id_puede_ver_cierre_diario">Ver cierre diario de caja</label></div></div>
+      </div>
+    </div>
+
+    <!-- Gestión y Seguridad -->
+    <div class="p-3 border border-danger-subtle rounded bg-danger-subtle mb-3">
+      <div class="fw-bold text-danger mb-2 d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5">security</span>
+        Gestión y Seguridad <span class="badge bg-danger ms-1" style="font-size:0.65rem;">Acceso Crítico</span>
+      </div>
+      <p class="small text-danger-emphasis mb-2">⚠️ Otorgar estos privilegios da control administrativo sobre el sistema. Asígnelos solo a roles de confianza.</p>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input border-danger" type="checkbox" name="puede_gestionar_usuarios" id="id_puede_gestionar_usuarios" {% if form.puede_gestionar_usuarios.value %}checked{% endif %}><label class="form-check-label small fw-semibold" for="id_puede_gestionar_usuarios">Gestionar usuarios (crear/editar/eliminar)</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input border-danger" type="checkbox" name="puede_gestionar_roles" id="id_puede_gestionar_roles" {% if form.puede_gestionar_roles.value %}checked{% endif %}><label class="form-check-label small fw-semibold" for="id_puede_gestionar_roles">Gestionar roles y privilegios</label></div></div>
+        <div class="col-12 col-sm-6 col-md-4"><div class="form-check"><input class="form-check-input border-danger" type="checkbox" name="puede_ver_auditoria" id="id_puede_ver_auditoria" {% if form.puede_ver_auditoria.value %}checked{% endif %}><label class="form-check-label small fw-semibold" for="id_puede_ver_auditoria">Ver auditoría del sistema</label></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de Acción -->
+  <div class="d-flex gap-3 align-items-center">
+    <button type="submit" class="btn btn-tm-gold d-flex align-items-center gap-2 fw-bold px-4">
+      <span class="material-symbols-outlined fs-5">save</span>
+      <span>Guardar Rol y Privilegios</span>
+    </button>
+    <a href="{% url 'roles_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

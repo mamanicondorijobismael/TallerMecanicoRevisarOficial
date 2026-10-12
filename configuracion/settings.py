@@ -28,8 +28,6 @@ INSTALLED_APPS = [
     'apps.inventario',
     'apps.ordenes',
     'apps.facturas',
-    'apps.reservas',
-    'apps.mantenimiento',
     'apps.reportes',
 ]
 
@@ -98,8 +96,8 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# IVA por defecto Argentina
-IVA_PORCENTAJE = 21
+# IVA deshabilitado (0%)
+IVA_PORCENTAJE = 0
 
 # Session timeout: 30 minutes
 SESSION_COOKIE_AGE = 1800

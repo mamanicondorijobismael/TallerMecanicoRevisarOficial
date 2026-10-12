@@ -53,8 +53,9 @@
                 <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
               </a>
               {% if request.user.es_administrador %}
-              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-light border py-0 px-2" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
-                <span class="material-symbols-outlined fs-6 text-danger">delete</span>
+              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
+                <span class="material-symbols-outlined fs-6">delete</span>
+                <span>Eliminar</span>
               </a>
               {% endif %}
             </div>
@@ -94,8 +95,9 @@
                 <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
               </a>
               {% if request.user.es_administrador %}
-              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-light border py-0 px-2" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
-                <span class="material-symbols-outlined fs-6 text-danger">delete</span>
+              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
+                <span class="material-symbols-outlined fs-6">delete</span>
+                <span>Eliminar</span>
               </a>
               {% endif %}
             </div>

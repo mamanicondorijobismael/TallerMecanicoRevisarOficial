@@ -1,10 +1,8 @@
 from django.db import models
-from django.core.validators import RegexValidator
 from core.models import ModeloBase
 
 
 class Cliente(ModeloBase):
-    """Clientes del taller mecanico."""
     nombre_razon_social = models.CharField(max_length=100, verbose_name='Nombre / Razon Social')
     documento = models.CharField(max_length=20, unique=True, verbose_name='DNI / CUIT')
     telefono = models.CharField(max_length=20, blank=True, verbose_name='Telefono')

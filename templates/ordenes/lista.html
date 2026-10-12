@@ -100,7 +100,7 @@
             <td>
               <span class="badge-status status-{{ o.estado|lower }}">{{ o.get_estado_display }}</span>
             </td>
-            <td class="text-end fw-bold text-dark small">${{ o.total|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-dark small">Bs {{ o.total|floatformat:2 }}</td>
             <td class="text-end">
               <div class="d-flex gap-1 justify-content-end align-items-center">
                 <a href="{% url 'ordenes:detalle' o.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
@@ -119,6 +119,7 @@
                         data-orden-url="{% url 'ordenes:eliminar' o.pk %}"
                         title="Eliminar o cancelar orden">
                   <span class="material-symbols-outlined fs-6">delete</span>
+                  <span>Eliminar</span>
                 </button>
                 {% endif %}
               </div>
@@ -280,7 +281,7 @@
 
         <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
           <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
-          Las órdenes con facturas o en proceso se marcarán como canceladas para preservar la trazabilidad.
+          Las órdenes con comprobantes emitidos o en proceso se marcarán como canceladas para preservar la trazabilidad.
         </div>
 
         <form id="formEliminarOrden" method="POST" action="">

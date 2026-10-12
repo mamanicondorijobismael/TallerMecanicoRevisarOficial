@@ -6,14 +6,14 @@ from apps.clientes.models import Cliente
 
 
 class Factura(ModeloBase):
-    """Factura generada desde una orden de trabajo completada."""
+    """Comprobante generado desde una orden de trabajo completada."""
     class EstadoPago(models.TextChoices):
         PENDIENTE = 'PENDIENTE', 'Pendiente'
         PARCIAL = 'PARCIAL', 'Pago parcial'
-        PAGADA = 'PAGADA', 'Pagada'
-        ANULADA = 'ANULADA', 'Anulada'
+        PAGADA = 'PAGADA', 'Pagado / Cobrado'
+        ANULADA = 'ANULADA', 'Anulado'
 
-    numero_factura = models.CharField(max_length=20, unique=True, verbose_name='N° Factura')
+    numero_factura = models.CharField(max_length=20, unique=True, verbose_name='N° de Comprobante')
     orden = models.OneToOneField(OrdenTrabajo, on_delete=models.RESTRICT, related_name='factura', verbose_name='Orden de trabajo')
     cliente = models.ForeignKey(Cliente, on_delete=models.RESTRICT, related_name='facturas', verbose_name='Cliente')
     fecha_emision = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de emision')
@@ -25,17 +25,17 @@ class Factura(ModeloBase):
     notas = models.TextField(blank=True, verbose_name='Notas')
 
     class Meta:
-        verbose_name = 'Factura'
-        verbose_name_plural = 'Facturas'
+        verbose_name = 'Comprobante'
+        verbose_name_plural = 'Comprobantes'
         ordering = ['-fecha_emision']
 
     def __str__(self):
-        return f'FAC#{self.numero_factura} - {self.cliente} - ${self.total}'
+        return f'CMP#{self.numero_factura} - {self.cliente} - Bs {self.total}'
 
     def save(self, *args, **kwargs):
         if not self.numero_factura:
             import datetime
-            prefix = datetime.date.today().strftime('F%Y%m')
+            prefix = datetime.date.today().strftime('CMP%Y%m')
             last = Factura.objects.filter(numero_factura__startswith=prefix).count()
             self.numero_factura = f'{prefix}{str(last + 1).zfill(4)}'
         super().save(*args, **kwargs)
@@ -63,17 +63,12 @@ class Pago(models.Model):
     """Pago parcial o total de una factura."""
     METODO_CHOICES = [
         ('EFECTIVO', 'Efectivo'),
-        ('TARJETA_DEBITO', 'Tarjeta de debito'),
-        ('TARJETA_CREDITO', 'Tarjeta de credito'),
-        ('TRANSFERENCIA', 'Transferencia bancaria'),
-        ('CHEQUE', 'Cheque'),
-        ('MERCADO_PAGO', 'Mercado Pago'),
     ]
 
-    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos', verbose_name='Factura')
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos', verbose_name='Comprobante')
     monto = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)], verbose_name='Monto')
     metodo_pago = models.CharField(max_length=30, choices=METODO_CHOICES, default='EFECTIVO', verbose_name='Metodo de pago')
-    referencia = models.CharField(max_length=100, blank=True, verbose_name='Referencia / Comprobante')
+    referencia = models.CharField(max_length=100, blank=True, verbose_name='Referencia')
     fecha = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de pago')
     usuario = models.CharField(max_length=150, blank=True, verbose_name='Registrado por')
 
@@ -83,4 +78,4 @@ class Pago(models.Model):
         ordering = ['-fecha']
 
     def __str__(self):
-        return f'Pago ${self.monto} - FAC#{self.factura.numero_factura} [{self.get_metodo_pago_display()}]'
+        return f'Pago Bs {self.monto} - Comprobante #{self.factura.numero_factura} [{self.get_metodo_pago_display()}]'

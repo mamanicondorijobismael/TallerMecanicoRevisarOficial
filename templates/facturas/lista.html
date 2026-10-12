@@ -76,8 +76,8 @@
           <td>
             <a href="{% url 'ordenes:detalle' f.orden.pk %}" class="badge bg-light text-secondary border text-decoration-none">OT #{{ f.orden.numero_orden }}</a>
           </td>
-          <td class="text-end text-muted small">${{ f.subtotal|floatformat:2 }}</td>
-          <td class="text-end fw-bold text-dark fs-6">${{ f.total|floatformat:2 }}</td>
+          <td class="text-end text-muted small">Bs {{ f.subtotal|floatformat:2 }}</td>
+          <td class="text-end fw-bold text-dark fs-6">Bs {{ f.total|floatformat:2 }}</td>
           <td class="text-center">
             {% if f.estado_pago == 'PAGADA' %}
               <span class="badge-status status-completada">COBRADO</span>

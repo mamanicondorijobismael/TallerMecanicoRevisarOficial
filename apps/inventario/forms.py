@@ -42,12 +42,25 @@ class RepuestoForm(forms.ModelForm):
             self.fields['stock_minimo'].initial = pb.stock_minimo
 
     def clean_codigo_sku(self):
-        sku = self.cleaned_data.get('codigo_sku')
-        qs = ProductoBase.objects.filter(codigo_sku=sku)
-        if self.instance and self.instance.pk:
-            qs = qs.exclude(pk=self.instance.producto.pk)
-        if qs.exists():
-            raise forms.ValidationError('Este código SKU ya está registrado por otro producto.')
+        sku = self.cleaned_data.get('codigo_sku', '').strip().upper()
+        categoria = self.cleaned_data.get('categoria')
+        prefijo = 'REP'
+        if categoria and getattr(categoria, 'codigo_prefijo', None):
+            prefijo = categoria.codigo_prefijo.strip().upper()
+
+        if sku:
+            if not sku.startswith(f"{prefijo}-"):
+                if sku.isdigit():
+                    sku = f"{prefijo}-{sku.zfill(3)}"
+                elif not '-' in sku and sku.startswith(prefijo):
+                    sku = f"{prefijo}-{sku[len(prefijo):].zfill(3)}"
+                else:
+                    sku = f"{prefijo}-{sku}"
+            qs = ProductoBase.objects.filter(codigo_sku=sku)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.producto.pk)
+            if qs.exists():
+                raise forms.ValidationError(f'El código SKU "{sku}" ya está registrado por otro producto.')
         return sku
 
     def save(self, commit=True):
@@ -150,12 +163,25 @@ class NeumaticoForm(forms.ModelForm):
             self.fields['stock_minimo'].initial = pb.stock_minimo
 
     def clean_codigo_sku(self):
-        sku = self.cleaned_data.get('codigo_sku')
-        qs = ProductoBase.objects.filter(codigo_sku=sku)
-        if self.instance and self.instance.pk:
-            qs = qs.exclude(pk=self.instance.producto.pk)
-        if qs.exists():
-            raise forms.ValidationError('Este código SKU ya está registrado por otro producto.')
+        sku = self.cleaned_data.get('codigo_sku', '').strip().upper()
+        categoria = self.cleaned_data.get('categoria')
+        prefijo = 'NEU'
+        if categoria and getattr(categoria, 'codigo_prefijo', None):
+            prefijo = categoria.codigo_prefijo.strip().upper()
+
+        if sku:
+            if not sku.startswith(f"{prefijo}-"):
+                if sku.isdigit():
+                    sku = f"{prefijo}-{sku.zfill(3)}"
+                elif not '-' in sku and sku.startswith(prefijo):
+                    sku = f"{prefijo}-{sku[len(prefijo):].zfill(3)}"
+                else:
+                    sku = f"{prefijo}-{sku}"
+            qs = ProductoBase.objects.filter(codigo_sku=sku)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.producto.pk)
+            if qs.exists():
+                raise forms.ValidationError(f'El código SKU "{sku}" ya está registrado por otro producto.')
         return sku
 
     def save(self, commit=True):
@@ -228,9 +254,10 @@ class MovimientoStockForm(forms.Form):
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = CategoriaProducto
-        fields = ['nombre', 'tipo', 'descripcion', 'icono']
+        fields = ['nombre', 'codigo_prefijo', 'tipo', 'descripcion', 'icono']
         widgets = {
-            'nombre': forms.TextInput(attrs={**WIDGET_DEFAULTS, 'placeholder': 'Nombre de la categoría'}),
+            'nombre': forms.TextInput(attrs={**WIDGET_DEFAULTS, 'placeholder': 'Nombre de la categoría (ej: Frenos)'}),
+            'codigo_prefijo': forms.TextInput(attrs={**WIDGET_DEFAULTS, 'placeholder': 'Prefijo (ej: FIL, FRE, LUB, MOT)', 'style': 'text-transform: uppercase;'}),
             'tipo': forms.Select(attrs=WIDGET_DEFAULTS),
             'descripcion': forms.Textarea(attrs={**WIDGET_DEFAULTS, 'rows': 2, 'placeholder': 'Breve descripción...'}),
             'icono': forms.HiddenInput(),

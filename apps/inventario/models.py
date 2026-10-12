@@ -6,6 +6,12 @@ from core.models import ModeloBase
 class CategoriaProducto(ModeloBase):
     TIPO_CHOICES = [('REPUESTO', 'Repuesto'), ('NEUMATICO', 'Neumático')]
     nombre = models.CharField(max_length=50, unique=True, verbose_name='Nombre')
+    codigo_prefijo = models.CharField(
+        max_length=10,
+        default='GEN',
+        verbose_name='Prefijo de Categoría',
+        help_text='Primeras letras que indican el grupo (FIL=Filtros, FRE=Frenos, LUB=Lubricantes, MOT=Motor, NEU=Neumáticos)'
+    )
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='REPUESTO', verbose_name='Tipo de categoría')
     descripcion = models.TextField(blank=True, verbose_name='Descripcion')
     icono = models.CharField(max_length=50, blank=True, default='box', verbose_name='Icono')
@@ -16,7 +22,7 @@ class CategoriaProducto(ModeloBase):
         ordering = ['nombre']
 
     def __str__(self):
-        return self.nombre
+        return f'[{self.codigo_prefijo}] {self.nombre}'
 
 
 class ProductoBase(ModeloBase):
@@ -45,10 +51,26 @@ class ProductoBase(ModeloBase):
         ]
 
     def save(self, *args, **kwargs):
+        prefijo = 'REP'
+        if self.categoria and getattr(self.categoria, 'codigo_prefijo', None):
+            prefijo = self.categoria.codigo_prefijo.strip().upper()
+        elif self.tipo_producto == 'NEUMATICO':
+            prefijo = 'NEU'
+
         if not self.codigo_sku:
-            prefix = 'REP-' if self.tipo_producto == 'REPUESTO' else 'NEU-'
-            last = ProductoBase.objects.filter(codigo_sku__startswith=prefix).count()
-            self.codigo_sku = f"{prefix}{str(last + 1).zfill(5)}"
+            prefix_pattern = f"{prefijo}-"
+            last = ProductoBase.objects.filter(codigo_sku__startswith=prefix_pattern).count()
+            self.codigo_sku = f"{prefijo}-{str(last + 1).zfill(3)}"
+        else:
+            sku_clean = self.codigo_sku.strip().upper()
+            if not sku_clean.startswith(f"{prefijo}-"):
+                if sku_clean.isdigit():
+                    sku_clean = f"{prefijo}-{sku_clean.zfill(3)}"
+                elif not '-' in sku_clean and sku_clean.startswith(prefijo):
+                    sku_clean = f"{prefijo}-{sku_clean[len(prefijo):].zfill(3)}"
+                else:
+                    sku_clean = f"{prefijo}-{sku_clean}"
+            self.codigo_sku = sku_clean
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Vehículos Module - Form JS
-   ========================================================================== */
-
 document.addEventListener('DOMContentLoaded', function() {
   const fotoInput = document.getElementById('id_foto');
   const previewImg = document.getElementById('vehiculo-form-preview-img');

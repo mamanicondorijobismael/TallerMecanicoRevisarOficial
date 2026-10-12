@@ -27,7 +27,7 @@ class OrdenTrabajo(ModeloBase):
     vehiculo = models.ForeignKey(Vehiculo, on_delete=models.RESTRICT, related_name='ordenes', verbose_name='Vehiculo')
     mecanico = models.ForeignKey(
         'accounts.Usuario', on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='ordenes_asignadas', limit_choices_to={'rol__in': ['MECANICO', 'ADMINISTRADOR', 'DUENO']},
+        related_name='ordenes_asignadas', limit_choices_to={'is_active': True},
         verbose_name='Mecanico asignado'
     )
     creado_por = models.ForeignKey(
@@ -87,13 +87,11 @@ class OrdenTrabajo(ModeloBase):
 
     @property
     def iva_monto(self):
-        from django.conf import settings
-        iva = getattr(settings, 'IVA_PORCENTAJE', 21)
-        return round(self.subtotal * iva / 100, 2)
+        return 0
 
     @property
     def total(self):
-        return self.subtotal + self.iva_monto
+        return self.subtotal
 
     @property
     def costo_total(self):

@@ -67,12 +67,12 @@
           <span>OPERACIÓN</span>
         </div>
 
-        <!-- Dashboard -->
+        <!-- Panel de Control -->
         <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
           <div class="sidebar-icon-wrap">
             <span class="material-symbols-outlined">dashboard</span>
           </div>
-          <span class="sidebar-link-text">Dashboard</span>
+          <span class="sidebar-link-text">Panel de Control</span>
           <span class="sidebar-active-indicator"></span>
         </a>
 
@@ -112,38 +112,22 @@
           <span class="sidebar-active-indicator"></span>
         </a>
 
-        <!-- Agenda / Reservas -->
-        <a href="{% url 'reservas:lista' %}" class="sidebar-link {% if 'reservas' in request.path %}active{% endif %}">
-          <div class="sidebar-icon-wrap">
-            <span class="material-symbols-outlined">calendar_month</span>
-          </div>
-          <span class="sidebar-link-text">Agenda & Turnos</span>
-          <span class="sidebar-active-indicator"></span>
-        </a>
-
         <div class="sidebar-heading mt-3">
           <span>FINANZAS & CONTROL</span>
         </div>
 
-        <!-- Cobros y Facturas -->
+        <!-- Ventas & Comprobantes -->
         <a href="{% url 'facturas:lista' %}" class="sidebar-link {% if 'facturas' in request.path %}active{% endif %}">
           <div class="sidebar-icon-wrap">
             <span class="material-symbols-outlined">payments</span>
           </div>
-          <span class="sidebar-link-text">Ventas & Facturas</span>
+          <span class="sidebar-link-text">Ventas & Comprobantes</span>
           <span class="sidebar-active-indicator"></span>
         </a>
 
-        <!-- Mantenimiento -->
-        <a href="{% url 'mantenimiento:alertas' %}" class="sidebar-link {% if 'mantenimiento' in request.path %}active{% endif %}">
-          <div class="sidebar-icon-wrap">
-            <span class="material-symbols-outlined">notifications_active</span>
-          </div>
-          <span class="sidebar-link-text">Alertas de Servicio</span>
-          <span class="sidebar-active-indicator"></span>
-        </a>
 
-        {% if user.es_dueno %}
+
+        {% if user.is_superuser or user.rol and user.rol.puede_ver_reportes %}
         <!-- Reportes -->
         <a href="{% url 'reportes:dashboard' %}" class="sidebar-link {% if 'reportes' in request.path %}active{% endif %}">
           <div class="sidebar-icon-wrap">
@@ -166,6 +150,16 @@
           <span class="sidebar-link-text">Personal & Usuarios</span>
           <span class="sidebar-active-indicator"></span>
         </a>
+
+        {% if user.is_superuser or user.rol and user.rol.puede_gestionar_roles %}
+        <a href="{% url 'roles_lista' %}" class="sidebar-link {% if 'roles' in request.path %}active{% endif %}">
+          <div class="sidebar-icon-wrap">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+          </div>
+          <span class="sidebar-link-text">Roles & Privilegios</span>
+          <span class="sidebar-active-indicator"></span>
+        </a>
+        {% endif %}
 
         <a href="{% url 'auditoria_lista' %}" class="sidebar-link {% if 'auditoria' in request.path %}active{% endif %}">
           <div class="sidebar-icon-wrap">

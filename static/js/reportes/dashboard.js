@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
           labels: labels,
           datasets: [{
-            label: 'Ingresos ($)',
+            label: 'Ingresos (Bs)',
             data: dataIngresos,
             borderColor: '#0D284E',
             backgroundColor: 'rgba(13, 40, 78, 0.08)',

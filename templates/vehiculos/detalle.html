@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block page_title %}Vehículo: {{ vehiculo.patente|upper }}{% endblock %}
+{% block page_title %}Vehículo: {{ vehiculo.placa|upper }}{% endblock %}
 {% block subtitle %}{{ vehiculo.marca }} {{ vehiculo.modelo }} ({{ vehiculo.anio|default:"S/A" }}){% endblock %}
 
 {% block extra_css %}
@@ -15,16 +15,21 @@
 </a>
 {% endblock %}
 
+
 {% block topbar_actions %}
 <div class="d-flex gap-2">
+  {% if request.user.es_administrador %}
   <a href="{% url 'vehiculos:editar' vehiculo.pk %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
     <span class="material-symbols-outlined fs-6">edit</span>
     <span>Editar</span>
   </a>
+  {% endif %}
+
   <a href="{% url 'ordenes:crear' %}?vehiculo_id={{ vehiculo.pk }}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
     <span class="material-symbols-outlined fs-6">add</span>
     <span>Nueva Orden</span>
   </a>
+
   {% if request.user.es_administrador %}
   <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalEliminarVehiculo">
     <span class="material-symbols-outlined fs-6">delete</span>
@@ -33,7 +38,6 @@
   {% endif %}
 </div>
 {% endblock %}
-
 {% block content %}
 <div class="row g-4">
   <!-- Ficha Técnica -->
@@ -42,7 +46,7 @@
       <!-- Foto del vehículo -->
       <div class="vehicle-detail-photo mb-3">
         {% if vehiculo.foto %}
-          <img src="{{ vehiculo.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.patente }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
+          <img src="{{ vehiculo.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in" data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.placa }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
         {% else %}
           <div class="d-flex flex-column align-items-center justify-content-center text-muted">
             <span class="material-symbols-outlined fs-1 text-black-50">directions_car</span>
@@ -76,23 +80,23 @@
           </div>
           <div class="d-flex justify-content-between align-items-center py-2">
             <span class="text-muted">N° Chasis / VIN</span>
-            <span class="font-monospace small text-muted">{{ vehiculo.vin|default:"Sin VIN" }}</span>
+            <span class="font-monospace small text-muted">{{ vehiculo.chasis|default:"Sin VIN" }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Historial de Órdenes -->
+ <!-- Historial de Órdenes -->
   <div class="col-12 col-lg-8">
     <div class="card-workshop p-4">
       <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Historial de Servicios ({{ ordenes.count }})</h3>
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Historial de Servicios ({{ ordenes|length }})</h3>
         <a href="{% url 'ordenes:crear' %}?vehiculo_id={{ vehiculo.pk }}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
           <span class="material-symbols-outlined fs-6">add</span>
           <span>Abrir Orden</span>
         </a>
       </div>
+
       <div class="d-flex flex-column gap-2">
         {% for o in ordenes %}
         <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light border">
@@ -117,8 +121,8 @@
   </div>
 </div>
 
+<!-- Modal de Eliminación -->
 {% if request.user.es_administrador %}
-<!-- ── MODAL: Confirmar Eliminación de Vehículo (Sencillo y Elegante) ── -->
 <div class="modal fade" id="modalEliminarVehiculo" tabindex="-1" aria-labelledby="modalEliminarVehiculoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -138,7 +142,7 @@
         <div class="bg-light border rounded-3 p-2.5 mb-3 text-start">
           <div class="d-flex align-items-center justify-content-between mb-1">
             <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Unidad</span>
-            <span class="badge bg-dark text-white font-monospace px-2 py-1">{{ vehiculo.patente|upper }}</span>
+            <span class="badge bg-dark text-white font-monospace px-2 py-1">{{ vehiculo.placa|upper }}</span>
           </div>
           <div class="text-dark fw-semibold small">{{ vehiculo.marca }} {{ vehiculo.modelo }} ({{ vehiculo.anio|default:"S/A" }})</div>
         </div>
@@ -170,4 +174,4 @@
 
 {% block extra_js %}
 <script src="{% static 'js/vehiculos/detalle.js' %}"></script>
-{% endblock %}
+{% endblock %}  

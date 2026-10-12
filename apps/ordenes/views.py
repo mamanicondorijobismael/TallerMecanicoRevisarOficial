@@ -1,16 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, RestrictedError, ProtectedError
 from django.utils import timezone
 from .models import OrdenTrabajo, DetalleServicio, DetalleProducto, RepuestoExterno
 from .forms import OrdenTrabajoForm, DetalleServicioForm, DetalleProductoForm, RepuestoExternoForm
+from apps.accounts.decorador import requiere_permiso
+from core.models import Auditoria
 
 
 @login_required
+@requiere_permiso('puede_ver_ordenes')
 def orden_list(request):
     estado_filter = request.GET.get('estado', '')
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     qs = OrdenTrabajo.objects.select_related('vehiculo', 'vehiculo__cliente', 'mecanico').order_by('-fecha_creacion')
     if estado_filter:
         qs = qs.filter(estado=estado_filter)
@@ -31,6 +34,7 @@ def orden_list(request):
 
 
 @login_required
+@requiere_permiso('puede_ver_ordenes')
 def orden_detalle(request, pk):
     orden = get_object_or_404(OrdenTrabajo.objects.select_related('vehiculo', 'vehiculo__cliente', 'mecanico'), pk=pk)
     servicios = orden.servicios.all()
@@ -46,10 +50,8 @@ def orden_detalle(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_crear_ordenes', login_url='ordenes:lista')
 def orden_crear(request):
-    if not request.user.es_administrador:
-        messages.error(request, 'Sin permisos para crear órdenes.')
-        return redirect('ordenes:lista')
     if request.method == 'POST':
         form = OrdenTrabajoForm(request.POST)
         if form.is_valid():
@@ -99,19 +101,17 @@ def orden_crear(request):
                     messages.error(request, f'{field}: {errs[0]}')
                 return redirect('ordenes:lista')
 
-    # GET: renderizar formulario standalone
+    # GET: renderizar formulario
     form = OrdenTrabajoForm()
     return render(request, 'ordenes/form.html', {'form': form, 'title': 'Nueva Orden de Trabajo'})
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def orden_editar(request, pk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Sin permisos para editar órdenes.')
-        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado in ['FACTURADA', 'CANCELADA']:
-        messages.error(request, 'No se puede editar una orden facturada o cancelada.')
+        messages.error(request, 'No se puede editar una orden con comprobante o cancelada.')
         return redirect('ordenes:detalle', pk=pk)
     form = OrdenTrabajoForm(request.POST or None, instance=orden)
     if request.method == 'POST' and form.is_valid():
@@ -126,6 +126,7 @@ def orden_editar(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_cambiar_estado_ordenes', login_url='ordenes:lista')
 def orden_cambiar_estado(request, pk):
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if request.method == 'POST':
@@ -134,7 +135,7 @@ def orden_cambiar_estado(request, pk):
             orden.estado = nuevo_estado
             if nuevo_estado == 'COMPLETADA':
                 orden.fecha_cierre = timezone.now()
-                # Descontar stock automaticamente
+                # Descontar stock automáticamente
                 for dp in orden.productos.all():
                     prod = dp.producto
                     if prod.stock_actual >= dp.cantidad:
@@ -157,6 +158,7 @@ def orden_cambiar_estado(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def agregar_servicio(request, pk):
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado in ['FACTURADA', 'CANCELADA']:
@@ -172,6 +174,7 @@ def agregar_servicio(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def agregar_producto(request, pk):
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado in ['FACTURADA', 'CANCELADA']:
@@ -188,10 +191,8 @@ def agregar_producto(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def eliminar_servicio(request, pk, spk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
-        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado not in ['FACTURADA', 'CANCELADA']:
         DetalleServicio.objects.filter(pk=spk, orden=orden).delete()
@@ -200,10 +201,8 @@ def eliminar_servicio(request, pk, spk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def eliminar_producto(request, pk, ppk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
-        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado not in ['FACTURADA', 'CANCELADA']:
         DetalleProducto.objects.filter(pk=ppk, orden=orden).delete()
@@ -212,6 +211,7 @@ def eliminar_producto(request, pk, ppk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def agregar_repuesto_externo(request, pk):
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado in ['FACTURADA', 'CANCELADA']:
@@ -229,10 +229,8 @@ def agregar_repuesto_externo(request, pk):
 
 
 @login_required
+@requiere_permiso('puede_editar_ordenes', login_url='ordenes:lista')
 def eliminar_repuesto_externo(request, pk, rpk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Solo los administradores pueden eliminar items de la orden.')
-        return redirect('ordenes:detalle', pk=pk)
     orden = get_object_or_404(OrdenTrabajo, pk=pk)
     if orden.estado not in ['FACTURADA', 'CANCELADA']:
         RepuestoExterno.objects.filter(pk=rpk, orden=orden).delete()
@@ -240,14 +238,9 @@ def eliminar_repuesto_externo(request, pk, rpk):
     return redirect('ordenes:detalle', pk=pk)
 
 
-from django.db.models import RestrictedError, ProtectedError
-
 @login_required
+@requiere_permiso('puede_eliminar_ordenes', login_url='ordenes:lista')
 def orden_eliminar(request, pk):
-    if not request.user.es_administrador:
-        messages.error(request, 'Solo los administradores pueden eliminar órdenes de trabajo.')
-        return redirect('ordenes:lista')
-
     if request.method != 'POST':
         messages.warning(request, 'Método no permitido para esta acción.')
         return redirect('ordenes:lista')
@@ -259,16 +252,16 @@ def orden_eliminar(request, pk):
 
     try:
         if orden.estado == 'FACTURADA':
-            messages.error(request, f'La orden #{numero} está facturada y no puede eliminarse. Debe anularse la factura primero.')
+            messages.error(request, f'La orden #{numero} tiene comprobante emitido y no puede eliminarse. Debe anularse el comprobante primero.')
             return redirect('ordenes:detalle', pk=pk)
 
-        tiene_factura = hasattr(orden, 'factura')
+        tiene_comprobante = hasattr(orden, 'factura')
 
-        if tiene_factura:
+        if tiene_comprobante:
             orden.estado = 'CANCELADA'
             orden.save()
             accion_audit = 'MODIFICAR'
-            mensaje = f'La orden #{numero} posee factura asociada, por lo que fue cancelada en lugar de eliminada.'
+            mensaje = f'La orden #{numero} posee comprobante asociado, por lo que fue cancelada en lugar de eliminada.'
         elif orden.estado in ['PENDIENTE', 'CANCELADA']:
             orden.delete()
             accion_audit = 'ELIMINAR'
@@ -277,9 +270,8 @@ def orden_eliminar(request, pk):
             orden.estado = 'CANCELADA'
             orden.save()
             accion_audit = 'MODIFICAR'
-            mensaje = f'La orden #{numero} fue cancelada. Las órdenes en proceso no se eliminan para preservar el historial.'
+            mensaje = f'La orden #{numero} fue cancelada. Las órdenes en proceso se cancelan para preservar el historial.'
 
-        from core.models import Auditoria
         Auditoria.objects.create(
             tabla='OrdenTrabajo',
             registro_id=pk,
@@ -294,10 +286,9 @@ def orden_eliminar(request, pk):
         orden.save()
         messages.warning(
             request,
-            f'La orden #{numero} no pudo eliminarse por registros asociados, pero fue cancelada.'
+            f'La orden #{numero} no pudo eliminarse permanentemente por registros asociados, pero fue cancelada.'
         )
     except Exception as e:
         messages.error(request, f'Ocurrió un error al procesar la solicitud: {str(e)}')
 
     return redirect('ordenes:lista')
-

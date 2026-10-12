@@ -34,7 +34,6 @@
           <option value="">Todos</option>
           <option value="ENTRADA" {% if tipo == 'ENTRADA' %}selected{% endif %}>Entradas</option>
           <option value="SALIDA" {% if tipo == 'SALIDA' %}selected{% endif %}>Salidas</option>
-          <option value="VENTA_DIRECTA" {% if tipo == 'VENTA_DIRECTA' %}selected{% endif %}>Ventas Directas</option>
           <option value="AJUSTE" {% if tipo == 'AJUSTE' %}selected{% endif %}>Ajustes</option>
         </select>
       </div>
@@ -43,6 +42,10 @@
           <span class="material-symbols-outlined fs-6">filter_list</span>
           <span>Filtrar</span>
         </button>
+        <a href="{% url 'reportes:exportar_movimientos_csv' %}?inicio={{ inicio }}&fin={{ fin }}&tipo={{ tipo }}" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" title="Exportar a CSV">
+          <span class="material-symbols-outlined fs-6">download</span>
+          <span>CSV</span>
+        </a>
         <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm" title="Imprimir">
           <span class="material-symbols-outlined fs-6">print</span>
         </button>

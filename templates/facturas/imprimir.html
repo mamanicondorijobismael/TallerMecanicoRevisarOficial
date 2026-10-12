@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Comprobante #{{ factura.numero_factura }}{% endblock %}
+{% block subtitle %}Documento oficial de cobro{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'facturas:detalle' factura.pk %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Volver</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">print</span>
+  <span>Imprimir / PDF</span>
+</button>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .app-sidebar, .app-topbar, .app-footer, footer, .no-print, header { display: none !important; }
+    .app-main { margin: 0 !important; padding: 0 !important; }
+    main { padding: 0 !important; }
+    body { background: white !important; font-size: 11pt; }
+    .comprobante-doc { box-shadow: none !important; border: 1px solid #ccc; }
+  }
+  .comprobante-doc {
+    max-width: 780px;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .comp-header {
+    background: #1a2942;
+    color: white;
+    padding: 28px 32px 20px;
+  }
+  .comp-body { padding: 28px 32px; }
+  .comp-table th { background: #f3f4f6; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; padding: 8px 12px; }
+  .comp-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.88rem; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-totals { background: #f9fafb; border-radius: 8px; padding: 16px 20px; }
+  .comp-total-final { background: #1a2942; color: white; border-radius: 8px; padding: 14px 20px; }
+  .comp-badge-estado { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; }
+  .estado-pagada { background: #d1fae5; color: #065f46; }
+  .estado-pendiente { background: #fee2e2; color: #991b1b; }
+  .estado-parcial { background: #fef3c7; color: #92400e; }
+  .estado-anulada { background: #f3f4f6; color: #6b7280; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comprobante-doc">
+  <!-- Encabezado del Comprobante -->
+  <div class="comp-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="material-symbols-outlined text-warning fs-3" style="font-variation-settings: 'FILL' 1;">build</span>
+          <h1 class="h4 fw-black text-white mb-0">El Taller del Maestro</h1>
+        </div>
+        <div class="text-white-50 small">Taller Mecánico &amp; Gomería · Sistema de Gestión Integral</div>
+      </div>
+      <div class="text-end">
+        <div class="text-white-50 small text-uppercase fw-bold" style="letter-spacing:0.1em;">Comprobante de Cobro</div>
+        <div class="h2 fw-black text-warning mb-0"># {{ factura.numero_factura }}</div>
+        <div class="text-white-50 small">{{ factura.fecha_emision|date:"d/m/Y" }} · {{ factura.fecha_emision|date:"H:i" }} hs</div>
+        <div class="mt-2">
+          <span class="comp-badge-estado {% if factura.estado_pago == 'PAGADA' %}estado-pagada{% elif factura.estado_pago == 'PARCIAL' %}estado-parcial{% elif factura.estado_pago == 'ANULADA' %}estado-anulada{% else %}estado-pendiente{% endif %}">
+            {{ factura.get_estado_pago_display|upper }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cuerpo del Comprobante -->
+  <div class="comp-body">
+
+    <!-- Datos del Cliente y OT -->
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-md-6">
+        <div class="small fw-bold text-muted text-uppercase mb-2" style="letter-spacing:0.07em;">Cliente</div>
+        <div class="fw-bold text-dark fs-6">{{ factura.cliente.nombre_razon_social }}</div>
+        <div class="text-muted small">Doc: {{ factura.cliente.documento }}</div>
+        {% if factura.cliente.email %}<div class="text-muted small">{{ factura.cliente.email }}</div>{% endif %}
+        {% if factura.cliente.telefono %}<div class="text-muted small">Tel: {{ factura.cliente.telefono }}</div>{% endif %}
+      </div>
+      <div class="col-12 col-md-6">
+        {% if factura.orden %}
+        <div class="small fw-bold text-muted text-uppercase mb-2" style="letter-spacing:0.07em;">Orden de Trabajo</div>
+        <div class="fw-bold text-dark">OT # {{ factura.orden.numero_orden }}</div>
+        {% if factura.orden.vehiculo %}
+        <div class="text-muted small">Vehículo: {{ factura.orden.vehiculo.get_tipo_display }} {{ factura.orden.vehiculo.marca }} {{ factura.orden.vehiculo.modelo }}</div>
+        <div class="text-muted small">Placa: {{ factura.orden.vehiculo.placa }}</div>
+        {% endif %}
+        {% if factura.orden.mecanico %}<div class="text-muted small">Mecánico: {{ factura.orden.mecanico.nombre_completo }}</div>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Servicios Realizados -->
+    {% if servicios %}
+    <div class="mb-4">
+      <div class="small fw-bold text-muted text-uppercase mb-2 border-bottom pb-1" style="letter-spacing:0.07em;">Servicios Realizados</div>
+      <table class="table comp-table mb-0">
+        <thead>
+          <tr>
+            <th>Descripción del Servicio</th>
+            <th class="text-end">Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in servicios %}
+          <tr>
+            <td>{{ s.descripcion }}</td>
+            <td class="text-end fw-bold">Bs {{ s.precio|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Repuestos / Productos -->
+    {% if productos or repuestos_externos %}
+    <div class="mb-4">
+      <div class="small fw-bold text-muted text-uppercase mb-2 border-bottom pb-1" style="letter-spacing:0.07em;">Repuestos y Materiales</div>
+      <table class="table comp-table mb-0">
+        <thead>
+          <tr>
+            <th>Producto / Repuesto</th>
+            <th class="text-center">Cant.</th>
+            <th class="text-end">P. Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dp in productos %}
+          <tr>
+            <td>
+              <div class="fw-bold">{{ dp.producto.nombre }}</div>
+              <div class="text-muted font-monospace" style="font-size:0.72rem;">{{ dp.producto.codigo_sku }}</div>
+            </td>
+            <td class="text-center">{{ dp.cantidad }}</td>
+            <td class="text-end">Bs {{ dp.precio_unitario|floatformat:2 }}</td>
+            <td class="text-end fw-bold">Bs {{ dp.total|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          {% for re in repuestos_externos %}
+          <tr>
+            <td>
+              <div class="fw-bold">{{ re.descripcion }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">Repuesto externo / cliente</div>
+            </td>
+            <td class="text-center">{{ re.cantidad }}</td>
+            <td class="text-end">Bs {{ re.precio_unitario|floatformat:2 }}</td>
+            <td class="text-end fw-bold">Bs {{ re.total|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Totales -->
+    <div class="row justify-content-end">
+      <div class="col-12 col-md-5">
+        <div class="comp-totals mb-2">
+          <div class="d-flex justify-content-between mb-2 small">
+            <span class="text-muted">Subtotal</span>
+            <span class="fw-bold">Bs {{ factura.subtotal|floatformat:2 }}</span>
+          </div>
+          {% if factura.iva_monto > 0 %}
+          <div class="d-flex justify-content-between small">
+            <span class="text-muted">IVA ({{ factura.iva_porcentaje }}%)</span>
+            <span class="fw-bold">Bs {{ factura.iva_monto|floatformat:2 }}</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="comp-total-final d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-white-75 text-uppercase small" style="letter-spacing:0.05em;">Total a Abonar</span>
+          <span class="h4 fw-black text-warning mb-0">Bs {{ factura.total|floatformat:2 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de Pagos -->
+    {% if pagos %}
+    <div class="mt-4">
+      <div class="small fw-bold text-muted text-uppercase mb-2 border-bottom pb-1" style="letter-spacing:0.07em;">Pagos Registrados</div>
+      <table class="table comp-table mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Método</th>
+            <th>Referencia</th>
+            <th class="text-end">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pagos %}
+          <tr>
+            <td class="text-muted small">{{ p.fecha|date:"d/m/Y H:i" }}</td>
+            <td>{{ p.get_metodo_pago_display }}</td>
+            <td class="text-muted small">{{ p.referencia|default:"—" }}</td>
+            <td class="text-end fw-bold text-success">Bs {{ p.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between mt-2 px-1 small">
+        <span class="text-muted fw-bold">Saldo pendiente:</span>
+        <span class="fw-black {% if factura.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">Bs {{ factura.saldo_pendiente|floatformat:2 }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Pie del comprobante -->
+    <div class="mt-4 pt-3 border-top text-center text-muted small">
+      <div>El Taller del Maestro · Taller Mecánico &amp; Gomería</div>
+      <div class="mt-1">Documento generado el {% now "d/m/Y" %} · Sistema TAMGO v2.0</div>
+      {% if factura.notas %}<div class="mt-2 fst-italic">Notas: {{ factura.notas }}</div>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
