@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Completá la información personal y de contacto del cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'clientes:lista' %}" class="btn-volver-tm">
+  <span class="material-symbols-outlined">arrow_back</span>
+  <span>Volver a Clientes</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-light-custom">
+  <div class="mx-auto" style="max-width: 1200px; width: 100%;">
+  
+    <form method="POST" enctype="multipart/form-data" class="mt-2">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+      <div class="alert alert-danger mb-4 rounded-3">
+        <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+        <ul class="mb-0 small">
+          {% for field in form %}
+            {% for error in field.errors %}<li><strong>{{ field.label }}:</strong> {{ error }}</li>{% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- CONTENEDOR PRINCIPAL (Tarjeta Blanca con Grid) -->
+      <div class="tm-main-card">
+        
+        <div class="row g-4">
+          
+          <!-- COLUMNA IZQUIERDA (Datos del cliente) -->
+          <div class="col-12 col-lg-8 border-end-lg pe-lg-4">
+            
+            <!-- Sección 1: Identificación Principal -->
+            <div class="mb-4 pb-3 border-bottom">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                1. Identificación Principal
+              </h6>
+              <div class="row g-3">
+                <div class="col-12 col-md-7">
+                  <label class="tm-label" for="id_nombre_razon_social">Nombre o Razón Social <span class="text-danger">*</span></label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">person</span>
+                    <input type="text" name="nombre_razon_social" id="id_nombre_razon_social" required
+                           value="{{ form.nombre_razon_social.value|default:'' }}"
+                           class="tm-input" placeholder="Ej: Juan Pérez">
+                  </div>
+                </div>
+                <div class="col-12 col-md-5">
+                  <label class="tm-label" for="id_documento">Documento / CUIT / DNI</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">fingerprint</span>
+                    <input type="text" name="documento" id="id_documento"
+                           value="{{ form.documento.value|default:'' }}"
+                           class="tm-input" placeholder="20-12345678-9">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 2: Canales de Contacto -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                2. Canales de Contacto
+              </h6>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="id_telefono">Teléfono / WhatsApp</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">call</span>
+                    <input type="text" name="telefono" id="id_telefono"
+                           value="{{ form.telefono.value|default:'' }}"
+                           class="tm-input" placeholder="+54 9 11 1234-5678">
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="id_email">Correo Electrónico</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">mail</span>
+                    <input type="email" name="email" id="id_email"
+                           value="{{ form.email.value|default:'' }}"
+                           class="tm-input" placeholder="cliente@ejemplo.com">
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="tm-label" for="id_direccion">Dirección</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">home_pin</span>
+                    <input type="text" name="direccion" id="id_direccion"
+                           value="{{ form.direccion.value|default:'' }}"
+                           class="tm-input" placeholder="Calle, número, localidad...">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA (Estado y Foto) -->
+          <div class="col-12 col-lg-4 ps-lg-4 mt-4 mt-lg-0">
+            
+            <!-- Estado -->
+            <div class="mb-4">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                Estado del Cliente
+              </h6>
+              <label class="tm-switch-box" for="id_activo">
+                <input type="checkbox" name="activo" id="id_activo" class="tm-checkbox"
+                       {% if form.activo.value or form.activo.value is None %}checked{% endif %}>
+                <div>
+                  <div class="fw-bold text-dark" style="font-size: 13px;">Cliente Habilitado</div>
+                  <div class="text-muted" style="font-size: 12px;">Permite asignar órdenes y recibos.</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Fotografía -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                Fotografía / Logo
+              </h6>
+              <div class="tm-photo-box" id="cliente-form-dropzone">
+                <div class="text-center mb-3">
+                  <div class="tm-avatar-box mx-auto" style="width: 90px; height: 90px; border-radius: 50%;">
+                    {% if cliente.foto %}
+                      <img src="{{ cliente.foto.url }}" id="cliente-form-preview-img" alt="{{ cliente.nombre_razon_social }}">
+                      <span class="material-symbols-outlined d-none" id="cliente-form-preview-placeholder">account_circle</span>
+                    {% else %}
+                      <img src="" id="cliente-form-preview-img" class="d-none" alt="Vista previa">
+                      <span class="material-symbols-outlined" id="cliente-form-preview-placeholder">account_circle</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <input type="file" name="foto" id="id_foto" accept="image/*" class="d-none">
+                <div class="d-flex flex-column gap-2">
+                  <button type="button" onclick="document.getElementById('id_foto').click()" class="btn btn-sm btn-outline-secondary bg-white fw-semibold w-100">
+                    <span class="material-symbols-outlined align-middle me-1" style="font-size: 16px;">upload</span> Seleccionar
+                  </button>
+                  <button type="button" id="cliente-form-foto-remove" class="btn btn-sm btn-link text-danger text-decoration-none d-none w-100 py-0">
+                    Eliminar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex justify-content-end gap-3 mt-4 mb-4">
+        <a href="{% url 'clientes:lista' %}" class="btn btn-light border fw-semibold px-4" style="border-radius: 8px;">Cancelar</a>
+        <button type="submit" class="tm-btn-submit">
+          Guardar Cliente
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/clientes/form.js' %}"></script>
+{% endblock %}

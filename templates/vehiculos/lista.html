@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Vehículos{% endblock %}
+{% block subtitle %}Unidades registradas, historial de servicios y especificaciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vehiculos/lista.css' %}"/>
+{% endblock %}
+
+
+
+
+{% block topbar_actions %}
+<a href="{% url 'vehiculos:crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">directions_car</span>
+  <span>Nuevo Vehículo</span>
+</a>
+{% endblock %}
+
+
+{% block content %}
+<div class="d-flex flex-column gap-4">
+
+  <div class="card-workshop p-3">
+    <form method="GET" class="row g-2 align-items-center">
+      <div class="col-12 col-md-6 col-lg-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white text-muted">
+            <span class="material-symbols-outlined fs-6">search</span>
+          </span>
+          <input type="text" name="q" value="{{ query }}" placeholder="Placa, marca, modelo o cliente..." class="form-control form-control-sm">
+        </div>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+          <span class="material-symbols-outlined fs-6">search</span>
+          <span>Buscar</span>
+        </button>
+      </div>
+      {% if query %}
+      <div class="col-auto">
+        <a href="{% url 'vehiculos:lista' %}" class="btn btn-sm btn-link text-muted text-decoration-none">Limpiar</a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="row g-4">
+    {% for vehiculo in vehiculos %}
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <div class="vehicle-card h-100">
+        <!-- Imagen -->
+        <div class="vehicle-img-wrap">
+          {% if vehiculo.foto %}
+            <img src="{{ vehiculo.foto.url }}" class="w-100 h-100 object-fit-cover" style="cursor:zoom-in"
+                 data-lightbox="{{ vehiculo.foto.url }}" data-alt="{{ vehiculo.placa }} – {{ vehiculo.marca }} {{ vehiculo.modelo }}">
+          {% else %}
+            <div class="d-flex flex-column align-items-center justify-content-center text-muted">
+              <span class="material-symbols-outlined fs-1 text-black-50">directions_car</span>
+              <span class="small fw-bold text-uppercase mt-1" style="font-size: 0.65rem;">Sin foto</span>
+            </div>
+          {% endif %}
+
+          <div class="vehicle-plate-badge">
+            {{ vehiculo.placa|upper }}
+          </div>
+
+          <div class="vehicle-brand-overlay">
+            <h4 class="h6 fw-bold mb-0 text-truncate text-white">{{ vehiculo.marca }} {{ vehiculo.modelo }}</h4>
+          </div>
+        </div>
+
+        <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+          <!-- Propietario y Kilometraje -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="min-w-0 pe-2">
+              <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Propietario</div>
+              <a href="{% url 'clientes:detalle' vehiculo.cliente.pk %}" class="fw-semibold text-dark text-decoration-none small text-truncate d-block">{{ vehiculo.cliente.nombre_razon_social|truncatechars:20 }}</a>
+            </div>
+            <div class="text-end flex-shrink-0">
+              <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Km</div>
+              <div class="fw-bold text-dark small">{{ vehiculo.kilometraje_actual|default:"—" }}</div>
+            </div>
+          </div>
+
+
+          <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
+            <div class="d-flex gap-1 align-items-center">
+              <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.anio|default:"S/A" }}</span>
+              <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">{{ vehiculo.get_color_display }}</span>
+            </div>
+
+            <a href="{% url 'vehiculos:detalle' vehiculo.pk %}" class="btn btn-sm btn-link text-secondary text-decoration-none p-0 d-flex align-items-center gap-1 small fw-semibold" style="font-size: 0.75rem;">
+              <span>Ver ficha</span>
+              <span class="material-symbols-outlined fs-6">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="col-12">
+      <div class="card-workshop p-5 text-center text-muted">
+        <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">directions_car</span>
+        <h3 class="fs-6 fw-bold text-dark">No se encontraron vehículos</h3>
+        <p class="small text-muted mb-3">Probá con otros términos o registrá un nuevo vehículo.</p>
+        <a href="{% url 'vehiculos:crear' %}" class="btn btn-tm-gold btn-sm">Nuevo Vehículo</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/vehiculos/lista.js' %}"></script>
+{% endblock %}

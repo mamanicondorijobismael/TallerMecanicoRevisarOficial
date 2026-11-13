@@ -1,0 +1,510 @@
+{% load static %}
+<!doctype html>
+<html lang="es" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}El Taller del Maestro – Sistema de Gestión{% endblock %}
+    </title>
+    <meta
+      name="description"
+      content="El Taller del Maestro - Sistema Integral para Taller Mecánico y Gomería"
+    />
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Material Symbols Outlined -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <!-- Modern FleetTrack UI Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=5.1" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    {% if user.is_authenticated %}
+    <div class="d-flex flex-column min-vh-100">
+
+      <!-- ════════════════════════════════════════════════════════════════
+           HEADER 2-TIER
+           Tier 1: Marca + Cápsula de Navegación (compacto)
+           Tier 2: Breadcrumb | Buscador + Nueva Orden + Perfil
+           ════════════════════════════════════════════════════════════════ -->
+      <header class="workshop-header">
+
+        <!-- ── TIER 1 (ARRIBA): Brand + Navegación ── -->
+        <div class="workshop-header-top">
+          <div class="workshop-header-top-inner">
+
+            <!-- Left: Brand Logo & Mobile Toggle -->
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                class="mobile-nav-toggle"
+                onclick="toggleMobileDrawer()"
+                aria-label="Abrir menú de navegación"
+              >
+                <span class="material-symbols-outlined fs-5">menu</span>
+              </button>
+
+              <a href="{% url 'dashboard' %}" class="header-brand">
+                <img src="{% static 'img/logo-taller.png' %}" alt="El Taller del Maestro" style="height:40px;width:auto;object-fit:contain;">
+              </a>
+            </div>
+
+            <!-- Center: Cápsula de Navegación -->
+            <nav class="nav-capsule-bar" aria-label="Navegación Principal">
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'dashboard' %}"
+                  class="nav-capsule-btn {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                  title="Panel de Control General"
+                >
+                  <span class="material-symbols-outlined">home</span>
+                  <span class="nav-btn-label">Inicio</span>
+                </a>
+              </div>
+
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'ordenes:lista' %}"
+                  class="nav-capsule-btn {% if 'ordenes' in request.path %}active{% endif %}"
+                  title="Órdenes de Trabajo del Taller"
+                >
+                  <span class="material-symbols-outlined">build</span>
+                  <span class="nav-btn-label">Órdenes</span>
+                </a>
+              </div>
+
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'clientes:lista' %}"
+                  class="nav-capsule-btn {% if 'clientes' in request.path %}active{% endif %}"
+                  title="Gestión de Clientes"
+                >
+                  <span class="material-symbols-outlined">group</span>
+                  <span class="nav-btn-label">Clientes</span>
+                </a>
+              </div>
+
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'vehiculos:lista' %}"
+                  class="nav-capsule-btn {% if 'vehiculos' in request.path %}active{% endif %}"
+                  title="Gestión de Vehículos"
+                >
+                  <span class="material-symbols-outlined">directions_car</span>
+                  <span class="nav-btn-label">Vehículos</span>
+                </a>
+              </div>
+
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'inventario:lista' %}"
+                  class="nav-capsule-btn {% if 'inventario' in request.path %}active{% endif %}"
+                  title="Inventario, Repuestos y Neumáticos"
+                >
+                  <span class="material-symbols-outlined">inventory_2</span>
+                  <span class="nav-btn-label">Inventario</span>
+                </a>
+              </div>
+
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'recibos:lista' %}"
+                  class="nav-capsule-btn {% if 'recibos' in request.path or 'comprobantes' in request.path %}active{% endif %}"
+                  title="Recibos y Cobros"
+                >
+                  <span class="material-symbols-outlined">payments</span>
+                  <span class="nav-btn-label">Recibos</span>
+                </a>
+              </div>
+
+              {% if user.is_superuser or user.rol and user.rol.puede_ver_reportes %}
+              <div class="nav-capsule-item">
+                <a
+                  href="{% url 'reportes:dashboard' %}"
+                  class="nav-capsule-btn {% if 'reportes' in request.path %}active{% endif %}"
+                  title="Reportes y Estadísticas"
+                >
+                  <span class="material-symbols-outlined">analytics</span>
+                  <span class="nav-btn-label">Reportes</span>
+                </a>
+              </div>
+              {% endif %}
+
+              {% if user.es_administrador %}
+              <div class="nav-capsule-item dropdown-capsule-wrap">
+                <button
+                  type="button"
+                  class="nav-capsule-btn {% if 'usuarios' in request.path or 'roles' in request.path %}active{% endif %}"
+                  onclick="toggleCapsuleDropdown(this, event)"
+                  title="Módulo de Administración"
+                >
+                  <span class="material-symbols-outlined">admin_panel_settings</span>
+                  <span class="nav-btn-label d-inline-flex align-items-center gap-1">
+                    Admin
+                    <span class="material-symbols-outlined dropdown-arrow-mini">expand_more</span>
+                  </span>
+                </button>
+                <div class="capsule-dropdown-menu">
+                  <a
+                    href="{% url 'usuario_lista' %}"
+                    class="capsule-dropdown-item {% if 'usuarios' in request.path %}active{% endif %}"
+                  >
+                    <div class="capsule-item-icon">
+                      <span class="material-symbols-outlined">badge</span>
+                    </div>
+                    <div class="capsule-item-info">
+                      <span class="capsule-item-title">Personal &amp; Usuarios</span>
+                      <span class="capsule-item-desc">Equipo y cuentas de acceso</span>
+                    </div>
+                  </a>
+                  {% if user.is_superuser or user.rol and user.rol.puede_gestionar_roles %}
+                  <a
+                    href="{% url 'roles_lista' %}"
+                    class="capsule-dropdown-item {% if 'roles' in request.path %}active{% endif %}"
+                  >
+                    <div class="capsule-item-icon">
+                      <span class="material-symbols-outlined">shield_person</span>
+                    </div>
+                    <div class="capsule-item-info">
+                      <span class="capsule-item-title">Roles &amp; Permisos</span>
+                      <span class="capsule-item-desc">Niveles de seguridad</span>
+                    </div>
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+              {% endif %}
+            </nav>
+
+          </div>
+        </div>
+
+        <!-- ── TIER 2 (ABAJO): Breadcrumb | Search + CTA + Perfil ── -->
+        <div class="workshop-header-nav header-utilities-bar">
+          <div class="header-utilities-inner">
+
+            <!-- Breadcrumb contextual (oculto < lg) -->
+            <div class="header-breadcrumb d-none d-lg-flex align-items-center gap-2">
+              {% with r=request.resolver_match %}
+              <span class="material-symbols-outlined breadcrumb-icon">folder_open</span>
+              <span class="breadcrumb-label">Sistema</span>
+
+              {% if r.app_name %}
+                <span class="material-symbols-outlined breadcrumb-sep">chevron_right</span>
+                <span class="breadcrumb-app">
+                  {% if r.app_name == 'dashboard' %}Panel de Control{% else %}{{ r.app_name|capfirst }}{% endif %}
+                </span>
+              {% endif %}
+
+              {% if r.url_name %}
+                <span class="material-symbols-outlined breadcrumb-sep">chevron_right</span>
+                <span class="breadcrumb-current">
+                  {% block breadcrumb_current %}
+                    {% if r.url_name == 'dashboard' %}Panel de Control
+                    {% elif r.url_name == 'lista' %}Listado
+                    {% elif r.url_name == 'detalle' %}Detalle
+                    {% elif r.url_name == 'crear' %}Crear
+                    {% elif r.url_name == 'editar' %}Editar
+                    {% elif r.url_name == 'eliminar' %}Eliminar
+                    {% elif r.url_name == 'actualizar' %}Actualizar
+                    {% else %}{{ r.url_name|capfirst }}{% endif %}
+                  {% endblock %}
+                </span>
+              {% endif %}
+              {% endwith %}
+            </div>
+
+            <!-- Right: Search + CTA + Perfil -->
+            <div class="header-right">
+
+              <form action="{% url 'ordenes:lista' %}" method="GET" class="header-search-wrap">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Buscar orden, placa..."
+                  class="header-search-input"
+                  aria-label="Buscar en el sistema"
+                />
+              </form>
+
+              <a
+                href="{% url 'ordenes:crear' %}"
+                class="btn-cta-gold"
+                title="Registrar nueva orden de trabajo"
+              >
+                <span class="material-symbols-outlined">add_circle</span>
+                <span class="d-none d-sm-inline">Nueva Orden</span>
+              </a>
+
+              <div class="dropdown">
+                <button
+                  class="user-profile-pill border-0"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  title="Menú de Usuario"
+                >
+                  <div class="user-avatar-circle">
+                    {% if user.foto %}
+                    <img src="{{ user.foto.url }}" alt="{{ user.nombre_completo }}" />
+                    {% else %}
+                    <span>{{ user.nombre_completo|slice:":1"|upper }}</span>
+                    {% endif %}
+                  </div>
+                  <span class="user-name-text d-none d-md-inline">{{ user.nombre_completo|truncatewords:2 }}</span>
+                  <span class="material-symbols-outlined text-muted fs-6">expand_more</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 py-2 border-0 mt-2" style="min-width: 210px;">
+                  <li class="px-3 py-2 border-bottom">
+                    <div class="fw-bold small text-dark">{{ user.nombre_completo }}</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">{{ user.get_rol_display|default:"Usuario" }}</div>
+                  </li>
+                  <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 small" href="{% url 'perfil' %}">
+                      <span class="material-symbols-outlined text-secondary fs-6">person</span>
+                      <span>Mi Perfil</span>
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider my-1" /></li>
+                  <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 small text-danger" href="{% url 'logout' %}">
+                      <span class="material-symbols-outlined fs-6">logout</span>
+                      <span>Cerrar Sesión</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </header>
+
+      <!-- ──────── Mobile Navigation Drawer ──────── -->
+      <div
+        id="mobile-drawer-overlay"
+        class="mobile-drawer-overlay"
+        onclick="toggleMobileDrawer()"
+      ></div>
+
+      <div id="mobile-drawer" class="mobile-drawer">
+        <div class="mobile-drawer-header">
+          <div class="d-flex align-items-center gap-2">
+            <img src="{% static 'img/logo-taller.png' %}" alt="El Taller del Maestro" style="height:36px;width:auto;object-fit:contain;">
+            <div>
+              <div class="fw-bold text-dark small">El Taller del Maestro</div>
+              <div class="text-muted" style="font-size: 0.7rem;">Sistema de Gestión Integral</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-light p-1 rounded-circle"
+            onclick="toggleMobileDrawer()"
+            aria-label="Cerrar menú"
+          >
+            <span class="material-symbols-outlined fs-5">close</span>
+          </button>
+        </div>
+
+        <div class="mobile-drawer-body custom-scrollbar">
+          <div class="mobile-nav-section-title">OPERACIÓN</div>
+
+          <a href="{% url 'dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <span class="material-symbols-outlined">home</span>
+            <span>Inicio</span>
+          </a>
+
+          <a href="{% url 'ordenes:lista' %}" class="mobile-nav-link {% if 'ordenes' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">build</span>
+            <span>Órdenes de Trabajo</span>
+          </a>
+
+          <a href="{% url 'clientes:lista' %}" class="mobile-nav-link {% if 'clientes' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">person</span>
+            <span>Clientes</span>
+          </a>
+
+          <a href="{% url 'vehiculos:lista' %}" class="mobile-nav-link {% if 'vehiculos' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">directions_car</span>
+            <span>Vehículos</span>
+          </a>
+
+          <a href="{% url 'inventario:lista' %}" class="mobile-nav-link {% if 'inventario' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <span>Inventario &amp; Repuestos</span>
+          </a>
+
+          <div class="mobile-nav-section-title">FINANZAS &amp; CONTROL</div>
+
+          <a href="{% url 'recibos:lista' %}" class="mobile-nav-link {% if 'recibos' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <span>Recibos &amp; Cobros</span>
+          </a>
+
+          {% if user.is_superuser or user.rol and user.rol.puede_ver_reportes %}
+          <a href="{% url 'reportes:dashboard' %}" class="mobile-nav-link {% if 'reportes' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">analytics</span>
+            <span>Reportes &amp; Métricas</span>
+          </a>
+          {% endif %}
+
+          {% if user.es_administrador %}
+          <div class="mobile-nav-section-title">ADMINISTRACIÓN</div>
+
+          <a href="{% url 'usuario_lista' %}" class="mobile-nav-link {% if 'usuarios' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">badge</span>
+            <span>Personal &amp; Usuarios</span>
+          </a>
+
+          {% if user.is_superuser or user.rol and user.rol.puede_gestionar_roles %}
+          <a href="{% url 'roles_lista' %}" class="mobile-nav-link {% if 'roles' in request.path %}active{% endif %}">
+            <span class="material-symbols-outlined">shield_person</span>
+            <span>Roles &amp; Permisos</span>
+          </a>
+          {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="p-3 border-top bg-light d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="user-avatar-circle" style="width: 32px; height: 32px;">
+              {% if user.foto %}
+              <img src="{{ user.foto.url }}" alt="" />
+              {% else %}
+              {{ user.nombre_completo|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <div class="min-w-0">
+              <div class="small fw-bold text-truncate" style="max-width: 140px;">{{ user.nombre_completo }}</div>
+              <div class="text-muted" style="font-size: 0.68rem;">{{ user.get_rol_display }}</div>
+            </div>
+          </div>
+          <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger p-1 rounded-circle" title="Cerrar sesión">
+            <span class="material-symbols-outlined fs-6">logout</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- ──────── Dashboard Hero Sub-Header ──────── -->
+      <section class="dashboard-hero-section">
+        <div class="dashboard-hero-card">
+          <div class="d-flex align-items-center gap-2 hero-title-area">
+            {% block back_button %}{% endblock %}
+            <div>
+              <h2 class="hero-page-title">
+                {% block page_title %}Panel Operativo{% endblock %}
+              </h2>
+              <div class="hero-page-subtitle">
+                {% block subtitle %}El Taller del Maestro – Sistema Integral{% endblock %}
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-actions-area">
+            {% block topbar_actions %}{% endblock %}
+          </div>
+        </div>
+      </section>
+
+      <!-- ──────── Global Messages / Alerts ──────── -->
+      {% if messages %}
+      <div class="container-fluid px-4 pt-2">
+        {% for message in messages %}
+        <div
+          class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3"
+          role="alert"
+        >
+          <span class="material-symbols-outlined fs-5">
+            {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}
+          </span>
+          <div class="flex-grow-1 fw-medium small">{{ message }}</div>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Cerrar"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ──────── Main Content Container ──────── -->
+      <main class="app-main-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>  
+    {% else %}
+    <div class="min-vh-100">
+      {% block unauthenticated_content %}{% block login_content %}{% endblock %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <!-- ────── LIGHTBOX (Visor de Fotos Pro) ────── -->
+    <div
+      id="lightbox-overlay"
+      class="lightbox-overlay-pro"
+      onclick="closeLightbox(event)"
+    >
+      <div
+        class="lightbox-container"
+        onclick="event.stopPropagation()"
+      >
+        <button
+          id="lightbox-close"
+          onclick="closeLightbox()"
+          title="Cerrar visor"
+        >
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+        <div class="lightbox-image-wrapper">
+          <img
+            id="lightbox-img"
+            src=""
+            alt="Vista previa"
+          />
+        </div>
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5.3.3 JS Bundle with Popper -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Base Application Script -->
+    <script src="{% static 'js/base.js' %}?v=5.1"></script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
+

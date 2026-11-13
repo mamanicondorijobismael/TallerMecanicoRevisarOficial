@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Orden de Trabajo #{{ orden.numero_orden }}{% endblock %}
+{% block subtitle %}{{ orden.vehiculo.patente }} – {{ orden.vehiculo.cliente.nombre_razon_social }}{% endblock %}
+
+{% block breadcrumb_current %}OT #{{ orden.numero_orden }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ordenes/detalle.css' %}?v=1.3" />
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'ordenes:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span class="d-none d-sm-inline">Órdenes</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2 flex-wrap">
+
+  {# ── Estado actual ── #}
+  <span class="badge-status status-{{ orden.estado|lower }} fs-6 py-1 px-2">
+    {{ orden.get_estado_display }}
+  </span>
+
+  {# ── Editar ── #}
+  {% if orden.estado not in 'COBRADA,CANCELADA' %}
+  <a href="{% url 'ordenes:editar' orden.pk %}"
+     class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+     title="Editar orden">
+    <span class="material-symbols-outlined fs-6">edit</span>
+    <span class="d-none d-md-inline">Editar</span>
+  </a>
+  {% endif %}
+
+  {# ── Cambiar estado ── #}
+  <form method="POST" action="{% url 'ordenes:cambiar_estado' orden.pk %}" class="d-flex align-items-center gap-1">
+    {% csrf_token %}
+    <select name="estado" class="form-select form-select-sm" style="width: 130px;">
+      {% for state_val, state_name in orden.Estado.choices %}
+        {% if state_val != 'COBRADA' or orden.estado == state_val %}
+          <option value="{{ state_val }}" {% if orden.estado == state_val %}selected{% endif %}>{{ state_name }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-tm-navy" {% if orden.estado == 'COBRADA' %}disabled{% endif %} title="Actualizar estado">
+      <span class="material-symbols-outlined fs-6">check</span>
+    </button>
+  </form>
+
+  {# ── Generar Recibo ── #}
+  {% if orden.estado == 'COMPLETADA' %}
+  <form method="POST" action="{% url 'recibos:generar' orden.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-tm-gold d-flex align-items-center gap-1">
+      <span class="material-symbols-outlined fs-6">payments</span>
+      <span class="d-none d-md-inline">Generar Recibo</span>
+    </button>
+  </form>
+  {% endif %}
+
+  {# ── Ver Recibo ── #}
+  {% if orden.estado == 'COBRADA' and orden.recibo %}
+  <a href="{% url 'recibos:detalle' orden.recibo.pk %}" class="btn btn-sm btn-tm-navy d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">receipt_long</span>
+    <span class="d-none d-md-inline">Ver Recibo</span>
+  </a>
+  {% endif %}
+
+  {# ── Imprimir ── #}
+  <a href="{% url 'ordenes:imprimir' orden.pk %}"
+     class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+     title="Vista de impresión oficial">
+    <span class="material-symbols-outlined fs-6">print</span>
+    <span>Imprimir OT</span>
+  </a>
+
+  {# ── Menú ⋮ ── #}
+  {% if request.user.es_administrador and orden.estado != 'COBRADA' %}
+  <div class="dropdown">
+    <button class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Más acciones"
+            style="width: 32px; height: 32px; padding: 0;">
+      <span class="material-symbols-outlined fs-6">more_vert</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0 mt-2 py-2" style="min-width: 200px;">
+      <li>
+        <button type="button"
+                class="dropdown-item d-flex align-items-center gap-2 py-2 small text-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEliminarOrden">
+          <span class="material-symbols-outlined fs-6">delete</span>
+          <span>Eliminar Orden</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- ═══ COLUMNA IZQUIERDA: Servicios, Productos, Externos ═══ -->
+  <div class="col-12 col-lg-8 d-flex flex-column gap-4">
+
+    <!-- Mano de Obra / Servicios -->
+    <div class="card-workshop p-4">
+      <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary fs-5" style="font-variation-settings:'FILL' 1;">construction</span>
+          <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Mano de Obra y Servicios</h3>
+        </div>
+        {% if orden.estado not in 'COBRADA,CANCELADA' %}
+        <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1"
+                data-bs-toggle="modal" data-bs-target="#modal-servicio">
+          <span class="material-symbols-outlined fs-6">add</span>
+          <span>Agregar Servicio</span>
+        </button>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-workshop mb-0">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th class="text-center">Cant / Hs</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Subtotal</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in servicios %}
+            <tr>
+              <td class="fw-semibold text-dark">{{ s.descripcion }}</td>
+              <td class="text-center text-muted">{{ s.cantidad }}</td>
+              <td class="text-end text-muted">Bs {{ s.precio_unitario|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark">Bs {{ s.subtotal|floatformat:2 }}</td>
+              <td class="text-center">
+                {% if request.user.es_administrador and orden.estado not in 'COBRADA,CANCELADA' %}
+                <form method="POST" action="{% url 'ordenes:eliminar_servicio' orden.pk s.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este servicio de la orden?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-action-delete" title="Eliminar servicio">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5">
+                <div class="empty-row">
+                  <span class="material-symbols-outlined text-muted display-6">construction</span>
+                  <span class="text-muted small mt-1">No hay servicios agregados todavía.</span>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Repuestos / Productos del inventario -->
+    <div class="card-workshop p-4">
+      <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary fs-5" style="font-variation-settings:'FILL' 1;">inventory_2</span>
+          <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Repuestos y Productos Usados</h3>
+        </div>
+        {% if orden.estado not in 'COBRADA,CANCELADA' %}
+        <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1"
+                data-bs-toggle="modal" data-bs-target="#modal-producto">
+          <span class="material-symbols-outlined fs-6">add</span>
+          <span>Agregar Producto</span>
+        </button>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-workshop mb-0">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Foto</th>
+              <th>Producto / SKU</th>
+              <th class="text-center">Cant</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Subtotal</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in productos %}
+            <tr>
+              <td>
+                <div class="product-thumb">
+                  {% if p.producto.imagen %}
+                    <img src="{{ p.producto.imagen.url }}" alt="{{ p.producto.nombre }}" style="cursor:zoom-in" data-lightbox="{{ p.producto.imagen.url }}" data-alt="{{ p.producto.nombre }}">
+                  {% else %}
+                    <span class="material-symbols-outlined text-muted fs-5">image_not_supported</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="fw-bold small text-dark">{{ p.producto.nombre }}</div>
+                <div class="font-monospace text-muted" style="font-size: 0.72rem;">{{ p.producto.codigo_sku }}</div>
+              </td>
+              <td class="text-center fw-bold text-dark small">{{ p.cantidad }}</td>
+              <td class="text-end text-muted small">Bs {{ p.precio_unitario|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark small">Bs {{ p.subtotal|floatformat:2 }}</td>
+              <td class="text-center">
+                {% if request.user.es_administrador and orden.estado not in 'COBRADA,CANCELADA' %}
+                <form method="POST" action="{% url 'ordenes:eliminar_producto' orden.pk p.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este producto de la orden?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-action-delete" title="Eliminar producto">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6">
+                <div class="empty-row">
+                  <span class="material-symbols-outlined text-muted display-6">inventory_2</span>
+                  <span class="text-muted small mt-1">No hay repuestos o insumos agregados del inventario.</span>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Repuestos Externos -->
+    <div class="card-workshop p-4">
+      <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary fs-5" style="font-variation-settings:'FILL' 1;">local_shipping</span>
+          <div>
+            <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Repuestos Comprados de Afuera</h3>
+            <span class="text-muted" style="font-size: 0.75rem;">No registrados en el stock interno del taller</span>
+          </div>
+        </div>
+        {% if orden.estado not in 'COBRADA,CANCELADA' %}
+        <button type="button" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1"
+                data-bs-toggle="modal" data-bs-target="#modal-repuesto-externo">
+          <span class="material-symbols-outlined fs-6">add</span>
+          <span>Agregar Externo</span>
+        </button>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-workshop mb-0">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th class="text-center">Cant</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Subtotal</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for re in repuestos_externos %}
+            <tr>
+              <td class="fw-semibold text-dark">
+                {{ re.descripcion }}
+                {% if re.proveedor %}
+                <span class="badge bg-light text-secondary border ms-1 fw-normal" style="font-size: 0.7rem;">{{ re.proveedor }}</span>
+                {% endif %}
+              </td>
+              <td class="text-center fw-bold text-dark small">{{ re.cantidad }}</td>
+              <td class="text-end text-muted small">Bs {{ re.precio_unitario|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark small">Bs {{ re.subtotal|floatformat:2 }}</td>
+              <td class="text-center">
+                {% if request.user.es_administrador and orden.estado not in 'COBRADA,CANCELADA' %}
+                <form method="POST" action="{% url 'ordenes:eliminar_repuesto_externo' orden.pk re.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este repuesto externo de la orden?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-action-delete" title="Eliminar repuesto externo">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5">
+                <div class="empty-row">
+                  <span class="material-symbols-outlined text-muted display-6">local_shipping</span>
+                  <span class="text-muted small mt-1">No hay repuestos comprados de afuera registrados.</span>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COLUMNA DERECHA: Summary + Info ═══ -->
+  <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+
+    <!-- Summary de Liquidación -->
+    <div class="summary-card {% if orden.estado == 'CANCELADA' %}summary-card-cancelled{% elif orden.estado == 'COBRADA' %}summary-card-paid{% endif %}">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Resumen de Liquidación</h3>
+        <span class="material-symbols-outlined text-warning-emphasis fs-5" style="font-variation-settings:'FILL' 1;">request_quote</span>
+      </div>
+      <div class="d-flex flex-column gap-2 small">
+        <div class="d-flex justify-content-between text-muted">
+          <span>Servicios:</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_servicios|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted">
+          <span>Repuestos (Stock):</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_productos|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted">
+          <span>Repuestos de Afuera:</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_repuestos_externos|floatformat:2 }}</span>
+        </div>
+        <hr class="my-1" />
+        <div class="d-flex justify-content-between align-items-center pt-1">
+          <span class="fw-bold text-dark text-uppercase tracking-wider">TOTAL:</span>
+          <span class="summary-total-val text-primary">Bs {{ orden.total|floatformat:2 }}</span>
+        </div>
+        <div class="text-muted small text-center mt-2 pt-2 border-top" style="font-size: 0.7rem;">
+          <span class="material-symbols-outlined fs-6 align-middle">schedule</span>
+          Creada el {{ orden.fecha_creacion|date:"d/m/Y H:i" }}
+          {% if orden.fecha_prometida %} · Entrega: {{ orden.fecha_prometida|date:"d/m/Y" }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Información General -->
+    <div class="card-workshop p-4 flex-grow-1">
+      <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5" style="font-variation-settings:'FILL' 1;">info</span>
+        Información General
+      </h3>
+      <div class="d-flex flex-column gap-3 small">
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Estado Actual:</div>
+          <div class="mt-1">
+            <span class="badge-status status-{{ orden.estado|lower }}">{{ orden.get_estado_display }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Mecánico a Cargo:</div>
+          <div class="fw-bold text-dark mt-0.5 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6 text-muted">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:"No asignado" }}
+          </div>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Kilometraje al Ingreso:</div>
+          <div class="fw-bold text-dark mt-0.5">{{ orden.kilometraje|default:"—" }} km</div>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05rem;">Diagnóstico Inicial:</div>
+          <p class="text-dark mt-0.5 mb-0 lh-sm">{{ orden.diagnostico|default:"Sin diagnóstico cargado" }}</p>
+        </div>
+        <div>
+          <div class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Observaciones:</div>
+          <p class="text-muted mt-0.5 mb-0 lh-sm">{{ orden.observaciones|default:"Sin observaciones" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODALES SIMPLIFICADOS (Sin cabecera azul)
+     ══════════════════════════════════════════════════════════════════════ -->
+
+<!-- Modal: Agregar Servicio -->
+<div class="modal fade" id="modal-servicio" tabindex="-1" aria-labelledby="modalServicioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4">
+        <h5 class="modal-title fw-bold text-dark" id="modalServicioLabel">Agregar Servicio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'ordenes:agregar_servicio' orden.pk %}">
+        {% csrf_token %}
+        <div class="modal-body px-4 pb-4">
+          <div class="row g-3">
+            {% for field in form_servicio %}
+            <div class="col-12">
+              <label class="form-label-pro" for="{{ field.id_for_label }}">
+                {{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}
+              </label>
+              {{ field }}
+              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4">Agregar Servicio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Agregar Producto -->
+<div class="modal fade" id="modal-producto" tabindex="-1" aria-labelledby="modalProductoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4">
+        <h5 class="modal-title fw-bold text-dark" id="modalProductoLabel">Agregar Producto / Repuesto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'ordenes:agregar_producto' orden.pk %}">
+        {% csrf_token %}
+        <div class="modal-body px-4 pb-4">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label-pro">Buscar Repuesto Interno (AJAX) <span class="req">*</span></label>
+              <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
+                <input type="text" id="filtro-producto-ajax" class="form-control form-control-sm" placeholder="Buscar por SKU, nombre o descripción (ej: LUB, filtro, pastilla)...">
+              </div>
+              <div id="resultado-busqueda-repuesto" class="list-group mb-2 d-none" style="max-height: 180px; overflow-y: auto;"></div>
+              <label class="form-label-pro small text-muted">Producto Seleccionado</label>
+              {{ form_producto.producto }}
+              {% if form_producto.producto.errors %}<div class="text-danger small mt-1">{{ form_producto.producto.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label-pro" for="{{ form_producto.cantidad.id_for_label }}">
+                Cantidad <span class="req">*</span>
+              </label>
+              {{ form_producto.cantidad }}
+              {% if form_producto.cantidad.errors %}<div class="text-danger small mt-1">{{ form_producto.cantidad.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4">Agregar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Agregar Repuesto Externo -->
+<div class="modal fade" id="modal-repuesto-externo" tabindex="-1" aria-labelledby="modalRepuestoExternoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4">
+        <h5 class="modal-title fw-bold text-dark" id="modalRepuestoExternoLabel">Agregar Repuesto de Afuera</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'ordenes:agregar_repuesto_externo' orden.pk %}">
+        {% csrf_token %}
+        <div class="modal-body px-4 pb-4">
+          <div class="row g-3">
+            {% for field in form_repuesto_externo %}
+            <div class="col-12">
+              <label class="form-label-pro" for="{{ field.id_for_label }}">
+                {{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}
+              </label>
+              {{ field }}
+              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4">Agregar Repuesto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if request.user.es_administrador %}
+<!-- Modal: Confirmar Eliminación de Orden (Mantenido por seguridad) -->
+<div class="modal fade" id="modalEliminarOrden" tabindex="-1" aria-labelledby="modalEliminarOrdenLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 56px; height: 56px; background-color: #FEE2E2; color: #DC2626;">
+          <span class="material-symbols-outlined fs-2">delete_sweep</span>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-1" id="modalEliminarOrdenLabel">¿Eliminar orden de trabajo?</h5>
+        <p class="text-muted small mb-3">Esta acción eliminará o cancelará la orden del sistema.</p>
+
+        <div class="bg-light border rounded-3 p-3 mb-3 text-start">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Orden</span>
+            <span class="badge bg-dark text-white font-monospace px-2 py-1">OT #{{ orden.numero_orden }}</span>
+          </div>
+          <div class="text-dark fw-semibold small">{{ orden.vehiculo.patente }} – {{ orden.vehiculo.cliente.nombre_razon_social }}</div>
+          <div class="text-muted small mt-1" style="font-size: 0.72rem;">Estado actual: <span class="fw-semibold">{{ orden.get_estado_display }}</span></div>
+        </div>
+
+        <div class="p-2 bg-warning-subtle border border-warning-subtle rounded-2 text-warning-emphasis text-start mb-4" style="font-size: 0.75rem;">
+          <span class="material-symbols-outlined me-1" style="font-size: 15px; vertical-align: -3px;">info</span>
+          Las órdenes con cobros o en proceso se marcarán como canceladas para preservar la trazabilidad.
+        </div>
+
+        <form method="POST" action="{% url 'ordenes:eliminar' orden.pk %}">
+          {% csrf_token %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border flex-grow-1 py-2 fw-semibold rounded-3 text-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1 shadow-sm">
+              <span class="material-symbols-outlined fs-6">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ordenes/detalle.js' %}?v=1.3"></script>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} – Inventario – El Taller del Maestro{% endblock %}
+{% block page_title %}{{ title }}
+{% endblock %}
+{% block subtitle %}Especificaciones técnicas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/form.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:lista' %}" class="btn-volver-tm">
+  <span class="material-symbols-outlined">arrow_back</span>
+  <span>Volver a Inventario</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-light-custom">
+  <div class="mx-auto" style="max-width: 1200px; width: 100%;">
+  
+    <form method="POST" enctype="multipart/form-data" class="mt-2">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+      <div class="alert alert-danger mb-4 rounded-3">
+        <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+        <ul class="mb-0 small">
+          {% for field in form %}
+            {% for error in field.errors %}<li><strong>{{ field.label }}:</strong> {{ error }}</li>{% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- CONTENEDOR PRINCIPAL -->
+      <div class="tm-main-card">
+        
+        <div class="row g-4">
+          
+          <!-- COLUMNA IZQUIERDA (Clasificación y Técnica) -->
+          <div class="col-12 col-lg-7 border-end-lg pe-lg-4">
+            
+            <!-- Sección 1: Identificación -->
+            <div class="mb-4 pb-3 border-bottom">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                1. Identificación y Clasificación
+              </h6>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="tm-label" for="{{ form.nombre.id_for_label }}">Nombre Comercial <span class="text-danger">*</span></label>
+                  {{ form.nombre }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="{{ form.categoria.id_for_label }}">Categoría</label>
+                  <div class="tm-select-wrapper">{{ form.categoria }}</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="{{ form.marca_llanta.id_for_label }}">Marca / Fabricante <span class="text-danger">*</span></label>
+                  {{ form.marca_llanta }}
+                </div>
+                <div class="col-12">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="tm-label mb-0" for="{{ form.codigo_sku.id_for_label }}">Código SKU</label>
+                    <button type="button" id="btn-autogenerar-sku" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 0.72rem;">
+                      <span class="material-symbols-outlined align-middle" style="font-size: 14px;">autorenew</span>
+                      Autogenerar ahora
+                    </button>
+                  </div>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">qr_code_2</span>
+                    {{ form.codigo_sku }}
+                  </div>
+                  <div id="sku-live-preview" class="small mt-1 text-success fw-semibold d-none" style="font-size: 0.72rem;">
+                    <span class="material-symbols-outlined align-middle" style="font-size: 14px;">check_circle</span>
+                    <span id="sku-live-text"></span>
+                  </div>
+                  <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">
+                    Formato: <strong>[FAMILIA]-[RIN/MATERIAL/PCD]-[CORRELATIVO]</strong> (ej: <code>LLA-17IN-ALU-5X114-001</code>). Se autogenera en vivo.
+                  </small>
+                </div>
+                <div class="col-12">
+                  <label class="tm-label" for="{{ form.descripcion.id_for_label }}">Descripción General</label>
+                  {{ form.descripcion }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 2: Técnica -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                2. Especificaciones Técnicas
+              </h6>
+              <div class="row g-3">
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.subfamilia.id_for_label }}">Material <span class="text-danger">*</span></label>
+                  <div class="tm-select-wrapper">{{ form.subfamilia }}</div>
+                </div>
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.rin.id_for_label }}">Rin (Pulgadas) <span class="text-danger">*</span></label>
+                  <div class="tm-select-wrapper">{{ form.rin }}</div>
+                </div>
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.ancho_pulgadas.id_for_label }}">Ancho (J)</label>
+                  {{ form.ancho_pulgadas }}
+                </div>
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.apernadura.id_for_label }}">Apernadura (PCD) <span class="text-danger">*</span></label>
+                  {{ form.apernadura }}
+                </div>
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.offset_et.id_for_label }}">Offset (ET)</label>
+                  {{ form.offset_et }}
+                </div>
+                <div class="col-6 col-md-4">
+                  <label class="tm-label" for="{{ form.centro_cb.id_for_label }}">Centro (CB)</label>
+                  {{ form.centro_cb }}
+                </div>
+                <div class="col-12">
+                  <label class="tm-label" for="{{ form.color.id_for_label }}">Color / Terminación</label>
+                  {{ form.color }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA (Precios, Stock, Compatibilidad y Foto) -->
+          <div class="col-12 col-lg-5 ps-lg-4 mt-4 mt-lg-0">
+            
+            <!-- Sección 3: Precios y Stock -->
+            <div class="mb-4">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                3. Precios y Existencias
+              </h6>
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="tm-label" for="{{ form.precio_costo.id_for_label }}">Costo (Bs) <span class="text-danger">*</span></label>
+                  {{ form.precio_costo }}
+                </div>
+                <div class="col-6">
+                  <label class="tm-label" for="{{ form.precio_venta.id_for_label }}">Venta (Bs) <span class="text-danger">*</span></label>
+                  {{ form.precio_venta }}
+                </div>
+                <div class="col-6">
+                  <label class="tm-label" for="{{ form.stock_actual.id_for_label }}">Stock Actual</label>
+                  {{ form.stock_actual }}
+                </div>
+                <div class="col-6">
+                  <label class="tm-label" for="{{ form.stock_minimo.id_for_label }}">Stock Mínimo</label>
+                  {{ form.stock_minimo }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 4: Compatibilidad -->
+            <div class="mb-4">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                4. Compatibilidad Vehicular
+              </h6>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="tm-label" for="{{ form.aplicacion.id_for_label }}">Vehículos Compatibles</label>
+                  {{ form.aplicacion }}
+                </div>
+                <div class="col-12">
+                  <label class="tm-switch-box" for="{{ form.es_adaptable.id_for_label }}">
+                    {{ form.es_adaptable }}
+                    <div>
+                      <div class="fw-bold text-dark" style="font-size: 13px;">¿Es Adaptable?</div>
+                      <div class="text-muted" style="font-size: 12px;">Requiere centradores o espaciadores.</div>
+                    </div>
+                  </label>
+                </div>
+                <div class="col-12">
+                  <label class="tm-label" for="{{ form.notas_adaptacion.id_for_label }}">Notas de Adaptación</label>
+                  {{ form.notas_adaptacion }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 5: Fotografía -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                5. Fotografía del Producto
+              </h6>
+              <div class="tm-photo-box text-center p-3">
+                <!-- Si tienes una lógica de preview con JS, la puedes poner acá -->
+                <div class="d-flex flex-column align-items-center gap-2">
+                  <span class="material-symbols-outlined text-muted" style="font-size: 40px;">image</span>
+                  {{ form.imagen }}
+                  <small class="text-muted mt-1" style="font-size: 11px;">Formatos: JPG, PNG (máx. 5MB).</small>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex justify-content-end gap-3 mt-4 mb-4">
+        <a href="{% url 'inventario:lista' %}" class="btn btn-light border fw-semibold px-4" style="border-radius: 8px;">Cancelar</a>
+        <button type="submit" class="tm-btn-submit">
+          Guardar Llanta
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/form.js' %}?v=2.2"></script>
+{% endblock %}

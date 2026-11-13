@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Recibo #{{ recibo.numero_recibo }}{% endblock %}
+{% block subtitle %}Documento de cobro{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'recibos:detalle' recibo.pk %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Volver</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">print</span>
+  <span>Imprimir / PDF</span>
+</button>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .app-sidebar, .app-topbar, .app-footer, footer, .no-print, header, .btn, .breadcrumb-item { display: none !important; }
+    .app-main { margin: 0 !important; padding: 0 !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; font-size: 11pt; color: #111 !important; }
+    .recibo-simple { box-shadow: none !important; border: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+  }
+  .recibo-simple {
+    max-width: 760px;
+    margin: 0 auto 30px auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 32px 36px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+  }
+  .recibo-simple table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .recibo-simple th {
+    border-bottom: 2px solid #cbd5e1;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #475569;
+    padding: 8px 6px;
+  }
+  .recibo-simple td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+  }
+  .recibo-simple tr:last-child td {
+    border-bottom: none;
+  }
+  .linea-corte {
+    border-top: 1px dashed #cbd5e1;
+    margin: 20px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recibo-simple">
+  <!-- ENCABEZADO MINIMALISTA -->
+  <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{% static 'img/logo-taller.png' %}" alt="Logo" style="height: 52px; width: auto; object-fit: contain;">
+      <div>
+        <h4 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">El Taller del Maestro</h4>
+        <div class="text-muted small">Taller Mecánico &amp; Gomería</div>
+        <div class="text-muted small">Atención profesional y repuestos garantizados</div>
+      </div>
+    </div>
+    <div class="text-end">
+      <h5 class="fw-bold text-dark mb-0 font-monospace">RECIBO N° {{ recibo.numero_recibo }}</h5>
+      <div class="small text-muted">Fecha: <strong>{{ recibo.fecha_emision|date:"d/m/Y H:i" }}</strong></div>
+      <div class="mt-1">
+        <span class="badge border {% if recibo.estado_pago == 'PAGADA' %}bg-success-subtle text-success border-success-subtle{% elif recibo.estado_pago == 'PARCIAL' %}bg-warning-subtle text-warning-emphasis border-warning-subtle{% else %}bg-secondary-subtle text-secondary border-secondary-subtle{% endif %}">
+          {{ recibo.get_estado_pago_display|upper }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATOS CLIENTE Y VEHÍCULO -->
+  <div class="row g-3 mb-3 pb-2 border-bottom">
+    <div class="col-6">
+      <div class="text-muted small text-uppercase fw-bold" style="font-size: 0.7rem;">Cliente</div>
+      <div class="fw-bold text-dark">{{ recibo.cliente.nombre_razon_social }}</div>
+      <div class="small text-muted">Doc/NIT: {{ recibo.cliente.documento|default:"Sin doc" }}</div>
+      {% if recibo.cliente.telefono %}<div class="small text-muted">Tel: {{ recibo.cliente.telefono }}</div>{% endif %}
+    </div>
+    <div class="col-6 text-end">
+      {% if recibo.orden %}
+      <div class="text-muted small text-uppercase fw-bold" style="font-size: 0.7rem;">Orden de Trabajo</div>
+      <div class="fw-bold text-dark">OT #{{ recibo.orden.numero_orden }}</div>
+      {% if recibo.orden.vehiculo %}
+      <div class="small text-muted">{{ recibo.orden.vehiculo.marca }} {{ recibo.orden.vehiculo.modelo }} · Placa: <strong>{{ recibo.orden.vehiculo.placa|upper }}</strong></div>
+      {% endif %}
+      {% if recibo.orden.mecanico %}
+      <div class="small text-muted">Mecánico: {{ recibo.orden.mecanico.nombre_completo }}</div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- DETALLE DE CONCEPTOS -->
+  <div class="mb-3">
+    <table>
+      <thead>
+        <tr>
+          <th>Concepto / Detalle</th>
+          <th class="text-center" style="width: 70px;">Cant.</th>
+          <th class="text-end" style="width: 110px;">P. Unit</th>
+          <th class="text-end" style="width: 120px;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Servicios -->
+        {% for s in servicios %}
+        <tr>
+          <td>
+            <div class="fw-semibold text-dark">{{ s.descripcion }}</div>
+            <div class="text-muted small" style="font-size: 0.75rem;">Mano de obra / Servicio</div>
+          </td>
+          <td class="text-center">1</td>
+          <td class="text-end">Bs {{ s.subtotal|floatformat:2 }}</td>
+          <td class="text-end fw-semibold">Bs {{ s.subtotal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+
+        <!-- Productos / Repuestos de inventario -->
+        {% for dp in productos %}
+        <tr>
+          <td>
+            <div class="fw-semibold text-dark">{{ dp.producto.nombre }}</div>
+            <div class="text-muted font-monospace small" style="font-size: 0.72rem;">SKU: {{ dp.producto.codigo_sku }}</div>
+          </td>
+          <td class="text-center">{{ dp.cantidad }}</td>
+          <td class="text-end">Bs {{ dp.precio_unitario|floatformat:2 }}</td>
+          <td class="text-end fw-semibold">Bs {{ dp.subtotal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+
+        <!-- Repuestos externos -->
+        {% for re in repuestos_externos %}
+        <tr>
+          <td>
+            <div class="fw-semibold text-dark">{{ re.descripcion }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Repuesto externo</div>
+          </td>
+          <td class="text-center">{{ re.cantidad }}</td>
+          <td class="text-end">Bs {{ re.precio_unitario|floatformat:2 }}</td>
+          <td class="text-end fw-semibold">Bs {{ re.subtotal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTALES -->
+  <div class="d-flex justify-content-end mb-3">
+    <div style="min-width: 260px;">
+      <div class="d-flex justify-content-between py-1 small border-bottom">
+        <span class="text-muted">Subtotal:</span>
+        <span class="fw-semibold">Bs {{ recibo.subtotal|floatformat:2 }}</span>
+      </div>
+      {% if recibo.iva_monto > 0 %}
+      <div class="d-flex justify-content-between py-1 small border-bottom">
+        <span class="text-muted">IVA ({{ recibo.iva_porcentaje }}%):</span>
+        <span class="fw-semibold">Bs {{ recibo.iva_monto|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      <div class="d-flex justify-content-between py-2 border-bottom">
+        <span class="fw-bold fs-6">TOTAL:</span>
+        <span class="fw-bold fs-5 text-dark">Bs {{ recibo.total|floatformat:2 }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-1 small">
+        <span class="text-muted">Saldo Pendiente:</span>
+        <span class="fw-bold {% if recibo.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
+          Bs {{ recibo.saldo_pendiente|floatformat:2 }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGOS -->
+  {% if pagos %}
+  <div class="mb-3 pt-2 border-top">
+    <div class="text-muted small text-uppercase fw-bold mb-2" style="font-size: 0.7rem;">Pagos Recibidos</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Método de Pago</th>
+          <th>Ref.</th>
+          <th class="text-end">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagos %}
+        <tr>
+          <td class="small">{{ p.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ p.get_metodo_pago_display }}</td>
+          <td class="small text-muted">{{ p.referencia|default:"—" }}</td>
+          <td class="text-end fw-bold text-success">Bs {{ p.monto|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if recibo.notas %}
+  <div class="p-2 bg-light border rounded small mb-3 text-muted">
+    <strong>Observaciones:</strong> {{ recibo.notas }}
+  </div>
+  {% endif %}
+
+  <!-- FIRMAS SIMPLES -->
+  <div class="row pt-4 mt-3 text-center" style="font-size: 0.8rem;">
+    <div class="col-6">
+      <div class="border-top mx-4 pt-1 text-muted">Firma del Cliente</div>
+    </div>
+    <div class="col-6">
+      <div class="border-top mx-4 pt-1 text-muted">Entregado por / Taller</div>
+    </div>
+  </div>
+
+  <div class="text-center text-muted mt-3 pt-2 border-top" style="font-size: 0.72rem;">
+    Gracias por su preferencia · El Taller del Maestro
+  </div>
+</div>
+{% endblock %}

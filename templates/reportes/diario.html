@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Cierre de Operaciones Diario{% endblock %}
+{% block subtitle %}Informe resumido y balance del día {{ hoy|date:"d/m/Y" }}{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'reportes:dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Reportes</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2 no-print">
+  <form method="GET" class="d-flex align-items-center gap-1 me-2">
+    <input type="date" name="fecha" value="{{ hoy|date:'Y-m-d' }}" class="form-control form-control-sm" style="width: auto;" onchange="this.form.submit()">
+  </form>
+  <a href="{% url 'reportes:exportar_diario_pdf' %}{% if request.GET.fecha %}?fecha={{ request.GET.fecha }}{% endif %}" target="_blank" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" title="Descargar informe PDF">
+    <span class="material-symbols-outlined fs-6">picture_as_pdf</span>
+    <span>PDF</span>
+  </a>
+  <a href="{% url 'reportes:exportar_cierre_diario_csv' %}{% if request.GET.fecha %}?fecha={{ request.GET.fecha }}{% endif %}" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" title="Descargar planilla CSV">
+    <span class="material-symbols-outlined fs-6">download</span>
+    <span>CSV</span>
+  </a>
+  <button onclick="window.print()" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">print</span>
+    <span>Imprimir</span>
+  </button>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .app-sidebar, .app-topbar, .app-footer, footer, .no-print, header, .btn, form { display: none !important; }
+    .app-main { margin: 0 !important; padding: 0 !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; font-size: 10pt; }
+    .card-resumen { box-shadow: none !important; border: 1px solid #ddd !important; }
+  }
+  .card-resumen {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .table-simple th {
+    background: #f8fafc;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #475569;
+    padding: 8px 10px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .table-simple td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+    vertical-align: middle;
+  }
+  .badge-user {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 600;
+    font-size: 0.72rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column gap-4 pb-4">
+
+  <!-- 1. RESUMEN FINANCIERO SIMPLE (4 TARJETAS) -->
+  <div class="row g-3">
+    <div class="col-6 col-lg-3">
+      <div class="card-resumen">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.7rem;">Recibos Emitidos</div>
+        <div class="h4 fw-bold text-dark mb-0 mt-1">Bs {{ total_ventas|floatformat:2 }}</div>
+        <div class="text-muted small mt-1">{{ resumen.comprobantes_count }} comprobante(s)</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-resumen">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.7rem;">Cobros Recaudados</div>
+        <div class="h4 fw-bold text-success mb-0 mt-1">Bs {{ total_recaudado|floatformat:2 }}</div>
+        <div class="text-muted small mt-1">{{ resumen.pagos_count }} pago(s) registrado(s)</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-resumen border-danger-subtle bg-danger-subtle bg-opacity-10">
+        <div class="text-danger small fw-semibold text-uppercase" style="font-size: 0.7rem;">Repuestos Comprados</div>
+        <div class="h4 fw-bold text-danger mb-0 mt-1">Bs {{ total_compras_repuestos|floatformat:2 }}</div>
+        <div class="text-muted small mt-1">{{ resumen.compras_count }} compra(s) / ingreso(s)</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card-resumen">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.7rem;">Balance Neto Caja</div>
+        <div class="h4 fw-bold {% if balance_caja_dia >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0 mt-1">
+          Bs {{ balance_caja_dia|floatformat:2 }}
+        </div>
+        <div class="text-muted small mt-1">Cobros menos compras</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. REPUESTOS COMPRADOS / INGRESOS DE ALMACÉN (CON AUDITORÍA DE QUIÉN LO HIZO) -->
+  <div class="card bg-white border rounded-3 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+      <div>
+        <h5 class="fw-bold mb-0 text-dark fs-6 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-danger fs-5">shopping_cart</span>
+          <span>Repuestos y Materiales Comprados en la Jornada</span>
+        </h5>
+        <div class="text-muted small">Registro de compras ingresadas al almacén y responsable de la carga</div>
+      </div>
+      <span class="badge bg-light text-dark border fw-bold">Total: Bs {{ total_compras_repuestos|floatformat:2 }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-simple mb-0">
+        <thead>
+          <tr>
+            <th style="width: 70px;">Hora</th>
+            <th style="width: 120px;">SKU</th>
+            <th>Repuesto / Producto</th>
+            <th class="text-center" style="width: 70px;">Cant.</th>
+            <th class="text-end" style="width: 110px;">Costo Unit.</th>
+            <th class="text-end" style="width: 120px;">Total</th>
+            <th>Motivo / Proveedor</th>
+            <th style="width: 140px;">Registrado Por</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in compras_repuestos %}
+          <tr>
+            <td class="text-muted small">{{ c.fecha_movimiento|date:"H:i" }}</td>
+            <td class="font-monospace small fw-bold text-dark">{{ c.producto.codigo_sku }}</td>
+            <td>
+              <div class="fw-semibold text-dark">{{ c.producto.nombre }}</div>
+              {% if c.producto.categoria %}
+              <div class="text-muted" style="font-size: 0.72rem;">{{ c.producto.categoria.nombre }}</div>
+              {% endif %}
+            </td>
+            <td class="text-center fw-bold">{{ c.cantidad }}</td>
+            <td class="text-end text-muted">Bs {{ c.precio_unitario|default:c.producto.precio_costo|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-danger">
+              Bs {% widthratio c.precio_unitario|default:c.producto.precio_costo 1 c.cantidad %}
+            </td>
+            <td class="small text-muted">{{ c.motivo|default:"Compra a proveedor" }}</td>
+            <td>
+              <span class="badge-user">
+                <span class="material-symbols-outlined align-middle" style="font-size: 12px;">person</span>
+                {{ c.usuario|default:"Sistema" }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-3 text-muted small fst-italic">
+              No se registraron compras o entradas de repuestos en esta jornada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. COBROS Y PAGOS RECAUDADOS -->
+  <div class="card bg-white border rounded-3 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+      <div>
+        <h5 class="fw-bold mb-0 text-dark fs-6 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-success fs-5">payments</span>
+          <span>Cobros y Pagos Recibidos</span>
+        </h5>
+        <div class="text-muted small">Desglose de ingresos reales por método de pago</div>
+      </div>
+      <span class="badge bg-light text-dark border fw-bold">Recaudado: Bs {{ total_recaudado|floatformat:2 }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-simple mb-0">
+        <thead>
+          <tr>
+            <th style="width: 70px;">Hora</th>
+            <th style="width: 90px;">Recibo</th>
+            <th>Cliente</th>
+            <th>Método de Pago</th>
+            <th>Referencia</th>
+            <th class="text-end" style="width: 120px;">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pagos %}
+          <tr>
+            <td class="text-muted small">{{ p.fecha|date:"H:i" }}</td>
+            <td class="font-monospace fw-bold small">#{{ p.recibo.numero_recibo }}</td>
+            <td class="fw-semibold">{{ p.recibo.cliente.nombre_razon_social }}</td>
+            <td><span class="badge bg-light text-dark border">{{ p.get_metodo_pago_display }}</span></td>
+            <td class="text-muted small">{{ p.referencia|default:"—" }}</td>
+            <td class="text-end fw-bold text-success">Bs {{ p.monto|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-3 text-muted small fst-italic">
+              No se registraron cobros en esta jornada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. RECIBOS EMITIDOS EN EL DÍA -->
+  <div class="card bg-white border rounded-3 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+      <div>
+        <h5 class="fw-bold mb-0 text-dark fs-6 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary fs-5">receipt_long</span>
+          <span>Recibos Emitidos en el Día</span>
+        </h5>
+        <div class="text-muted small">Comprobantes generados a clientes</div>
+      </div>
+      <span class="badge bg-light text-dark border fw-bold">Total: Bs {{ total_ventas|floatformat:2 }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-simple mb-0">
+        <thead>
+          <tr>
+            <th style="width: 70px;">Hora</th>
+            <th style="width: 90px;">Recibo</th>
+            <th>Cliente</th>
+            <th>OT Asociada</th>
+            <th class="text-end" style="width: 110px;">Subtotal</th>
+            <th class="text-end" style="width: 110px;">Total</th>
+            <th class="text-center" style="width: 100px;">Estado</th>
+            <th class="text-end no-print" style="width: 90px;">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in comprobantes %}
+          <tr>
+            <td class="text-muted small">{{ f.fecha_emision|date:"H:i" }}</td>
+            <td class="font-monospace fw-bold">#{{ f.numero_recibo }}</td>
+            <td>
+              <div class="fw-semibold text-dark">{{ f.cliente.nombre_razon_social }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">Doc: {{ f.cliente.documento|default:"Sin doc" }}</div>
+            </td>
+            <td>
+              {% if f.orden %}
+              <a href="{% url 'ordenes:detalle' f.orden.pk %}" class="font-monospace text-decoration-none">OT #{{ f.orden.numero_orden }}</a>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end text-muted">Bs {{ f.subtotal|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-dark">Bs {{ f.total|floatformat:2 }}</td>
+            <td class="text-center">
+              <span class="badge {% if f.estado_pago == 'PAGADA' %}bg-success-subtle text-success border border-success-subtle{% elif f.estado_pago == 'PARCIAL' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %}" style="font-size: 0.72rem;">
+                {{ f.get_estado_pago_display }}
+              </span>
+            </td>
+            <td class="text-end no-print">
+              <a href="{% url 'recibos:imprimir' f.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" title="Ver e Imprimir Recibo">
+                <span class="material-symbols-outlined fs-6 align-middle">print</span>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-3 text-muted small fst-italic">
+              No se registraron ventas ni recibos en esta jornada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

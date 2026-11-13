@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Reportes y Analítica{% endblock %}
+{% block subtitle %}Métricas financieras y operativas del taller{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reportes/dashboard.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inicio</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2 no-print">
+  <select onchange="window.location.href='?periodo='+this.value" class="form-select form-select-sm" style="width: auto;">
+    <option value="7" {% if periodo == 7 %}selected{% endif %}>Últimos 7 días</option>
+    <option value="30" {% if periodo == 30 %}selected{% endif %}>Últimos 30 días</option>
+    <option value="90" {% if periodo == 90 %}selected{% endif %}>Últimos 90 días</option>
+  </select>
+  <a href="{% url 'reportes:diario' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">wb_sunny</span>
+    <span>Cierre del Día</span>
+  </a>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">print</span>
+    <span>Imprimir</span>
+  </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column gap-4">
+  <!-- Ventas, Ingresos y Compras (KPIs Financieros Principales) -->
+  <div class="row g-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card-workshop p-3 bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="small fw-bold text-uppercase text-white-50" style="font-size: 0.68rem;">Ventas Hoy</span>
+          <span class="material-symbols-outlined text-warning fs-5">trending_up</span>
+        </div>
+        <div class="h3 fw-black text-white mb-0">Bs {{ ventas_hoy|floatformat:0 }}</div>
+        <span class="badge bg-white bg-opacity-10 text-white mt-2 small">{{ cantidad_ventas_hoy }} ventas realizadas</span>
+      </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card-workshop p-3 border-start border-4 border-success">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.68rem;">Ingresos ({{ periodo }}d)</span>
+          <span class="material-symbols-outlined text-success fs-5">attach_money</span>
+        </div>
+        <div class="h4 fw-black text-dark mb-0">Bs {{ ingresos|floatformat:0 }}</div>
+        <div class="small text-success fw-bold mt-1" style="font-size: 0.75rem;">Margen operativo: {{ margen }}%</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card-workshop p-3 border-start border-4 border-danger">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.68rem;">Compras Repuestos ({{ periodo }}d)</span>
+          <span class="material-symbols-outlined text-danger fs-5">shopping_bag</span>
+        </div>
+        <div class="h4 fw-black text-danger mb-0">Bs {{ total_compras|floatformat:0 }}</div>
+        <div class="small text-muted mt-1" style="font-size: 0.75rem;">Inversión en repuestos/stock</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card-workshop p-3 border-start border-4 border-secondary">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.68rem;">Ganancia Neta</span>
+          <span class="material-symbols-outlined text-secondary fs-5">account_balance_wallet</span>
+        </div>
+        <div class="h4 fw-black text-primary mb-0">Bs {{ ganancia|floatformat:0 }}</div>
+        <div class="small text-muted mt-1" style="font-size: 0.75rem;">Tras descontar repuestos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos Principales -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card-workshop p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="fs-6 fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined fs-5">show_chart</span>
+            <span>Evolución de Ingresos</span>
+          </h3>
+        </div>
+        <div class="chart-container-card">
+          <canvas id="ingresosChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-lg-6">
+      <div class="card-workshop p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="fs-6 fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined fs-5">pie_chart</span>
+            <span>Estado de Órdenes</span>
+          </h3>
+        </div>
+        <div class="chart-container-card">
+          <canvas id="ordenesChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Top Clientes -->
+    <div class="col-12 col-lg-4">
+      <div class="card-workshop p-4 h-100">
+        <h3 class="fs-6 fw-bold text-primary mb-3 d-flex align-items-center gap-2 text-uppercase tracking-wider">
+          <span class="material-symbols-outlined fs-5 text-warning">military_tech</span>
+          <span>Top Clientes</span>
+        </h3>
+        <div class="d-flex flex-column gap-2">
+          {% for c in top_clientes %}
+          <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light border small">
+            <div class="d-flex align-items-center gap-2 min-w-0 pe-2">
+              <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;">
+                {{ forloop.counter }}
+              </span>
+              <div class="min-w-0">
+                <div class="fw-bold text-dark text-truncate">{{ c.cliente__nombre_razon_social }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">{{ c.cantidad }} órdenes realizadas</div>
+              </div>
+            </div>
+            <div class="fw-bold text-primary text-nowrap">Bs {{ c.total|floatformat:0 }}</div>
+          </div>
+          {% empty %}
+          <p class="text-center py-4 text-muted small fst-italic mb-0">Sin datos suficientes</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Productos -->
+    <div class="col-12 col-lg-4">
+      <div class="card-workshop p-4 h-100">
+        <h3 class="fs-6 fw-bold text-primary mb-3 d-flex align-items-center gap-2 text-uppercase tracking-wider">
+          <span class="material-symbols-outlined fs-5 text-primary">inventory_2</span>
+          <span>Más Vendidos</span>
+        </h3>
+        <div class="d-flex flex-column gap-2">
+          {% for p in top_productos %}
+          <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light border small">
+            <div class="d-flex align-items-center gap-2 min-w-0 pe-2">
+              <div class="sidebar-brand-icon bg-primary-subtle text-primary" style="width: 28px; height: 28px;">
+                <span class="material-symbols-outlined fs-6">build</span>
+              </div>
+              <div class="fw-bold text-dark text-truncate">{{ p.producto__nombre|truncatechars:22 }}</div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size: 0.7rem;">{{ p.total_salidas }} unid.</span>
+          </div>
+          {% empty %}
+          <p class="text-center py-4 text-muted small fst-italic mb-0">Sin movimientos registrados</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Ventas Recientes -->
+    <div class="col-12 col-lg-4">
+      <div class="card-workshop p-4 h-100">
+        <h3 class="fs-6 fw-bold text-primary mb-3 d-flex align-items-center gap-2 text-uppercase tracking-wider">
+          <span class="material-symbols-outlined fs-5 text-secondary">schedule</span>
+          <span>Ventas Recientes</span>
+        </h3>
+        <div class="d-flex flex-column gap-2">
+          {% for f in comprobantes_recientes %}
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom small">
+            <div>
+              <div class="fw-bold text-dark"># {{ f.numero_recibo }}</div>
+              <div class="text-muted" style="font-size: 0.7rem;">{{ f.cliente.nombre_razon_social|truncatechars:18 }} · {{ f.fecha_emision|date:"d/m H:i" }}</div>
+            </div>
+            <div class="fw-bold text-success fs-6">Bs {{ f.total|floatformat:0 }}</div>
+          </div>
+          {% empty %}
+          <p class="text-center py-4 text-muted small fst-italic mb-0">Sin ventas recientes</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  <!-- Historial de Repuestos Comprados / Ingresados al Taller -->
+  <div class="card-workshop p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+      <div>
+        <h3 class="fs-6 fw-bold text-primary mb-0 d-flex align-items-center gap-2 text-uppercase tracking-wider">
+          <span class="material-symbols-outlined fs-5 text-danger">shopping_cart</span>
+          <span>Últimos Repuestos Comprados e Ingresos al Taller</span>
+        </h3>
+        <p class="text-muted small mb-0">Detalle de compras recientes para inventario y usuario responsable</p>
+      </div>
+      <a href="{% url 'reportes:movimientos' %}?tipo=ENTRADA" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-6">list_alt</span>
+        <span>Ver todas las compras</span>
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha / Hora</th>
+            <th>SKU</th>
+            <th>Repuesto / Producto</th>
+            <th class="text-center">Cant.</th>
+            <th class="text-end">Costo Unit.</th>
+            <th class="text-end">Total</th>
+            <th>Motivo</th>
+            <th>Registrado Por</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cp in ultimas_compras %}
+          <tr>
+            <td class="text-muted small">{{ cp.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+            <td class="font-monospace fw-bold small">{{ cp.producto.codigo_sku }}</td>
+            <td class="fw-semibold text-dark">{{ cp.producto.nombre }}</td>
+            <td class="text-center fw-bold">{{ cp.cantidad }}</td>
+            <td class="text-end text-muted">Bs {{ cp.precio_unitario|default:cp.producto.precio_costo|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-danger">
+              Bs {% widthratio cp.precio_unitario|default:cp.producto.precio_costo 1 cp.cantidad %}
+            </td>
+            <td class="text-muted small">{{ cp.motivo|default:"Compra / Ingreso" }}</td>
+            <td>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.72rem;">
+                <span class="material-symbols-outlined align-middle" style="font-size: 12px;">person</span>
+                {{ cp.usuario|default:"Sistema" }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-3 text-muted small fst-italic">
+              No hay compras de repuestos registradas en este período.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{ labels|json_script:"labels-data" }}
+{{ data_ingresos|json_script:"ingresos-data" }}
+{{ ordenes_estados|json_script:"ordenes-labels" }}
+{{ ordenes_datos|json_script:"ordenes-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reportes/dashboard.js' %}"></script>
+{% endblock %}

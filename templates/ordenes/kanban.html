@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kanban de Órdenes – El Taller del Maestro{% endblock %}
+{% block page_title %}Tablero Kanban de Órdenes{% endblock %}
+{% block subtitle %}Control visual del flujo operativo y plazos de entrega{% endblock %}
+{% block breadcrumb_current %}Tablero Kanban{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'ordenes:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Lista</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2">
+  <a href="{% url 'ordenes:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">list</span>
+    <span>Vista Lista</span>
+  </a>
+  <a href="{% url 'ordenes:crear' %}" class="btn btn-sm btn-tm-gold d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">add</span>
+    <span>Nueva Orden</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .kanban-wrapper {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+    min-height: calc(100vh - 220px);
+    align-items: flex-start;
+  }
+  .kanban-col {
+    min-width: 280px;
+    max-width: 300px;
+    flex: 1 0 280px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .kanban-col-header {
+    padding: 0.75rem 1rem;
+    border-radius: 12px 12px 0 0;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid rgba(0,0,0,0.05);
+  }
+  .kanban-col-body {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 200px;
+    max-height: calc(100vh - 280px);
+    overflow-y: auto;
+  }
+  .kanban-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 0.85rem 0.95rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #cbd5e1;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .kanban-card.alerta-rojo { border-left-color: #ef4444; }
+  .kanban-card.alerta-amarillo { border-left-color: #f59e0b; }
+  .kanban-card.alerta-verde { border-left-color: #10b981; }
+  .kanban-card-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+  }
+  .kanban-card-placa {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.05em;
+  }
+  .kanban-card-cliente {
+    font-size: 0.82rem;
+    color: #334155;
+    font-weight: 500;
+  }
+  .kanban-card-mecanico {
+    font-size: 0.76rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+  .kanban-card-diag {
+    font-size: 0.76rem;
+    color: #475569;
+    margin-top: 0.4rem;
+    background: #f8fafc;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    border-left: 2px solid #cbd5e1;
+    line-height: 1.35;
+  }
+  .kanban-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.65rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #f1f5f9;
+  }
+  .badge-alerta {
+    font-size: 0.68rem;
+    padding: 0.25em 0.55em;
+    border-radius: 6px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .badge-rojo { background: #fee2e2; color: #b91c1c; }
+  .badge-amarillo { background: #fef3c7; color: #b45309; }
+  .badge-verde { background: #d1fae5; color: #047857; }
+  .badge-sin { background: #f1f5f9; color: #64748b; }
+  .kanban-empty {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    padding: 2.5rem 0.5rem;
+  }
+  .col-count-badge {
+    background: rgba(0,0,0,0.08);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-2 pt-2">
+  <div class="kanban-wrapper">
+
+    {# PENDIENTE #}
+    <div class="kanban-col">
+      <div class="kanban-col-header" style="background:#e3eeff;color:#1a56db;">
+        <span>Pendiente</span>
+        <span class="col-count-badge">{{ columnas.PENDIENTE|length }}</span>
+      </div>
+      <div class="kanban-col-body">
+        {% for orden in columnas.PENDIENTE %}
+        <div class="kanban-card{% if orden.alerta_plazo %} alerta-{{ orden.alerta_plazo }}{% endif %}">
+          <div class="kanban-card-num">#{{ orden.numero_orden }}</div>
+          <div class="kanban-card-placa">{{ orden.vehiculo.placa }}</div>
+          <div class="kanban-card-cliente">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
+            {{ orden.vehiculo.cliente.nombre_razon_social }}
+          </div>
+          {% if orden.mecanico %}<div class="kanban-card-mecanico">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:orden.mecanico.username }}
+          </div>{% endif %}
+          {% if orden.diagnostico %}<div class="kanban-card-diag">{{ orden.diagnostico|truncatechars:60 }}</div>{% endif %}
+          <div class="kanban-card-footer">
+            <div>{% if orden.alerta_plazo == 'rojo' %}<span class="badge-alerta badge-rojo">Vencida</span>
+            {% elif orden.alerta_plazo == 'amarillo' %}<span class="badge-alerta badge-amarillo">Urgente</span>
+            {% elif orden.alerta_plazo == 'verde' %}<span class="badge-alerta badge-verde">OK</span>
+            {% else %}<span class="badge-alerta badge-sin">Sin fecha</span>{% endif %}</div>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Reprogramar fecha de entrega" onclick="abrirModalReprogramar('{{ orden.pk }}', '{{ orden.numero_orden }}', '{{ orden.fecha_prometida|date:'Y-m-d\TH:i'|default:'' }}')">
+                <span class="material-symbols-outlined align-middle" style="font-size:13px;">schedule</span>
+              </button>
+              <a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.72rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}<div class="kanban-empty">Sin órdenes</div>{% endfor %}
+      </div>
+    </div>
+
+    {# EN_PROCESO #}
+    <div class="kanban-col">
+      <div class="kanban-col-header" style="background:#fff3cd;color:#856404;">
+        <span>En Proceso</span>
+        <span class="col-count-badge">{{ columnas.EN_PROCESO|length }}</span>
+      </div>
+      <div class="kanban-col-body">
+        {% for orden in columnas.EN_PROCESO %}
+        <div class="kanban-card{% if orden.alerta_plazo %} alerta-{{ orden.alerta_plazo }}{% endif %}">
+          <div class="kanban-card-num">#{{ orden.numero_orden }}</div>
+          <div class="kanban-card-placa">{{ orden.vehiculo.placa }}</div>
+          <div class="kanban-card-cliente">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
+            {{ orden.vehiculo.cliente.nombre_razon_social }}
+          </div>
+          {% if orden.mecanico %}<div class="kanban-card-mecanico">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:orden.mecanico.username }}
+          </div>{% endif %}
+          {% if orden.diagnostico %}<div class="kanban-card-diag">{{ orden.diagnostico|truncatechars:60 }}</div>{% endif %}
+          <div class="kanban-card-footer">
+            <div>{% if orden.alerta_plazo == 'rojo' %}<span class="badge-alerta badge-rojo">Vencida</span>
+            {% elif orden.alerta_plazo == 'amarillo' %}<span class="badge-alerta badge-amarillo">Urgente</span>
+            {% elif orden.alerta_plazo == 'verde' %}<span class="badge-alerta badge-verde">OK</span>
+            {% else %}<span class="badge-alerta badge-sin">Sin fecha</span>{% endif %}</div>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Reprogramar fecha de entrega" onclick="abrirModalReprogramar('{{ orden.pk }}', '{{ orden.numero_orden }}', '{{ orden.fecha_prometida|date:'Y-m-d\TH:i'|default:'' }}')">
+                <span class="material-symbols-outlined align-middle" style="font-size:13px;">schedule</span>
+              </button>
+              <a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.72rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}<div class="kanban-empty">Sin órdenes</div>{% endfor %}
+      </div>
+    </div>
+
+    {# ESPERA_REPUESTOS #}
+    <div class="kanban-col">
+      <div class="kanban-col-header" style="background:#fff0d6;color:#c47a0a;">
+        <span>Espera Repuestos</span>
+        <span class="col-count-badge">{{ columnas.ESPERA_REPUESTOS|length }}</span>
+      </div>
+      <div class="kanban-col-body">
+        {% for orden in columnas.ESPERA_REPUESTOS %}
+        <div class="kanban-card{% if orden.alerta_plazo %} alerta-{{ orden.alerta_plazo }}{% endif %}">
+          <div class="kanban-card-num">#{{ orden.numero_orden }}</div>
+          <div class="kanban-card-placa">{{ orden.vehiculo.placa }}</div>
+          <div class="kanban-card-cliente">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
+            {{ orden.vehiculo.cliente.nombre_razon_social }}
+          </div>
+          {% if orden.mecanico %}<div class="kanban-card-mecanico">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:orden.mecanico.username }}
+          </div>{% endif %}
+          {% if orden.diagnostico %}<div class="kanban-card-diag">{{ orden.diagnostico|truncatechars:60 }}</div>{% endif %}
+          <div class="kanban-card-footer">
+            <div>{% if orden.alerta_plazo == 'rojo' %}<span class="badge-alerta badge-rojo">Vencida</span>
+            {% elif orden.alerta_plazo == 'amarillo' %}<span class="badge-alerta badge-amarillo">Urgente</span>
+            {% elif orden.alerta_plazo == 'verde' %}<span class="badge-alerta badge-verde">OK</span>
+            {% else %}<span class="badge-alerta badge-sin">Sin fecha</span>{% endif %}</div>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Reprogramar fecha de entrega" onclick="abrirModalReprogramar('{{ orden.pk }}', '{{ orden.numero_orden }}', '{{ orden.fecha_prometida|date:'Y-m-d\TH:i'|default:'' }}')">
+                <span class="material-symbols-outlined align-middle" style="font-size:13px;">schedule</span>
+              </button>
+              <a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.72rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}<div class="kanban-empty">Sin órdenes</div>{% endfor %}
+      </div>
+    </div>
+
+    {# COMPLETADA #}
+    <div class="kanban-col">
+      <div class="kanban-col-header" style="background:#d1e7dd;color:#0a5f38;">
+        <span>Completada</span>
+        <span class="col-count-badge">{{ columnas.COMPLETADA|length }}</span>
+      </div>
+      <div class="kanban-col-body">
+        {% for orden in columnas.COMPLETADA %}
+        <div class="kanban-card{% if orden.alerta_plazo %} alerta-{{ orden.alerta_plazo }}{% endif %}">
+          <div class="kanban-card-num">#{{ orden.numero_orden }}</div>
+          <div class="kanban-card-placa">{{ orden.vehiculo.placa }}</div>
+          <div class="kanban-card-cliente">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
+            {{ orden.vehiculo.cliente.nombre_razon_social }}
+          </div>
+          {% if orden.mecanico %}<div class="kanban-card-mecanico">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:orden.mecanico.username }}
+          </div>{% endif %}
+          {% if orden.diagnostico %}<div class="kanban-card-diag">{{ orden.diagnostico|truncatechars:60 }}</div>{% endif %}
+          <div class="kanban-card-footer">
+            <div>{% if orden.alerta_plazo == 'rojo' %}<span class="badge-alerta badge-rojo">Vencida</span>
+            {% elif orden.alerta_plazo == 'amarillo' %}<span class="badge-alerta badge-amarillo">Urgente</span>
+            {% elif orden.alerta_plazo == 'verde' %}<span class="badge-alerta badge-verde">OK</span>
+            {% else %}<span class="badge-alerta badge-sin">Sin fecha</span>{% endif %}</div>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Reprogramar fecha de entrega" onclick="abrirModalReprogramar('{{ orden.pk }}', '{{ orden.numero_orden }}', '{{ orden.fecha_prometida|date:'Y-m-d\TH:i'|default:'' }}')">
+                <span class="material-symbols-outlined align-middle" style="font-size:13px;">schedule</span>
+              </button>
+              <a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.72rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}<div class="kanban-empty">Sin órdenes</div>{% endfor %}
+      </div>
+    </div>
+
+    {# ENTREGADA #}
+    <div class="kanban-col">
+      <div class="kanban-col-header" style="background:#d8f3dc;color:#1a7a44;">
+        <span>Entregada</span>
+        <span class="col-count-badge">{{ columnas.ENTREGADA|length }}</span>
+      </div>
+      <div class="kanban-col-body">
+        {% for orden in columnas.ENTREGADA %}
+        <div class="kanban-card{% if orden.alerta_plazo %} alerta-{{ orden.alerta_plazo }}{% endif %}">
+          <div class="kanban-card-num">#{{ orden.numero_orden }}</div>
+          <div class="kanban-card-placa">{{ orden.vehiculo.placa }}</div>
+          <div class="kanban-card-cliente">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
+            {{ orden.vehiculo.cliente.nombre_razon_social }}
+          </div>
+          {% if orden.mecanico %}<div class="kanban-card-mecanico">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">engineering</span>
+            {{ orden.mecanico.nombre_completo|default:orden.mecanico.username }}
+          </div>{% endif %}
+          {% if orden.diagnostico %}<div class="kanban-card-diag">{{ orden.diagnostico|truncatechars:60 }}</div>{% endif %}
+          <div class="kanban-card-footer">
+            <div>{% if orden.alerta_plazo == 'rojo' %}<span class="badge-alerta badge-rojo">Vencida</span>
+            {% elif orden.alerta_plazo == 'amarillo' %}<span class="badge-alerta badge-amarillo">Urgente</span>
+            {% elif orden.alerta_plazo == 'verde' %}<span class="badge-alerta badge-verde">OK</span>
+            {% else %}<span class="badge-alerta badge-sin">Sin fecha</span>{% endif %}</div>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Reprogramar fecha de entrega" onclick="abrirModalReprogramar('{{ orden.pk }}', '{{ orden.numero_orden }}', '{{ orden.fecha_prometida|date:'Y-m-d\TH:i'|default:'' }}')">
+                <span class="material-symbols-outlined align-middle" style="font-size:13px;">schedule</span>
+              </button>
+              <a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.72rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}<div class="kanban-empty">Sin órdenes</div>{% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Reprogramar Fecha -->
+<div class="modal fade" id="modalReprogramar" tabindex="-1" aria-labelledby="modalReprogramarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold" id="modalReprogramarLabel">Reprogramar Fecha Prometida</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formReprogramar" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p class="text-muted small mb-3">Modificar la fecha acordada para la orden <span id="reprog-ot-num" class="fw-bold text-dark"></span>.</p>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Nueva Fecha y Hora Prometida</label>
+            <input type="datetime-local" name="fecha_prometida" id="reprog-input-fecha" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Justificación / Motivo</label>
+            <textarea name="justificacion" class="form-control form-control-sm" rows="2" placeholder="Ej: Demora en rectificación, falta de insumo..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Guardar Nueva Fecha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirModalReprogramar(pk, numero, fechaActual) {
+    const modalEl = document.getElementById('modalReprogramar');
+    document.getElementById('reprog-ot-num').textContent = '#' + numero;
+    document.getElementById('reprog-input-fecha').value = fechaActual || '';
+    document.getElementById('formReprogramar').action = `/ordenes/${pk}/reprogramar/`;
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+  }
+</script>
+{% endblock %}

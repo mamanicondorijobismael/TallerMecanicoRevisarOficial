@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Recibos Module - Detalle CSS (Self-Contained & Independent)
+   ========================================================================== */
+
+.invoice-summary-card {
+  background-color: #ffffff;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  border-radius: 0.875rem;
+  padding: 1.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.invoice-summary-card .header-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--tm-navy, #0D284E);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.invoice-summary-card .header-title .material-symbols-outlined {
+  color: var(--tm-gold, #F2B705);
+  font-size: 1.25rem;
+}
+
+.invoice-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.88rem;
+}
+
+.invoice-meta-row:last-child {
+  border-bottom: none;
+}
+
+.payment-history-item {
+  padding: 1rem 1.25rem;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+}
+
+.payment-history-item:hover {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.balance-alert-box {
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.balance-alert-box.pending {
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.balance-alert-box.paid {
+  background: #F0FDF4;
+  border: 1.5px solid #86EFAC;
+  color: #166534;
+}
+
+/* Modal Pago (Self-Contained in detalle.css) */
+#modal-pago .modal-header-tm {
+  background: linear-gradient(135deg, #071932 0%, #0D284E 50%, #163A6C 100%);
+  color: #FFFFFF;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 2px solid rgba(242, 183, 5, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#modal-pago .modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.75rem;
+  background: rgba(242, 183, 5, 0.15);
+  border: 1px solid rgba(242, 183, 5, 0.35);
+  color: var(--tm-gold, #F2B705);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+#modal-pago .modal-title-tm {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+#modal-pago .modal-subtitle-tm {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+#modal-pago .modal-body-tm {
+  padding: 1.5rem 1.75rem;
+  background-color: #F8FAFC;
+}
+
+#modal-pago .modal-footer-tm {
+  padding: 1rem 1.75rem;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+#modal-pago .form-section-card {
+  background: #ffffff;
+  border-radius: 0.875rem;
+  border: 1px solid #E2E8F0;
+  padding: 1.25rem;
+}
+
+#modal-pago .form-label-pro {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+#modal-pago .form-control-pro {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  color: #1E293B;
+  background-color: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 0.6rem;
+  outline: none;
+}

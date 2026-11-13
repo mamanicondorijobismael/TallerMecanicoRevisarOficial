@@ -1,0 +1,613 @@
+/* ==========================================================================
+   EL TALLER DEL MAESTRO — Dashboard Styles v2.2
+   + Fix #4: lista de órdenes con max-height + scroll
+   + Fix #5: jerarquía financiera invertida correctamente
+   ========================================================================== */
+
+/* ─── PAGE WRAPPER ──────────────────────────────────────────────────── */
+.dashboard-page {
+  animation: dashFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── 1. PERIOD FILTER PILL ────────────────────────────────────────── */
+.period-filter-pill {
+  background: #FFFFFF;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  transition: all 0.18s ease;
+}
+
+.period-filter-pill:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 8px rgba(13, 40, 78, 0.06);
+}
+
+.period-filter-pill .form-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ─── 2. KPI CARDS ─────────────────────────────────────────────────── */
+.kpi-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: #FFFFFF;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px -2px rgba(13, 40, 78, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 1rem 1rem 0 0;
+  opacity: 0.9;
+}
+
+.kpi-card.kpi-success::before {
+  background: linear-gradient(90deg, #16A34A, #22C55E);
+}
+
+.kpi-card.kpi-primary::before {
+  background: linear-gradient(90deg, #0D284E, #163A6C);
+}
+
+.kpi-card.kpi-danger::before {
+  background: linear-gradient(90deg, #DC2626, #EF4444);
+}
+
+.kpi-card.kpi-secondary::before {
+  background: linear-gradient(90deg, #3E5A7B, #64748B);
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  border-color: #CBD5E1;
+  box-shadow: 0 12px 28px -8px rgba(13, 40, 78, 0.12),
+    0 4px 8px -2px rgba(0, 0, 0, 0.04);
+}
+
+.kpi-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.kpi-card:hover .kpi-icon-wrap {
+  transform: scale(1.05) rotate(-3deg);
+}
+
+.kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.kpi-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.kpi-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.kpi-value .fs-6 {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: #94A3B8;
+  letter-spacing: 0;
+}
+
+.kpi-footer {
+  margin-top: 0.3rem;
+}
+
+.kpi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.kpi-badge .material-symbols-outlined {
+  font-size: 0.8rem !important;
+  line-height: 1;
+}
+
+/* ─── 3. OWNER CARDS (Fix #5: jerarquía invertida) ───────────────── */
+.owner-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.15rem 1.3rem;
+  background: #FFFFFF;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  border-left-width: 4px;
+  border-radius: 0.9rem;
+  box-shadow: 0 2px 8px -2px rgba(13, 40, 78, 0.04);
+  transition: all 0.2s ease;
+}
+
+.owner-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -6px rgba(13, 40, 78, 0.1);
+}
+
+.owner-card-warning {
+  border-left-color: #F2B705;
+}
+
+.owner-card-secondary {
+  border-left-color: #3E5A7B;
+}
+
+.owner-card-info {
+  border-left-color: #0EA5E9;
+}
+
+.owner-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.owner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.owner-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* Fix #5: valores financieros MÁS GRANDES que los KPIs operativos */
+.owner-value {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #0F172A;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-top: 2px;
+}
+
+.owner-hint {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+/* ─── 4. DASHBOARD PANEL ───────────────────────────────────────────── */
+.dashboard-panel {
+  background: #FFFFFF;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.35rem;
+  border-bottom: 1px solid #F1F5F9;
+  background: linear-gradient(180deg, #FCFDFF 0%, #FFFFFF 100%);
+  flex-wrap: wrap;
+}
+
+.panel-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panel-header-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0D284E;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.panel-header-subtitle {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  margin: 0;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.panel-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #3E5A7B;
+  text-decoration: none;
+  padding: 0.32rem 0.7rem;
+  border-radius: 9999px;
+  transition: all 0.18s ease;
+}
+
+.panel-header-link:hover {
+  background: #EFF6FF;
+  color: #0D284E;
+  transform: translateX(2px);
+}
+
+/* ─── 5. FIX #4: LISTA DE ÓRDENES CON SCROLL ──────────────────────── */
+.panel-body-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 620px;
+  /* ~8 órdenes visibles */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+.panel-body-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-body-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-body-list::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+.panel-body-list::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ─── 6. ORDER ROWS ────────────────────────────────────────────────── */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.35rem;
+  border-bottom: 1px solid #F1F5F9;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.order-row:last-child {
+  border-bottom: none;
+}
+
+.order-row:hover {
+  background: #F8FAFC;
+}
+
+.order-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0D284E 0%, #163A6C 100%);
+  color: #F2B705;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(13, 40, 78, 0.2);
+}
+
+.order-number {
+  font-weight: 800;
+  color: #0F172A;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-plate {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: #3E5A7B;
+  background: #EFF6FF;
+  border: 1px solid #DBEAFE;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.order-client {
+  font-size: 0.76rem;
+  color: #64748B;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.order-date {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.order-chevron {
+  color: #CBD5E1;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.order-row:hover .order-chevron {
+  color: #0D284E;
+  transform: translateX(2px);
+}
+
+/* ─── 7. EMPTY STATE ───────────────────────────────────────────────── */
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.35rem;
+}
+
+.empty-state-text {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin: 0 0 1.25rem;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── 8. STAT ROWS (Control General) ───────────────────────────────── */
+.stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stat-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.stat-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: #F1F5F9;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── 9. STOCK LIST ────────────────────────────────────────────────── */
+.stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stock-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-left-width: 3px;
+  border-left-color: #DC2626;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.stock-item:hover {
+  background: #FEE2E2;
+  transform: translateX(2px);
+}
+
+.stock-item-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.stock-item-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.stock-item-min {
+  font-size: 0.7rem;
+  color: #B91C1C;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.stock-item-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  line-height: 1.1;
+}
+
+.stock-count-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #DC2626;
+  letter-spacing: -0.02em;
+}
+
+.stock-count-unit {
+  font-size: 0.65rem;
+  color: #94A3B8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── 10. BALANCE COLUMNAS (Fix #4) ────────────────────────────────── */
+@media (min-width: 992px) {
+  .col-lg-4.d-flex.flex-column.gap-4>.dashboard-panel {
+    flex: 1 1 auto;
+  }
+}
+
+/* ─── 11. RESPONSIVE ───────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .kpi-card {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .kpi-icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 11px;
+  }
+
+  .kpi-value {
+    font-size: 1.35rem;
+  }
+
+  .owner-value {
+    font-size: 1.5rem;
+  }
+
+  .order-row {
+    padding: 0.85rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .order-side {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  .order-chevron {
+    display: none;
+  }
+
+  .panel-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .panel-body-list {
+    max-height: 480px;
+  }
+}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Historial de Movimientos de Stock{% endblock %}
+{% block subtitle %}Registro completo de entradas, salidas y ventas de productos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2">
+  <a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">inventory_2</span>
+    <span>Ver Catálogo</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card-workshop overflow-hidden">
+  <div class="p-3 border-bottom bg-white">
+    <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Últimos 100 Movimientos Registrados</h3>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-workshop mb-0">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Producto</th>
+          <th>SKU</th>
+          <th>Tipo</th>
+          <th class="text-center">Cantidad</th>
+          <th class="text-center">Stock Final</th>
+          <th>Motivo / Detalle</th>
+          <th>Usuario</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in movimientos %}
+        <tr>
+          <td class="small text-muted">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+          <td>
+            <div class="fw-bold text-dark small">{{ m.producto.nombre }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ m.producto.categoria.nombre|default:"Sin Categoría" }}</div>
+          </td>
+          <td class="font-monospace small text-muted">{{ m.producto.codigo_sku }}</td>
+          <td>
+            <span class="badge-status {% if m.tipo_movimiento == 'ENTRADA' %}status-completada{% elif m.tipo_movimiento == 'VENTA_DIRECTA' %}status-en_proceso{% else %}status-cancelada{% endif %}">
+              {{ m.get_tipo_movimiento_display }}
+            </span>
+          </td>
+          <td class="text-center fw-bold small {% if m.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if m.cantidad > 0 %}+{% endif %}{{ m.cantidad }}
+          </td>
+          <td class="text-center fw-bold text-dark small">{{ m.stock_resultante }}</td>
+          <td class="small text-muted">{{ m.motivo }}</td>
+          <td class="small text-muted">{{ m.usuario|default:"Sistema" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined display-4 text-black-50 mb-2 d-block">history</span>
+            No hay movimientos registrados en el inventario.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

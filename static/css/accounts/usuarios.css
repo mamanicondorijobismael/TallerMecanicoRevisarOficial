@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Accounts Module - Usuarios CSS v1.5
+   Estilo limpio sin íconos en el formulario
+   ========================================================================== */
+
+/* ─── 1. AVATARES Y BADGES DE USUARIO ──────────────────────────────────── */
+.user-avatar-sm {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--tm-navy-subtle, #EEF2FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: var(--tm-navy, #0D284E);
+  font-size: 0.8rem;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(13, 40, 78, 0.08);
+  flex-shrink: 0;
+}
+
+.user-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.user-status-dot.active {
+  background-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.user-status-dot.inactive {
+  background-color: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* ─── 2. TARJETAS DE SECCIÓN ───────────────────────────────────────────── */
+.form-section-card {
+  background: #ffffff;
+  border-radius: 0.875rem;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.form-section-header {
+  padding: 1rem 1.25rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0D284E;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── 3. UPLOAD DE AVATAR (Dropzone) ───────────────────────────────────── */
+.avatar-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: #F8FAFC;
+  border: 2px dashed #CBD5E1;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.avatar-upload-container:hover,
+.avatar-upload-container.dragover {
+  border-color: #0D284E;
+  background: #F0F4F8;
+}
+
+.avatar-preview-box {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.avatar-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-preview-box .material-symbols-outlined {
+  font-size: 2.5rem;
+  color: #94A3B8;
+}
+
+.avatar-upload-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.avatar-upload-info h6 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #0D284E;
+}
+
+.avatar-upload-info p {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin-bottom: 0.5rem;
+}
+
+/* ─── 4. INPUT DE ARCHIVO OCULTO ───────────────────────────────────────── */
+#usuario-foto-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── 5. SWITCH is_active ──────────────────────────────────────────────── */
+.form-check-input[role="switch"]:checked {
+  background-color: #10B981;
+  border-color: #10B981;
+}
+
+/* ─── 6. RESPONSIVE ────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .avatar-upload-container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .avatar-upload-info .d-flex {
+    justify-content: center;
+  }
+}

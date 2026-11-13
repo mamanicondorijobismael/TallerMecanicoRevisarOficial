@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Categorías de Inventario{% endblock %}
+{% block subtitle %}Organización y clasificación de repuestos, neumáticos y llantas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/categorias.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'inventario:categoria_crear' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">add</span>
+  <span>Nueva Categoría</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Columna 1: Repuestos -->
+  <div class="col-12 col-lg-4">
+    <div class="card-workshop p-3 p-xl-4 border-top border-4 border-primary h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h3 class="fs-6 fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined fs-5">build</span>
+          <span>Repuestos</span>
+        </h3>
+        <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.72rem;">Categorías</span>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        {% for c in categorias %}
+          {% if c.tipo == 'REPUESTO' %}
+          <div class="category-card-item">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="category-icon-box">
+                <span class="material-symbols-outlined fs-5">{{ c.icono|default:'inventory_2' }}</span>
+              </div>
+              <div class="min-w-0">
+                <div class="fw-bold text-dark small text-truncate">{{ c.nombre }}</div>
+                <p class="text-muted mb-0 small text-truncate" style="font-size: 0.72rem;">
+                  <span class="font-monospace fw-bold text-primary">[{{ c.codigo_prefijo }}]</span> {{ c.descripcion|default:"Sin descripción"|truncatechars:28 }}
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+              <span class="badge bg-light text-secondary border small">{{ c.productos.count }}</span>
+              <a href="{% url 'inventario:categoria_editar' c.pk %}" class="btn btn-sm btn-light border py-0 px-2" title="Editar">
+                <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+              </a>
+              {% if request.user.es_administrador %}
+              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
+                <span class="material-symbols-outlined fs-6">delete</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna 2: Neumáticos -->
+  <div class="col-12 col-lg-4">
+    <div class="card-workshop p-3 p-xl-4 border-top border-4 border-info h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h3 class="fs-6 fw-bold text-info-emphasis mb-0 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined fs-5">tire_repair</span>
+          <span>Neumáticos</span>
+        </h3>
+        <span class="badge bg-info-subtle text-info-emphasis fw-semibold" style="font-size: 0.72rem;">Categorías</span>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        {% for c in categorias %}
+          {% if c.tipo == 'NEUMATICO' %}
+          <div class="category-card-item">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="category-icon-box text-info-emphasis bg-info-subtle">
+                <span class="material-symbols-outlined fs-5">{{ c.icono|default:'tire_repair' }}</span>
+              </div>
+              <div class="min-w-0">
+                <div class="fw-bold text-dark small text-truncate">{{ c.nombre }}</div>
+                <p class="text-muted mb-0 small text-truncate" style="font-size: 0.72rem;">
+                  <span class="font-monospace fw-bold text-info">[{{ c.codigo_prefijo }}]</span> {{ c.descripcion|default:"Sin descripción"|truncatechars:28 }}
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+              <span class="badge bg-light text-secondary border small">{{ c.productos.count }}</span>
+              <a href="{% url 'inventario:categoria_editar' c.pk %}" class="btn btn-sm btn-light border py-0 px-2" title="Editar">
+                <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+              </a>
+              {% if request.user.es_administrador %}
+              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
+                <span class="material-symbols-outlined fs-6">delete</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna 3: Llantas y Rines -->
+  <div class="col-12 col-lg-4">
+    <div class="card-workshop p-3 p-xl-4 border-top border-4 border-warning h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h3 class="fs-6 fw-bold text-warning-emphasis mb-0 d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined fs-5">album</span>
+          <span>Llantas / Rines</span>
+        </h3>
+        <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold" style="font-size: 0.72rem;">Categorías</span>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        {% for c in categorias %}
+          {% if c.tipo == 'LLANTA' %}
+          <div class="category-card-item">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="category-icon-box text-warning-emphasis bg-warning-subtle">
+                <span class="material-symbols-outlined fs-5">{{ c.icono|default:'album' }}</span>
+              </div>
+              <div class="min-w-0">
+                <div class="fw-bold text-dark small text-truncate">{{ c.nombre }}</div>
+                <p class="text-muted mb-0 small text-truncate" style="font-size: 0.72rem;">
+                  <span class="font-monospace fw-bold text-warning-emphasis">[{{ c.codigo_prefijo }}]</span> {{ c.descripcion|default:"Sin descripción"|truncatechars:28 }}
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+              <span class="badge bg-light text-secondary border small">{{ c.productos.count }}</span>
+              <a href="{% url 'inventario:categoria_editar' c.pk %}" class="btn btn-sm btn-light border py-0 px-2" title="Editar">
+                <span class="material-symbols-outlined fs-6 text-secondary">edit</span>
+              </a>
+              {% if request.user.es_administrador %}
+              <a href="{% url 'inventario:categoria_eliminar' c.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2 d-inline-flex align-items-center gap-1" onclick="return confirm('¿Eliminar categoría?')" title="Eliminar">
+                <span class="material-symbols-outlined fs-6">delete</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,196 @@
+/* ==========================================================================
+   Recibos Module - Lista CSS v1.1
+   Financial & Payments UI · unificado con design system
+   ========================================================================== */
+
+/* ─── 1. FILTROS ───────────────────────────────────────────────────────── */
+.filter-bar {
+  padding: 1rem 1.25rem;
+  background-color: #FFFFFF;
+}
+
+.filter-active-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.6rem;
+  background: #EFF6FF;
+  color: #0D284E;
+  border: 1px solid #DBEAFE;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ─── 2. META BAR ──────────────────────────────────────────────────────── */
+.table-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(180deg, #FCFDFF 0%, #FFFFFF 100%);
+  border-bottom: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+}
+
+/* ─── 3. RECEIPT CODE PILL ─────────────────────────────────────────────── */
+.receipt-code-pill {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  color: var(--tm-navy, #0D284E);
+  background-color: var(--tm-navy-subtle, #EEF2FF);
+  border: 1px solid rgba(13, 40, 78, 0.15);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.receipt-code-pill:hover {
+  background-color: #0D284E;
+  color: #FFFFFF;
+  border-color: #0D284E;
+  box-shadow: 0 2px 6px rgba(13, 40, 78, 0.2);
+}
+
+.receipt-code-pill:hover .material-symbols-outlined {
+  color: #F2B705 !important;
+}
+
+/* ─── 4. AMOUNT DISPLAY ────────────────────────────────────────────────── */
+.receipt-amount-display {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: var(--tm-navy, #0D284E);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* ─── 5. BOTONES DE ACCIÓN (reutilizados de ordenes/inventario) ────────── */
+.btn-action-view,
+.btn-action-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn-action-view {
+  background: #FFFFFF;
+  color: #3E5A7B;
+  border-color: #E2E8F0;
+}
+
+.btn-action-view:hover {
+  background: #EFF6FF;
+  color: #0D284E;
+  border-color: #BAD7FE;
+  box-shadow: 0 2px 6px rgba(13, 40, 78, 0.08);
+}
+
+/* ─── 6. EMPTY STATE ───────────────────────────────────────────────────── */
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.35rem;
+}
+
+.empty-state-text {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin: 0 0 1.25rem;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── 7. PAGINACIÓN ────────────────────────────────────────────────────── */
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #FCFDFF;
+  border-top: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+}
+
+.table-pagination .page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  color: #3E5A7B;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.table-pagination .page-link:hover {
+  background: #EFF6FF;
+  color: #0D284E;
+  border-color: #BAD7FE;
+}
+
+/* ─── 8. RESPONSIVE ────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .filter-bar {
+    padding: 0.85rem 1rem;
+  }
+
+  .table-meta-bar {
+    padding: 0.75rem 1rem;
+  }
+
+  .receipt-code-pill {
+    font-size: 0.74rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .receipt-amount-display {
+    font-size: 0.88rem;
+  }
+}

@@ -1,0 +1,21 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/password/', views.cambiar_password, name='cambiar_password'),
+    path('usuarios/', views.usuario_lista, name='usuario_lista'),
+    path('usuarios/nuevo/', views.usuario_crear, name='usuario_crear'),
+    path('usuarios/<int:pk>/editar/', views.usuario_editar, name='usuario_editar'),
+    path('usuarios/<int:pk>/eliminar/', views.usuario_eliminar, name='usuario_eliminar'),
+    path('usuarios/<int:pk>/password/', views.usuario_cambiar_password, name='usuario_cambiar_password'),
+
+    # Roles & Privilegios
+    path('roles/', views.roles_lista, name='roles_lista'),
+    path('roles/nuevo/', views.rol_crear, name='rol_crear'),
+    path('roles/<int:pk>/editar/', views.rol_editar, name='rol_editar'),
+    path('roles/<int:pk>/eliminar/', views.rol_eliminar, name='rol_eliminar'),
+]

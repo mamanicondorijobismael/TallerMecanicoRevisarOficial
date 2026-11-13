@@ -1,0 +1,215 @@
+/* ==========================================================================
+   Formulario de Clientes - Grid Unificado (Estilo Dashboard)
+   ========================================================================== */
+
+/* 1. Contenedor de fondo gris */
+.bg-light-custom {
+  background-color: #F1F5F9 !important;
+  min-height: calc(100vh - 120px) !important;
+  margin: -1.5rem !important;
+  padding: 2rem 1.5rem !important;
+}
+
+/* 2. Botón Volver */
+.btn-volver-tm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #64748B !important;
+  color: #ffffff !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+}
+
+.btn-volver-tm:hover {
+  background-color: #475569 !important;
+  transform: translateY(-1px);
+}
+
+.btn-volver-tm .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* 3. Tarjeta Única Principal */
+.tm-main-card {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  padding: 2rem !important;
+}
+
+/* 4. Separador vertical en pantallas grandes */
+@media (min-width: 992px) {
+  .border-end-lg {
+    border-right: 1px solid #E2E8F0 !important;
+  }
+}
+
+/* 5. Labels */
+.tm-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+/* 6. Contenedor de Input con Icono */
+.tm-input-container {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.tm-icon {
+  position: absolute !important;
+  left: 14px !important;
+  color: #94A3B8 !important;
+  pointer-events: none !important;
+  font-size: 20px !important;
+  z-index: 10 !important;
+}
+
+/* 7. INPUTS Y SELECTS */
+input.tm-input,
+.tm-input,
+.tm-select-wrapper select {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  color: #1E293B !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+  height: 42px !important;
+}
+
+.tm-input-container input.tm-input,
+.tm-input-container .tm-select-wrapper select {
+  padding-left: 42px !important;
+}
+
+input.tm-input:focus,
+.tm-input:focus,
+.tm-select-wrapper select:focus {
+  background-color: #ffffff !important;
+  border-color: #94A3B8 !important;
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.15) !important;
+  outline: none !important;
+}
+
+input.tm-input::placeholder,
+.tm-input::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}
+
+/* 8. Selector customizado */
+.tm-select-wrapper {
+  width: 100% !important;
+  position: relative !important;
+}
+
+.tm-select-wrapper select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 12px !important;
+  cursor: pointer;
+}
+
+/* 9. Estado (Switch Box) */
+.tm-switch-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tm-switch-box:hover {
+  border-color: #CBD5E1 !important;
+}
+
+.tm-checkbox {
+  width: 20px !important;
+  height: 20px !important;
+  margin-top: 1px !important;
+  border-radius: 4px !important;
+  border: 2px solid #CBD5E1 !important;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tm-checkbox:checked {
+  background-color: #2563EB !important;
+  border-color: #2563EB !important;
+}
+
+/* 10. Fotografía */
+.tm-photo-box {
+  background-color: #F8FAFC !important;
+  border: 1px dashed #CBD5E1 !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+}
+
+.tm-avatar-box {
+  width: 90px !important;
+  height: 90px !important;
+  background-color: #E2E8F0 !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.tm-avatar-box img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.tm-avatar-box .material-symbols-outlined {
+  font-size: 44px !important;
+  color: #94A3B8 !important;
+}
+
+/* 11. Botón Guardar */
+.tm-btn-submit {
+  background-color: #0F172A !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 10px 28px !important;
+  border: none !important;
+  transition: background-color 0.2s !important;
+}
+
+.tm-btn-submit:hover {
+  background-color: #1E293B !important;
+}
+
+/* 12. Fuentes monoespaciadas */
+#id_documento {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 700 !important;
+}

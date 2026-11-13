@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Registrá las especificaciones técnicas y asigná al propietario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vehiculos/form.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'vehiculos:lista' %}" class="btn-volver-tm">
+  <span class="material-symbols-outlined">arrow_back</span>
+  <span>Volver a Vehículos</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-light-custom">
+  <div class="mx-auto" style="max-width: 1200px; width: 100%;">
+  
+    <form method="POST" enctype="multipart/form-data" class="mt-2">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+      <div class="alert alert-danger mb-4 rounded-3">
+        <div class="fw-bold mb-1">Por favor corregí los siguientes errores:</div>
+        <ul class="mb-0 small">
+          {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}<li><strong>General:</strong> {{ error }}</li>{% endfor %}
+          {% endif %}
+          {% for field in form %}
+            {% for error in field.errors %}<li><strong>{{ field.label }}:</strong> {{ error }}</li>{% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- CONTENEDOR PRINCIPAL (Tarjeta Blanca con Grid) -->
+      <div class="tm-main-card">
+        
+        <div class="row g-4">
+          
+          <!-- COLUMNA IZQUIERDA (Datos del vehículo) -->
+          <div class="col-12 col-lg-8 border-end-lg pe-lg-4">
+            
+            <!-- Sección 1: Propietario y Placa -->
+            <div class="mb-4 pb-3 border-bottom">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                1. Propietario & Placa
+              </h6>
+              <div class="row g-3">
+                <div class="col-12 col-md-8">
+                  <label class="tm-label" for="{{ form.cliente.id_for_label }}">Propietario <span class="text-danger">*</span></label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">person</span>
+                    <div class="tm-select-wrapper">
+                      {{ form.cliente }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="tm-label" for="id_placa">Placa <span class="text-danger">*</span></label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">tag</span>
+                    <input type="text" name="placa" id="id_placa" required
+                           value="{{ form.placa.value|default:'' }}"
+                           class="tm-input" placeholder="ABC-123">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 2: Especificaciones Técnicas -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                2. Especificaciones Técnicas
+              </h6>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="id_marca">Marca</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">minor_crash</span>
+                    <input type="text" name="marca" id="id_marca" value="{{ form.marca.value|default:'' }}"
+                           class="tm-input" placeholder="Ej: Toyota...">
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="id_modelo">Modelo</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">commute</span>
+                    <input type="text" name="modelo" id="id_modelo" value="{{ form.modelo.value|default:'' }}"
+                           class="tm-input" placeholder="Ej: Corolla...">
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="tm-label" for="id_anio">Año</label>
+                  <input type="number" name="anio" id="id_anio" min="1900" 
+                         value="{{ form.anio.value|default:'' }}" class="tm-input" placeholder="2022">
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="tm-label" for="id_color">Color</label>
+                  <div class="tm-select-wrapper">
+                    {{ form.color }}
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="tm-label" for="id_kilometraje_actual">Kilometraje Actual (km)</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">speed</span>
+                    <input type="number" name="kilometraje_actual" id="id_kilometraje_actual" min="0"
+                           value="{{ form.kilometraje_actual.value|default:'' }}"
+                           class="tm-input" placeholder="Ej: 45000">
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="tm-label" for="id_vin">VIN / Número de Chasis</label>
+                  <div class="tm-input-container">
+                    <span class="material-symbols-outlined tm-icon">vpn_key</span>
+                    <input type="text" name="vin" id="id_vin" value="{{ form.vin.value|default:'' }}"
+                           class="tm-input" placeholder="17 caracteres alfanuméricos">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA (Estado y Foto) -->
+          <div class="col-12 col-lg-4 ps-lg-4 mt-4 mt-lg-0">
+            
+            <!-- Estado -->
+            <div class="mb-4">
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                Estado del Vehículo
+              </h6>
+              <label class="tm-switch-box" for="id_activo">
+                <input type="checkbox" name="activo" id="id_activo" class="tm-checkbox"
+                       {% if form.activo.value or form.activo.value is None %}checked{% endif %}>
+                <div>
+                  <div class="fw-bold text-dark" style="font-size: 13px;">Vehículo Habilitado</div>
+                  <div class="text-muted" style="font-size: 12px;">Permite crear órdenes de trabajo.</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Fotografía -->
+            <div>
+              <h6 class="text-uppercase fw-bold text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                Fotografía
+              </h6>
+              <div class="tm-photo-box" id="vehiculo-form-dropzone">
+                <div class="text-center mb-3">
+                  <div class="tm-avatar-box mx-auto" style="width: 90px; height: 90px;">
+                    {% if form.instance.foto %}
+                      <img src="{{ form.instance.foto.url }}" id="vehiculo-form-preview-img" alt="Foto del vehículo">
+                      <span class="material-symbols-outlined d-none" id="vehiculo-form-preview-placeholder">directions_car</span>
+                    {% else %}
+                      <img src="" id="vehiculo-form-preview-img" class="d-none" alt="Vista previa">
+                      <span class="material-symbols-outlined" id="vehiculo-form-preview-placeholder">directions_car</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <input type="file" name="foto" id="id_foto" accept="image/*" class="d-none">
+                <div class="d-flex flex-column gap-2">
+                  <button type="button" onclick="document.getElementById('id_foto').click()" class="btn btn-sm btn-outline-secondary bg-white fw-semibold w-100">
+                    <span class="material-symbols-outlined align-middle me-1" style="font-size: 16px;">upload</span> Seleccionar
+                  </button>
+                  <button type="button" id="vehiculo-form-foto-remove" class="btn btn-sm btn-link text-danger text-decoration-none d-none w-100 py-0">
+                    Eliminar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex justify-content-end gap-3 mt-4 mb-4">
+        <a href="{% url 'vehiculos:lista' %}" class="btn btn-light border fw-semibold px-4" style="border-radius: 8px;">Cancelar</a>
+        <button type="submit" class="tm-btn-submit">
+          Guardar Vehículo
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/vehiculos/form.js' %}"></script>
+{% endblock %}

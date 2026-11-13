@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Reporte de Movimientos de Stock{% endblock %}
+{% block subtitle %}Histórico de entradas, salidas y ajustes de inventario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reportes/dashboard.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'inventario:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Inventario</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column gap-4">
+  <!-- Filtros -->
+  <div class="card-workshop p-3 no-print">
+    <form method="GET" class="row g-3 align-items-end">
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Fecha Inicio</label>
+        <input type="date" name="inicio" value="{{ inicio }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Fecha Fin</label>
+        <input type="date" name="fin" value="{{ fin }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label form-label-tm small">Tipo de Movimiento</label>
+        <select name="tipo" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="ENTRADA" {% if tipo == 'ENTRADA' %}selected{% endif %}>Entradas</option>
+          <option value="SALIDA" {% if tipo == 'SALIDA' %}selected{% endif %}>Salidas</option>
+          <option value="AJUSTE" {% if tipo == 'AJUSTE' %}selected{% endif %}>Ajustes</option>
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-tm-gold btn-sm flex-fill d-flex align-items-center justify-content-center gap-1">
+          <span class="material-symbols-outlined fs-6">filter_list</span>
+          <span>Filtrar</span>
+        </button>
+        <a href="{% url 'reportes:exportar_movimientos_pdf' %}?inicio={{ inicio }}&fin={{ fin }}&tipo={{ tipo }}" target="_blank" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" title="Exportar a PDF">
+          <span class="material-symbols-outlined fs-6">picture_as_pdf</span>
+          <span>PDF</span>
+        </a>
+        <a href="{% url 'reportes:exportar_movimientos_csv' %}?inicio={{ inicio }}&fin={{ fin }}&tipo={{ tipo }}" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" title="Exportar a CSV">
+          <span class="material-symbols-outlined fs-6">download</span>
+          <span>CSV</span>
+        </a>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm" title="Imprimir">
+          <span class="material-symbols-outlined fs-6">print</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Resumen -->
+  <div class="row g-3">
+    <div class="col-12 col-sm-6">
+      <div class="card-workshop p-3 border-start border-4 border-success">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem;">Total Entradas en Periodo</div>
+        <div class="h3 fw-black text-success mb-0">{{ total_entradas }} <span class="fs-6 text-muted fw-normal">unidades</span></div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6">
+      <div class="card-workshop p-3 border-start border-4 border-danger">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem;">Total Salidas en Periodo</div>
+        <div class="h3 fw-black text-danger mb-0">{{ total_salidas }} <span class="fs-6 text-muted fw-normal">unidades</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Detallada -->
+  <div class="card-workshop overflow-hidden">
+    <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fs-6 fw-bold text-primary mb-0 text-uppercase tracking-wider">Detalle de Movimientos</h3>
+        <p class="text-muted small mb-0" style="font-size: 0.72rem;">Desde {{ inicio }} hasta {{ fin }}</p>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Producto</th>
+            <th class="text-center">Tipo</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-center">Stock Resultante</th>
+            <th>Motivo</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td class="font-monospace text-muted small">{{ m.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+            <td>
+              <div class="fw-bold text-dark small">{{ m.producto.nombre }}</div>
+              <div class="font-monospace text-muted" style="font-size: 0.72rem;">{{ m.producto.codigo_sku }}</div>
+            </td>
+            <td class="text-center">
+              {% if m.tipo_movimiento == 'ENTRADA' %}
+                <span class="badge-status status-completada">ENTRADA</span>
+              {% elif m.tipo_movimiento == 'SALIDA' or m.tipo_movimiento == 'VENTA_DIRECTA' %}
+                <span class="badge-status status-cancelada">SALIDA</span>
+              {% else %}
+                <span class="badge-status status-en_proceso">AJUSTE</span>
+              {% endif %}
+            </td>
+            <td class="text-center fw-black small {% if m.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
+              {{ m.cantidad|stringformat:"+d" }}
+            </td>
+            <td class="text-center fw-bold text-dark small">
+              {{ m.stock_resultante }}
+            </td>
+            <td class="small text-muted text-truncate" style="max-width: 200px;" title="{{ m.motivo }}">
+              {{ m.motivo }}
+            </td>
+            <td class="small text-muted">{{ m.usuario }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-5 text-center text-muted small">No se encontraron movimientos en este periodo.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

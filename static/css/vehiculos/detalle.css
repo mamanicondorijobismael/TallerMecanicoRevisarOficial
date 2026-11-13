@@ -1,0 +1,52 @@
+/* ==========================================================================
+   Vehículos Module - Detalle CSS (Self-Contained & Independent)
+   ========================================================================== */
+
+.vehicle-detail-photo {
+  height: 240px;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: #F1F5F9;
+  position: relative;
+  border: 1px solid var(--tm-border, #E2E8F0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(13, 40, 78, 0.08);
+}
+
+.vehicle-detail-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vehicle-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #F8FAFC;
+  border-radius: 0.75rem;
+  border: 1px solid #E2E8F0;
+}
+
+.vehicle-spec-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.vehicle-spec-item .label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.04em;
+}
+
+.vehicle-spec-item .val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0D284E;
+  margin-top: 2px;
+}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Recibo de Cobro #{{ recibo.numero_recibo }}{% endblock %}
+{% block subtitle %}Gestión de liquidación y pagos del cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/recibos/detalle.css' %}"/>
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'recibos:lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Recibos</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex align-items-center gap-2">
+  <a href="{% url 'recibos:imprimir' recibo.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+    <span class="material-symbols-outlined fs-6">print</span>
+    <span>Imprimir Recibo</span>
+  </a>
+  <span class="badge-status status-{{ recibo.estado_pago|lower }} py-1 px-3 fw-bold">
+    {{ recibo.get_estado_pago_display|upper }}
+  </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Datos del Recibo -->
+  <div class="col-12 col-md-6 d-flex flex-column gap-4">
+    <div class="invoice-summary-card">
+      <div class="header-title">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span>Liquidación del Cobro</span>
+      </div>
+      <div class="d-flex flex-column mb-3">
+        <div class="invoice-meta-row">
+          <span class="text-muted">Cliente</span>
+          <span class="fw-bold text-dark">{{ recibo.cliente.nombre_razon_social }}</span>
+        </div>
+        <div class="invoice-meta-row">
+          <span class="text-muted">Orden de Trabajo</span>
+          <a href="{% url 'ordenes:detalle' recibo.orden.pk %}" class="fw-bold text-primary text-decoration-none d-inline-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">build_circle</span>
+            <span>OT #{{ recibo.orden.numero_orden }}</span>
+          </a>
+        </div>
+        <div class="invoice-meta-row">
+          <span class="text-muted">Fecha de Emisión</span>
+          <span class="text-dark">{{ recibo.fecha_emision|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="invoice-meta-row">
+          <span class="text-muted">Monto Total</span>
+          <span class="fs-5 fw-black text-dark font-monospace">Bs {{ recibo.total|floatformat:2 }}</span>
+        </div>
+      </div>
+
+      <div class="balance-alert-box {% if recibo.saldo_pendiente > 0 %}pending{% else %}paid{% endif %} mb-3">
+        <div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;">Saldo Pendiente</div>
+          <div class="fs-5 fw-black font-monospace">Bs {{ recibo.saldo_pendiente|floatformat:2 }}</div>
+        </div>
+        <div>
+          {% if recibo.saldo_pendiente > 0 %}
+          <span class="badge-status status-pendiente">PENDIENTE</span>
+          {% else %}
+          <span class="badge-status status-completada">CANCELADO</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if recibo.saldo_pendiente > 0 %}
+      <div>
+        <button type="button" class="btn btn-tm-gold w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-pago">
+          <span class="material-symbols-outlined fs-5">payments</span>
+          <span>Registrar Pago / Abono</span>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Historial de Pagos -->
+  <div class="col-12 col-md-6 d-flex flex-column gap-4">
+    <div class="card-workshop p-4">
+      <h3 class="fs-6 fw-bold text-primary mb-3 text-uppercase tracking-wider d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined fs-5 text-warning">history</span>
+        <span>Historial de Pagos Registrados</span>
+      </h3>
+      <div class="d-flex flex-column gap-2">
+        {% for p in pagos %}
+        <div class="payment-history-item">
+          <div>
+            <div class="fw-bold text-dark small font-monospace">Bs {{ p.monto|floatformat:2 }} <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.72rem;">{{ p.get_metodo_pago_display }}</span></div>
+            <div class="text-muted small mt-1" style="font-size: 0.72rem;">{{ p.fecha|date:"d/m/Y H:i" }}{% if p.referencia %} · Ref: <span class="fw-semibold text-dark">{{ p.referencia }}</span>{% endif %}</div>
+          </div>
+          <span class="badge-status status-completada" style="font-size: 0.7rem;">PAGADO</span>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+          <span class="material-symbols-outlined fs-1 text-black-50 mb-2 d-block">receipt</span>
+          <div class="small fw-semibold">No hay pagos registrados para este recibo.</div>
+          <p class="small text-muted mb-0">Hacé clic en "Registrar Pago / Abono" para asentar un cobro.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Bootstrap: Registrar Pago (PRO UX) -->
+{% if recibo.saldo_pendiente > 0 %}
+<div class="modal fade" id="modal-pago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
+      <!-- Header -->
+      <div class="modal-header-tm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="modal-icon-badge">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <div>
+            <h5 class="modal-title-tm" id="modalPagoLabel">Registrar Pago / Abono</h5>
+            <p class="modal-subtitle-tm">Recibo #{{ recibo.numero_recibo }} · Saldo pendiente: Bs {{ recibo.saldo_pendiente|floatformat:2 }}</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-tm" data-bs-dismiss="modal" aria-label="Close">
+          <span class="material-symbols-outlined fs-5">close</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" action="{% url 'recibos:pago' recibo.pk %}">
+        {% csrf_token %}
+        <div class="modal-body-tm">
+          <div class="form-section-card mb-0">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label-pro">Monto a Pagar (Bs) <span class="req">*</span></label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">attach_money</span>
+                  </div>
+                  <input type="number" name="monto" step="0.01" max="{{ recibo.saldo_pendiente|stringformat:'f' }}" value="{{ recibo.saldo_pendiente|stringformat:'f' }}" class="form-control-pro fw-bold fs-6" required>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro">Método de Pago</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">point_of_sale</span>
+                  </div>
+                  <input type="text" class="form-control-pro bg-light text-dark fw-bold" value="Efectivo" readonly>
+                  <input type="hidden" name="metodo_pago" value="EFECTIVO">
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label-pro">Referencia / Observación (opcional)</label>
+                <div class="input-icon-group">
+                  <div class="input-icon-lead">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                  </div>
+                  <input type="text" name="referencia" class="form-control-pro" placeholder="Ej: Recibo manual #1234, Transferencia...">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-tm">
+          <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6">check</span>
+            <span>Confirmar Pago</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/recibos/detalle.js' %}"></script>
+{% endblock %}

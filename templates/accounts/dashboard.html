@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Panel de Control – El Taller del Maestro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/dashboard.css' %}?v=2.3"/>
+{% endblock %}
+
+{% block page_title %}Panel de Control{% endblock %}
+{% block subtitle %}Resumen operativo en tiempo real · {{ hoy|date:"d \d\e F \d\e Y" }}{% endblock %}
+
+{% block topbar_actions %}
+<!-- Filtro de período -->
+<form method="GET" class="d-inline-flex align-items-center gap-2 period-filter-pill rounded-pill px-3 py-1" id="form-periodo">
+  <span class="material-symbols-outlined text-muted" style="font-size:18px;">calendar_month</span>
+  <label for="selectPeriodo" class="small fw-semibold text-muted mb-0" style="white-space:nowrap;">Últimos</label>
+  <select
+    id="selectPeriodo"
+    name="periodo"
+    class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark py-0 ps-0"
+    style="width:auto;cursor:pointer;"
+    onchange="this.form.submit()"
+    aria-label="Filtrar período"
+  >
+    <option value="7"  {% if periodo == '7' %}selected{% endif %}>7 días</option>
+    <option value="15" {% if periodo == '15' %}selected{% endif %}>15 días</option>
+    <option value="30" {% if periodo == '30' %}selected{% endif %}>30 días</option>
+    <option value="60" {% if periodo == '60' %}selected{% endif %}>60 días</option>
+  </select>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5 dashboard-page">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECCIÓN A: KPIs OPERATIVOS
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4 mt-1">
+
+    <!-- Órdenes Activas -->
+    <div class="col-6 col-md-3">
+      <a href="{% url 'ordenes:lista' %}?estado=activas" class="kpi-card kpi-primary text-decoration-none d-flex">
+        <div class="kpi-icon-wrap bg-primary bg-opacity-10">
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">build_circle</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-title">Órdenes Activas</div>
+          <div class="kpi-value">{{ ordenes_activas }}</div>
+          <div class="kpi-footer">
+            <span class="kpi-badge bg-primary-subtle text-primary">
+              <span class="material-symbols-outlined">pending</span>
+              En proceso
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Completadas -->
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-success">
+        <div class="kpi-icon-wrap bg-success bg-opacity-10">
+          <span class="material-symbols-outlined text-success" style="font-variation-settings:'FILL' 1;">task_alt</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-title">Completadas</div>
+          <div class="kpi-value">{{ ordenes_completadas_mes }}</div>
+          <div class="kpi-footer">
+            <span class="kpi-badge bg-success-subtle text-success">
+              <span class="material-symbols-outlined">calendar_today</span>
+              Últimos {{ periodo }} días
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="col-6 col-md-3">
+      <a href="{% url 'clientes:lista' %}" class="kpi-card kpi-secondary text-decoration-none d-flex">
+        <div class="kpi-icon-wrap bg-secondary bg-opacity-10">
+          <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">group</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-title">Clientes Activos</div>
+          <div class="kpi-value">{{ clientes_total }}</div>
+          <div class="kpi-footer">
+            <span class="kpi-badge bg-secondary-subtle text-secondary">
+              <span class="material-symbols-outlined">directions_car</span>
+              {{ vehiculos_total }} vehículos
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Stock Crítico -->
+    <div class="col-6 col-md-3">
+      <a href="{% url 'inventario:lista' %}?stock=critico" class="kpi-card {% if stock_critico_count > 0 %}kpi-danger{% else %}kpi-success{% endif %} text-decoration-none d-flex">
+        <div class="kpi-icon-wrap {% if stock_critico_count > 0 %}bg-danger bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %}">
+          <span class="material-symbols-outlined {% if stock_critico_count > 0 %}text-danger{% else %}text-success{% endif %}" style="font-variation-settings:'FILL' 1;">inventory_2</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-title">Stock Crítico</div>
+          <div class="kpi-value">{{ stock_critico_count }}</div>
+          <div class="kpi-footer">
+            {% if stock_critico_count > 0 %}
+            <span class="kpi-badge bg-danger-subtle text-danger">
+              <span class="material-symbols-outlined">warning</span>
+              Requiere atención
+            </span>
+            {% else %}
+            <span class="kpi-badge bg-success-subtle text-success">
+              <span class="material-symbols-outlined">check_circle</span>
+              Stock OK
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECCIÓN B: MÉTRICAS FINANCIERAS (solo admin/dueño)
+       ═══════════════════════════════════════════════════════════════ -->
+  {% if user.is_superuser or user.rol and user.rol.puede_ver_reportes %}
+  <div class="row g-3 mb-4">
+
+    <!-- Ingresos -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="owner-card owner-card-warning">
+        <div class="owner-icon bg-warning bg-opacity-10">
+          <span class="material-symbols-outlined text-warning" style="font-variation-settings:'FILL' 1;">payments</span>
+        </div>
+        <div class="owner-body">
+          <div class="owner-label">Ingresos</div>
+          <div class="owner-value">Gs. {{ ingresos_total|floatformat:0|intcomma }}</div>
+          <div class="owner-hint">Últimos {{ periodo }} días</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Costos -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="owner-card owner-card-secondary">
+        <div class="owner-icon bg-secondary bg-opacity-10">
+          <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">trending_down</span>
+        </div>
+        <div class="owner-body">
+          <div class="owner-label">Costos</div>
+          <div class="owner-value">Gs. {{ costos_total|floatformat:0|intcomma }}</div>
+          <div class="owner-hint">Repuestos y materiales</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ganancia Neta -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="owner-card {% if ganancia_neta >= 0 %}owner-card-info{% else %}owner-card-warning{% endif %}">
+        <div class="owner-icon {% if ganancia_neta >= 0 %}bg-info bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
+          <span class="material-symbols-outlined {% if ganancia_neta >= 0 %}text-info{% else %}text-danger{% endif %}" style="font-variation-settings:'FILL' 1;">account_balance</span>
+        </div>
+        <div class="owner-body">
+          <div class="owner-label">Ganancia Neta</div>
+          <div class="owner-value">Gs. {{ ganancia_neta|floatformat:0|intcomma }}</div>
+          <div class="owner-hint">{% if ganancia_neta >= 0 %}Resultado positivo{% else %}Resultado negativo{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket Promedio -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="owner-card owner-card-info">
+        <div class="owner-icon bg-info bg-opacity-10">
+          <span class="material-symbols-outlined text-info" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+        </div>
+        <div class="owner-body">
+          <div class="owner-label">Ticket Promedio</div>
+          <div class="owner-value">Gs. {{ ticket_promedio|floatformat:0|intcomma }}</div>
+          <div class="owner-hint">Por orden completada</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECCIÓN C: ÓRDENES RECIENTES + COLUMNA LATERAL
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="row g-4">
+
+    <!-- ── Panel Izquierdo: Órdenes Recientes ── -->
+    <div class="col-12 col-lg-8">
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <div class="panel-header-icon bg-primary bg-opacity-10">
+              <span class="material-symbols-outlined text-primary" style="font-size:18px;font-variation-settings:'FILL' 1;">build</span>
+            </div>
+            <div>
+              <p class="panel-header-title mb-0">Órdenes Recientes</p>
+              <p class="panel-header-subtitle mb-0">Últimas 8 órdenes registradas</p>
+            </div>
+          </div>
+          <a href="{% url 'ordenes:lista' %}" class="panel-header-link">
+            Ver todas
+            <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="panel-body-list">
+          {% if ordenes_recientes %}
+            {% for orden in ordenes_recientes %}
+            <a href="{% url 'ordenes:detalle' orden.pk %}" class="order-row">
+              <!-- Avatar con iniciales del vehículo -->
+              <div class="order-avatar">
+                {{ orden.vehiculo.placa|slice:":2"|upper }}
+              </div>
+
+              <!-- Info principal -->
+              <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="order-number">#{{ orden.numero }}</span>
+                  <span class="order-plate">{{ orden.vehiculo.placa }}</span>
+                </div>
+                <div class="order-client">
+                  {{ orden.vehiculo.cliente.nombre_completo|default:"Sin cliente" }}
+                  {% if orden.mecanico %}
+                    · <span class="text-muted">{{ orden.mecanico.nombre_completo|truncatewords:2 }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Estado + Fecha -->
+              <div class="order-side">
+                {% if orden.estado == 'PENDIENTE' %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis fw-bold" style="font-size:0.68rem;">Pendiente</span>
+                {% elif orden.estado == 'EN_PROCESO' %}
+                  <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size:0.68rem;">En Proceso</span>
+                {% elif orden.estado == 'PAUSADA' %}
+                  <span class="badge bg-secondary-subtle text-secondary fw-bold" style="font-size:0.68rem;">Pausada</span>
+                {% elif orden.estado == 'COMPLETADA' %}
+                  <span class="badge bg-success-subtle text-success fw-bold" style="font-size:0.68rem;">Completada</span>
+                {% elif orden.estado == 'COBRADA' %}
+                  <span class="badge bg-info-subtle text-info-emphasis fw-bold" style="font-size:0.68rem;">Cobrada</span>
+                {% elif orden.estado == 'CANCELADA' %}
+                  <span class="badge bg-danger-subtle text-danger fw-bold" style="font-size:0.68rem;">Cancelada</span>
+                {% else %}
+                  <span class="badge bg-light text-muted fw-bold" style="font-size:0.68rem;">{{ orden.estado }}</span>
+                {% endif %}
+                <span class="order-date">{{ orden.fecha_creacion|date:"d/m/Y" }}</span>
+              </div>
+
+              <span class="material-symbols-outlined order-chevron">chevron_right</span>
+            </a>
+            {% endfor %}
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon bg-primary bg-opacity-10 mx-auto mb-3">
+              <span class="material-symbols-outlined text-primary" style="font-size:36px;">build_circle</span>
+            </div>
+            <p class="empty-state-title">No hay órdenes aún</p>
+            <p class="empty-state-text">Creá la primera orden de trabajo para comenzar a gestionar el taller.</p>
+            <a href="{% url 'ordenes:lista' %}" class="btn btn-sm btn-primary px-4 rounded-pill fw-semibold">
+              <span class="material-symbols-outlined fs-6 me-1">add</span>
+              Nueva Orden
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel Derecho: Columna lateral (solo Control y Stock) ── -->
+    <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+
+      <!-- Control General -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <div class="panel-header-icon bg-warning bg-opacity-10">
+              <span class="material-symbols-outlined text-warning" style="font-size:18px;font-variation-settings:'FILL' 1;">analytics</span>
+            </div>
+            <div>
+              <p class="panel-header-title mb-0">Control General</p>
+              <p class="panel-header-subtitle mb-0">Distribución operativa</p>
+            </div>
+          </div>
+        </div>
+        <div class="p-3">
+          <div class="stat-rows">
+            <div class="stat-row">
+              <div class="stat-row-head">
+                <span class="fw-semibold small text-dark">Clientes Activos</span>
+                <span class="fw-bold small text-primary">{{ clientes_total }}</span>
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill bg-primary" style="width:{% widthratio clientes_total clientes_total|default:1 100 %}%"></div>
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-row-head">
+                <span class="fw-semibold small text-dark">Vehículos Registrados</span>
+                <span class="fw-bold small text-secondary">{{ vehiculos_total }}</span>
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill bg-secondary" style="width:100%"></div>
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-row-head">
+                <span class="fw-semibold small text-dark">Órdenes Activas</span>
+                <span class="fw-bold small text-warning">{{ ordenes_activas }}</span>
+              </div>
+              <div class="stat-bar">
+                {% with total=ordenes_activas|add:ordenes_completadas_mes %}
+                <div class="stat-bar-fill" style="background:var(--bs-warning);width:{% if total > 0 %}{% widthratio ordenes_activas total 100 %}{% else %}0{% endif %}%"></div>
+                {% endwith %}
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-row-head">
+                <span class="fw-semibold small text-dark">Completadas (período)</span>
+                <span class="fw-bold small text-success">{{ ordenes_completadas_mes }}</span>
+              </div>
+              <div class="stat-bar">
+                {% with total=ordenes_activas|add:ordenes_completadas_mes %}
+                <div class="stat-bar-fill bg-success" style="width:{% if total > 0 %}{% widthratio ordenes_completadas_mes total 100 %}{% else %}0{% endif %}%"></div>
+                {% endwith %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Crítico -->
+      {% if productos_criticos %}
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <div class="panel-header-icon bg-danger bg-opacity-10">
+              <span class="material-symbols-outlined text-danger" style="font-size:18px;font-variation-settings:'FILL' 1;">warning</span>
+            </div>
+            <div>
+              <p class="panel-header-title mb-0">Stock Crítico</p>
+              <p class="panel-header-subtitle mb-0">{{ stock_critico_count }} producto{{ stock_critico_count|pluralize }} bajo mínimo</p>
+            </div>
+          </div>
+          <a href="{% url 'inventario:lista' %}?stock=critico" class="panel-header-link text-danger">
+            Ver
+            <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+          </a>
+        </div>
+        <div class="p-3">
+          <div class="stock-list">
+            {% for producto in productos_criticos %}
+            <div class="stock-item">
+              <div class="stock-item-body">
+                <div class="stock-item-name" title="{{ producto.nombre }}">{{ producto.nombre|truncatechars:30 }}</div>
+                <div class="stock-item-min">Mínimo: {{ producto.stock_minimo }} unid.</div>
+              </div>
+              <div class="stock-item-count">
+                <span class="stock-count-value">{{ producto.stock_actual }}</span>
+                <span class="stock-count-unit">Unid.</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Bloque de Stock OK si no hay críticos -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="d-flex align-items-center gap-2">
+            <div class="panel-header-icon bg-success bg-opacity-10">
+              <span class="material-symbols-outlined text-success" style="font-size:18px;font-variation-settings:'FILL' 1;">inventory_2</span>
+            </div>
+            <div>
+              <p class="panel-header-title mb-0">Inventario</p>
+              <p class="panel-header-subtitle mb-0">Estado del stock</p>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 text-center">
+          <span class="material-symbols-outlined text-success" style="font-size:40px;font-variation-settings:'FILL' 1;">check_circle</span>
+          <p class="fw-bold text-dark mt-2 mb-1">Stock normalizado</p>
+          <p class="text-muted small">Todos los productos están por encima del mínimo requerido.</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div><!-- /col lateral -->
+  </div><!-- /row principal -->
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/dashboard.js' %}?v=2.1"></script>
+{% endblock %}

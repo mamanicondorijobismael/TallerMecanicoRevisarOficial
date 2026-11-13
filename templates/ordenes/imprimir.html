@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Imprimir Orden #{{ orden.numero_orden }}{% endblock %}
+{% block subtitle %}{{ orden.vehiculo.patente }} – {{ orden.vehiculo.cliente.nombre_razon_social }}{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'ordenes:detalle' orden.pk %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span>Volver</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1 no-print">
+  <span class="material-symbols-outlined fs-6">print</span>
+  <span>Imprimir / PDF</span>
+</button>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .app-sidebar, .app-topbar, .app-footer, footer, .no-print, header, .workshop-header { display: none !important; }
+    .app-main-content, .dashboard-hero-section { margin: 0 !important; padding: 0 !important; background: transparent !important; }
+    body { background: white !important; font-size: 11pt; color: #111; }
+    .ot-print-doc { box-shadow: none !important; border: 1px solid #ccc; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+  }
+  .ot-print-doc {
+    max-width: 800px;
+    margin: 1.5rem auto;
+    background: white;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  .ot-header {
+    background: #0D284E;
+    color: white;
+    padding: 24px 30px;
+  }
+  .ot-body { padding: 28px 30px; }
+  .ot-table th { background: #f8fafc; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; padding: 8px 12px; border-bottom: 2px solid #e2e8f0; }
+  .ot-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+  .ot-table tr:last-child td { border-bottom: none; }
+  .ot-badge-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ot-print-doc">
+  <!-- Header con Logo Oficial -->
+  <div class="ot-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{% static 'img/logo-taller.png' %}" alt="El Taller del Maestro" style="height: 50px; width: auto; object-fit: contain;">
+      <div>
+        <h1 class="h4 fw-bold text-white mb-0">El Taller del Maestro</h1>
+        <div class="text-white-50 small">Orden de Trabajo y Hoja de Servicio</div>
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="text-white-50 small text-uppercase fw-bold">Orden de Trabajo</div>
+      <div class="h3 fw-bold text-warning mb-0"># {{ orden.numero_orden }}</div>
+      <div class="text-white-50 small">{{ orden.fecha_creacion|date:"d/m/Y H:i" }}</div>
+      <div class="mt-1">
+        <span class="badge bg-light text-dark font-monospace">{{ orden.get_estado_display }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ot-body">
+    <!-- Información del Cliente y Vehículo -->
+    <div class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+      <div class="col-12 col-md-6 border-end-md">
+        <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size:0.7rem;">Datos del Cliente</div>
+        <div class="fw-bold text-dark fs-6">{{ orden.vehiculo.cliente.nombre_razon_social }}</div>
+        <div class="text-muted small">Documento / CUIT: {{ orden.vehiculo.cliente.documento|default:"—" }}</div>
+        <div class="text-muted small">Teléfono: {{ orden.vehiculo.cliente.telefono|default:"—" }}</div>
+        <div class="text-muted small">Dirección: {{ orden.vehiculo.cliente.direccion|default:"—" }}</div>
+      </div>
+      <div class="col-12 col-md-6 ps-md-3">
+        <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size:0.7rem;">Datos de la Unidad</div>
+        <div class="fw-bold text-dark fs-6">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} ({{ orden.vehiculo.anio|default:"S/A" }})</div>
+        <div class="text-muted small">Placa: <strong class="text-dark font-monospace">{{ orden.vehiculo.placa }}</strong></div>
+        <div class="text-muted small">Kilometraje de Ingreso: {{ orden.kilometraje }} km</div>
+        <div class="text-muted small">Mecánico Asignado: {{ orden.mecanico.nombre_completo|default:"Sin asignar" }}</div>
+      </div>
+    </div>
+
+    <!-- Diagnóstico y Observaciones -->
+    <div class="mb-4">
+      <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size:0.7rem;">Diagnóstico / Observaciones Técnicas</div>
+      <div class="p-3 border rounded-2 bg-white small lh-base text-dark">
+        {{ orden.diagnostico|default:"Sin diagnóstico registrado." }}
+      </div>
+      {% if orden.observaciones %}
+      <div class="small fw-bold text-muted text-uppercase mt-2 mb-1" style="font-size:0.7rem;">Observaciones Adicionales</div>
+      <div class="p-2 border rounded-2 bg-white small text-muted">
+        {{ orden.observaciones }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Mano de Obra y Servicios -->
+    {% if servicios %}
+    <div class="mb-4">
+      <div class="small fw-bold text-dark text-uppercase mb-2 pb-1 border-bottom" style="letter-spacing:0.05em;">Mano de Obra y Servicios Realizados</div>
+      <table class="table ot-table mb-0 w-100">
+        <thead>
+          <tr>
+            <th>Descripción del Trabajo</th>
+            <th class="text-end">Monto Directo (Bs)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in servicios %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ s.descripcion }}</td>
+            <td class="text-end fw-bold text-dark">Bs {{ s.subtotal|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Repuestos del Inventario -->
+    {% if productos %}
+    <div class="mb-4">
+      <div class="small fw-bold text-dark text-uppercase mb-2 pb-1 border-bottom" style="letter-spacing:0.05em;">Repuestos e Insumos Utilizados (Taller)</div>
+      <table class="table ot-table mb-0 w-100">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Descripción</th>
+            <th class="text-center">Cant</th>
+            <th class="text-end">Precio Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in productos %}
+          <tr>
+            <td class="font-monospace text-muted small">{{ p.producto.codigo_sku }}</td>
+            <td class="fw-semibold text-dark">{{ p.producto.nombre }}</td>
+            <td class="text-center">{{ p.cantidad }}</td>
+            <td class="text-end text-muted">Bs {{ p.precio_unitario|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-dark">Bs {{ p.subtotal|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Repuestos Externos -->
+    {% if repuestos_externos %}
+    <div class="mb-4">
+      <div class="small fw-bold text-dark text-uppercase mb-2 pb-1 border-bottom" style="letter-spacing:0.05em;">Repuestos Externos (Adquiridos fuera)</div>
+      <table class="table ot-table mb-0 w-100">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th class="text-center">Cant</th>
+            <th class="text-end">Precio Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for re in repuestos_externos %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ re.descripcion }}</td>
+            <td class="text-center">{{ re.cantidad }}</td>
+            <td class="text-end text-muted">Bs {{ re.precio_unitario|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-dark">Bs {{ re.subtotal|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Resumen y Totalizadores -->
+    <div class="row justify-content-end mt-4 pt-3 border-top">
+      <div class="col-12 col-md-5">
+        <div class="d-flex justify-content-between py-1 small text-muted">
+          <span>Subtotal Mano de Obra:</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_servicios|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-1 small text-muted">
+          <span>Subtotal Repuestos Taller:</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_productos|floatformat:2 }}</span>
+        </div>
+        {% if orden.subtotal_repuestos_externos > 0 %}
+        <div class="d-flex justify-content-between py-1 small text-muted">
+          <span>Subtotal Repuestos Externos:</span>
+          <span class="fw-semibold text-dark">Bs {{ orden.subtotal_repuestos_externos|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between py-2 mt-2 border-top border-2 border-dark align-items-center">
+          <span class="fw-bold text-dark text-uppercase">Total General:</span>
+          <span class="fs-5 fw-bold text-primary font-monospace">Bs {{ orden.total|floatformat:2 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firmas al pie -->
+    <div class="row text-center mt-5 pt-4">
+      <div class="col-6">
+        <div style="border-top: 1px dashed #9ca3af; width: 80%; margin: 0 auto; padding-top: 8px;">
+          <small class="text-muted d-block">Firma del Cliente</small>
+          <small class="text-muted" style="font-size:0.7rem;">Conforme Recepción / Retiro</small>
+        </div>
+      </div>
+      <div class="col-6">
+        <div style="border-top: 1px dashed #9ca3af; width: 80%; margin: 0 auto; padding-top: 8px;">
+          <small class="text-muted d-block">Por El Taller del Maestro</small>
+          <small class="text-muted" style="font-size:0.7rem;">Responsable Técnico</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

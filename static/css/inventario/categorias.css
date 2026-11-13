@@ -1,0 +1,35 @@
+/* ==========================================
+   Estilos para el Selector de Iconos (Categorías)
+   ========================================== */
+
+.icon-selector-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px solid #E2E8F0;
+  background-color: #ffffff;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-selector-btn:hover {
+  border-color: #94A3B8;
+  color: #0D284E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.icon-selector-btn.active {
+  border-color: #2563EB;
+  background-color: #EFF6FF;
+  color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.icon-selector-btn .material-symbols-outlined {
+  font-size: 24px;
+}

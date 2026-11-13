@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block subtitle %}Gestión de personal y accesos del taller{% endblock %}
+
+{% block breadcrumb_current %}{% if usuario %}Editar Usuario{% else %}Nuevo Usuario{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/usuarios.css' %}?v=1.5" />
+{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'usuario_lista' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">arrow_back</span>
+  <span class="d-none d-sm-inline">Volver al Personal</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if usuario %}
+<a href="{% url 'usuario_cambiar_password' usuario.pk %}"
+   class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">key</span>
+  <span class="d-none d-md-inline">Cambiar Contraseña</span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-10">
+    
+    <!-- Tarjeta blanca plana, sin encabezado azul oscuro -->
+    <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
+
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        
+        <div class="p-4 p-md-5">
+
+          {# ── Errores globales ── #}
+          {% if form.errors %}
+          <div class="alert alert-danger d-flex align-items-start gap-2 mb-4 p-3 rounded-3 shadow-sm border-0">
+            <span class="material-symbols-outlined fs-5 flex-shrink-0 text-danger">error</span>
+            <div class="small">
+              <div class="fw-bold mb-1">Por favor corregí los siguientes campos:</div>
+              <ul class="mb-0 ps-3">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="row g-4">
+
+            <!-- ═══ COLUMNA IZQUIERDA: Datos personales + Foto ═══ -->
+            <div class="col-12 col-lg-7">
+
+              <!-- SECCIÓN 1: DATOS PERSONALES -->
+              <div class="form-section-card mb-4">
+                <div class="form-section-header">
+                  <span>Datos Personales y Contacto</span>
+                </div>
+                <div class="p-4">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label-pro" for="{{ form.nombre_completo.id_for_label }}">
+                        Nombre Completo <span class="req">*</span>
+                      </label>
+                      {{ form.nombre_completo }}
+                      {% if form.nombre_completo.errors %}<div class="text-danger small mt-1">{{ form.nombre_completo.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="form-label-pro" for="{{ form.email.id_for_label }}">
+                        Correo Electrónico <span class="req">*</span>
+                      </label>
+                      {{ form.email }}
+                      {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="form-label-pro" for="{{ form.telefono.id_for_label }}">
+                        Teléfono / Móvil
+                      </label>
+                      {{ form.telefono }}
+                      {% if form.telefono.errors %}<div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECCIÓN 2: FOTO DE PERFIL -->
+              <div class="form-section-card">
+                <div class="form-section-header">
+                  <span>Fotografía de Perfil</span>
+                </div>
+                <div class="p-4">
+                  <div class="avatar-upload-container" id="usuario-dropzone">
+                    <div class="avatar-preview-box">
+                      {% if form.instance.foto %}
+                        <img src="{{ form.instance.foto.url }}" alt="{{ form.instance.nombre_completo }}" id="usuario-foto-preview">
+                        <span class="material-symbols-outlined d-none" id="usuario-foto-placeholder">account_circle</span>
+                      {% else %}
+                        <img src="" alt="Vista previa" class="d-none" id="usuario-foto-preview">
+                        <span class="material-symbols-outlined" id="usuario-foto-placeholder">account_circle</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="avatar-upload-info">
+                      <h6>Foto del Usuario</h6>
+                      <p>Arrastrá una imagen aquí o hacé clic en el botón para seleccionarla (JPG o PNG recomendados).</p>
+                      <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <label for="usuario-foto-input" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 mb-0 cursor-pointer">
+                          <span class="material-symbols-outlined fs-6">upload</span>
+                          <span>Seleccionar Foto</span>
+                        </label>
+                        {{ form.foto }}
+                        <button type="button" class="btn btn-sm btn-outline-danger d-none" id="usuario-foto-remove">
+                          <span class="material-symbols-outlined fs-6">delete</span>
+                          <span>Quitar</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {% if form.foto.errors %}<div class="text-danger small mt-2">{{ form.foto.errors.0 }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ COLUMNA DERECHA: Credenciales + Rol ═══ -->
+            <div class="col-12 col-lg-5">
+
+              <!-- SECCIÓN 3: CREDENCIALES -->
+              <div class="form-section-card mb-4">
+                <div class="form-section-header">
+                  <span>Credenciales de Acceso</span>
+                </div>
+                <div class="p-4">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label-pro" for="{{ form.username.id_for_label }}">
+                        Nombre de Usuario (Login) <span class="req">*</span>
+                      </label>
+                      {{ form.username }}
+                      <div class="form-text small" style="font-size: 0.72rem;">Usuario único para iniciar sesión.</div>
+                      {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    {% if form.password1 %}
+                    <div class="col-12">
+                      <label class="form-label-pro" for="{{ form.password1.id_for_label }}">
+                        {{ form.password1.label }} <span class="req">*</span>
+                      </label>
+                      {{ form.password1 }}
+                      {% if form.password1.help_text %}
+                        <div class="form-text small" style="font-size: 0.72rem;">{{ form.password1.help_text }}</div>
+                      {% endif %}
+                      {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label-pro" for="{{ form.password2.id_for_label }}">
+                        {{ form.password2.label }} <span class="req">*</span>
+                      </label>
+                      {{ form.password2 }}
+                      {% if form.password2.help_text %}
+                        <div class="form-text small" style="font-size: 0.72rem;">{{ form.password2.help_text }}</div>
+                      {% endif %}
+                      {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if usuario %}
+                    <div class="col-12 mt-2">
+                      <div class="p-3 bg-light border rounded-3 text-center">
+                        <div class="text-muted small mb-2">Para cambiar la clave de este usuario:</div>
+                        <a href="{% url 'usuario_cambiar_password' usuario.pk %}" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 text-dark fw-bold">
+                          <span class="material-symbols-outlined fs-6">lock_reset</span>
+                          <span>Establecer Nueva Contraseña</span>
+                        </a>
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECCIÓN 4: ROL Y ESTADO -->
+              <div class="form-section-card">
+                <div class="form-section-header">
+                  <span>Rol Operativo y Estado</span>
+                </div>
+                <div class="p-4">
+                  <div class="mb-3">
+                    <label class="form-label-pro" for="{{ form.rol.id_for_label }}">
+                      Rol Asignado
+                    </label>
+                    {{ form.rol }}
+                    <div class="form-text small" style="font-size: 0.72rem;">Define los permisos y funciones habilitadas en el taller.</div>
+                    {% if form.rol.errors %}<div class="text-danger small mt-1">{{ form.rol.errors.0 }}</div>{% endif %}
+                  </div>
+
+                  {% if form.is_active %}
+                  <div class="p-3 bg-light border rounded-3 mt-3">
+                    <div class="form-check form-switch mb-1">
+                      {{ form.is_active }}
+                      <label class="form-check-label fw-bold text-dark ms-2" for="{{ form.is_active.id_for_label }}">
+                        {{ form.is_active.label }}
+                      </label>
+                    </div>
+                    <div class="text-muted small ps-4 ms-2" style="font-size: 0.75rem;">
+                      {{ form.is_active.help_text }}
+                    </div>
+                    {% if form.is_active.errors %}<div class="text-danger small mt-1">{{ form.is_active.errors.0 }}</div>{% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ── Footer ── -->
+        <div class="bg-light border-top px-4 py-3 d-flex justify-content-end gap-2">
+          <a href="{% url 'usuario_lista' %}" class="btn btn-white border btn-sm px-3 fw-semibold text-secondary shadow-sm">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-tm-gold btn-sm px-4 d-flex align-items-center gap-2 fw-bold shadow-sm">
+            <span class="material-symbols-outlined fs-6">save</span>
+            <span>{% if usuario %}Guardar Cambios{% else %}Crear Usuario{% endif %}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/usuarios.js' %}?v=1.5"></script>
+{% endblock %}

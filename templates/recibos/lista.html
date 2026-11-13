@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Recibos y Cobros{% endblock %}
+{% block subtitle %}Historial de recibos, liquidaciones y cobranzas del taller{% endblock %}
+
+{% block breadcrumb_current %}Recibos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/recibos/lista.css' %}?v=1.1" />
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ordenes:lista' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+  <span class="material-symbols-outlined fs-6">assignment</span>
+  <span class="d-none d-sm-inline">Ver Órdenes</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column gap-3">
+
+  <!-- ══ 1. FILTROS ══ -->
+  <div class="card-workshop">
+    <form method="GET" class="filter-bar">
+
+      <div class="row g-2 align-items-center">
+
+        <!-- Búsqueda -->
+        <div class="col-12 col-md-6 col-lg-6">
+          <div class="input-icon-group">
+            <div class="input-icon-lead">
+              <span class="material-symbols-outlined">search</span>
+            </div>
+            <input type="text" name="q" value="{{ query }}"
+                   placeholder="Buscar por N° recibo, orden o cliente..."
+                   class="form-control-pro">
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+          <select name="estado" class="form-control-pro">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+            <option value="PARCIAL"   {% if estado_filter == 'PARCIAL'   %}selected{% endif %}>Pago Parcial</option>
+            <option value="PAGADA"    {% if estado_filter == 'PAGADA'    %}selected{% endif %}>Cobrado / Pagado</option>
+            <option value="ANULADA"   {% if estado_filter == 'ANULADA'   %}selected{% endif %}>Anulado</option>
+          </select>
+        </div>
+
+        <!-- Botón filtrar -->
+        <div class="col-6 col-sm-3 col-md-2 col-lg-2">
+          <button type="submit" class="btn btn-tm-navy btn-sm w-100 d-flex align-items-center justify-content-center gap-1">
+            <span class="material-symbols-outlined fs-6">filter_alt</span>
+            <span class="d-none d-sm-inline">Filtrar</span>
+          </button>
+        </div>
+
+        <!-- Botón limpiar -->
+        <div class="col-6 col-sm-3 col-md-1 col-lg-1">
+          <a href="{% url 'recibos:lista' %}"
+             class="btn btn-tm-outline btn-sm w-100 d-flex align-items-center justify-content-center"
+             title="Limpiar filtros">
+            <span class="material-symbols-outlined fs-6">restart_alt</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Chips de filtros activos -->
+      {% if query or estado_filter %}
+      <div class="filter-active-chips mt-3 pt-3 border-top">
+        <span class="text-muted small fw-semibold me-1">Filtros activos:</span>
+        {% if query %}
+        <span class="filter-chip">
+          <span class="material-symbols-outlined" style="font-size:0.9rem;">search</span>
+          "{{ query }}"
+        </span>
+        {% endif %}
+        {% if estado_filter %}
+        <span class="filter-chip">
+          <span class="material-symbols-outlined" style="font-size:0.9rem;">filter_alt</span>
+          {{ estado_filter|capfirst }}
+        </span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- ══ 2. TABLA DE RECIBOS ══ -->
+  <div class="card-workshop overflow-hidden">
+
+    <!-- Meta bar: X recibos -->
+    <div class="table-meta-bar">
+      <div class="d-flex align-items-center gap-2">
+        <span class="material-symbols-outlined text-primary fs-5" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+        <span class="fw-bold text-dark small">
+          {{ recibos|length }} recibo{{ recibos|length|pluralize:"s" }}
+        </span>
+        <span class="text-muted small">
+          {% if query or estado_filter %}encontrado{{ recibos|length|pluralize:"s" }}{% else %}registrado{{ recibos|length|pluralize:"s" }}{% endif %}
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge-status status-completada">Cobrado</span>
+        <span class="badge-status status-en_proceso">Parcial</span>
+        <span class="badge-status status-pendiente">Pendiente</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-workshop mb-0">
+        <thead>
+          <tr>
+            <th>N° Recibo</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th class="d-none d-md-table-cell">Orden</th>
+            <th class="text-end d-none d-lg-table-cell">Subtotal</th>
+            <th class="text-end">Total</th>
+            <th class="text-center">Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recibos %}
+          <tr>
+            <td>
+              <a href="{% url 'recibos:detalle' r.pk %}" class="receipt-code-pill text-decoration-none">
+                <span class="material-symbols-outlined fs-6 text-warning">receipt_long</span>
+                <span>#{{ r.numero_recibo }}</span>
+              </a>
+            </td>
+            <td class="text-muted small text-nowrap">{{ r.fecha_emision|date:"d/m/Y H:i" }}</td>
+            <td>
+              <div class="fw-bold text-dark small">{{ r.cliente.nombre_razon_social }}</div>
+              {% if r.cliente.documento %}
+              <div class="text-muted font-monospace" style="font-size: 0.72rem;">{{ r.cliente.documento }}</div>
+              {% endif %}
+            </td>
+            <td class="d-none d-md-table-cell">
+              <a href="{% url 'ordenes:detalle' r.orden.pk %}"
+                 class="badge bg-light text-primary border text-decoration-none fw-semibold">
+                OT #{{ r.orden.numero_orden }}
+              </a>
+            </td>
+            <td class="text-end text-muted small d-none d-lg-table-cell">Bs {{ r.subtotal|floatformat:2 }}</td>
+            <td class="text-end">
+              <span class="receipt-amount-display">Bs {{ r.total|floatformat:2 }}</span>
+            </td>
+            <td class="text-center">
+              {% if r.estado_pago == 'PAGADA' %}
+                <span class="badge-status status-completada">COBRADO</span>
+              {% elif r.estado_pago == 'PARCIAL' %}
+                <span class="badge-status status-en_proceso">PARCIAL</span>
+              {% elif r.estado_pago == 'ANULADA' %}
+                <span class="badge-status status-cancelada">ANULADO</span>
+              {% else %}
+                <span class="badge-status status-pendiente">PENDIENTE</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'recibos:detalle' r.pk %}"
+                 class="btn-action-view"
+                 title="Gestionar recibo">
+                <span class="material-symbols-outlined fs-6">payments</span>
+                <span class="d-none d-lg-inline">Gestionar</span>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon bg-warning-subtle text-warning-emphasis">
+                  <span class="material-symbols-outlined display-4">receipt_long</span>
+                </div>
+                <h4 class="empty-state-title">No se encontraron recibos</h4>
+                <p class="empty-state-text">
+                  Los recibos se emiten desde una orden de trabajo finalizada o completada.
+                </p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                  {% if query or estado_filter %}
+                  <a href="{% url 'recibos:lista' %}" class="btn btn-tm-outline btn-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">restart_alt</span>
+                    Ver todos
+                  </a>
+                  {% endif %}
+                  <a href="{% url 'ordenes:lista' %}" class="btn btn-tm-gold btn-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">assignment</span>
+                    Ir a Órdenes
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <div class="table-pagination">
+      <div class="text-muted small">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+      </div>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}">
+              <span class="material-symbols-outlined fs-6">chevron_left</span>
+            </a>
+          </li>
+          {% endif %}
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}">
+              <span class="material-symbols-outlined fs-6">chevron_right</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/recibos/lista.js' %}?v=1.1"></script>
+{% endblock %}
